@@ -1,0 +1,9 @@
+contract Math(x: int) -> void {
+    if !Z {}
+
+    if !y() != x {}
+
+    if !(y() && x) {}
+
+    if !true {}
+}

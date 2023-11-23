@@ -1,0 +1,92 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=5) "Power",
+  Argument: (*ast.ContractArgumentToken)(<nil>),
+  ReturnType: (string) (len=4) "void",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=2 cap=2) {
+   (ast.IfToken) {
+    Condition: (ast.BooleanLiteralToken) {
+     Value: (bool) false,
+     Position: (int) 34
+    },
+    Position: (int) 31,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.ExponentToken) {
+      Left: (ast.NumberLiteralToken) {
+       Value: (int) 1,
+       Position: (int) 50
+      },
+      Right: (ast.NumberLiteralToken) {
+       Value: (int) 1,
+       Position: (int) 54
+      },
+      Position: (int) 51
+     }
+    },
+    Else: (*ast.ElseToken)(<nil>)
+   },
+   (ast.ExponentToken) {
+    Left: (ast.StringLiteralToken) {
+     Value: (string) (len=3) "abc",
+     Position: (int) 66
+    },
+    Right: (ast.ExponentToken) {
+     Left: (ast.StringLiteralToken) {
+      Value: (string) (len=1) "d",
+      Position: (int) 74
+     },
+     Right: (ast.ExponentToken) {
+      Left: (ast.NumberLiteralToken) {
+       Value: (int) 1,
+       Position: (int) 88
+      },
+      Right: (ast.ExponentToken) {
+       Left: (ast.MethodCallToken) {
+        Name: (string) (len=1) "a",
+        Position: (int) 92,
+        Arguments: ([]interface {}) {
+        },
+        ChainedCall: (interface {}) <nil>
+       },
+       Right: (ast.ExponentToken) {
+        Left: (ast.ReferenceToken) {
+         Name: (string) (len=1) "b",
+         Position: (int) 98,
+         Decorators: ([]ast.DecoratorToken) <nil>
+        },
+        Right: (ast.MethodCallToken) {
+         Name: (string) (len=1) "c",
+         Position: (int) 102,
+         Arguments: ([]interface {}) (len=1 cap=1) {
+          (ast.ObjectLiteralToken) {
+           Values: (map[string]interface {}) (len=1) {
+            (string) (len=5) "hello": (ast.StringLiteralToken) {
+             Value: (string) (len=6) "world^",
+             Position: (int) 126
+            }
+           },
+           Comments: ([]ast.CommentToken) {
+           },
+           Position: (int) 104
+          }
+         },
+         ChainedCall: (interface {}) <nil>
+        },
+        Position: (int) 99
+       },
+       Position: (int) 96
+      },
+      Position: (int) 89
+     },
+     Position: (int) 77
+    },
+    Position: (int) 71
+   }
+  }
+ }
+}

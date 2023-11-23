@@ -1,0 +1,3 @@
+contract Math(x: int) -> void {
+    if x && y() {}
+}

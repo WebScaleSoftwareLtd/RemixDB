@@ -1,0 +1,5 @@
+contract DoubleQuote() -> string {
+    "This is a double quoted string! \"wow strings!\"
+
+multi line!"
+}

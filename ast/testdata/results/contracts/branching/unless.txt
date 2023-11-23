@@ -1,0 +1,115 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=15) "UnlessStatement",
+  Argument: (*ast.ContractArgumentToken)({
+   Name: (string) (len=1) "x",
+   NameIndex: (int) 26,
+   Type: (string) (len=4) "bool",
+   TypeIndex: (int) 27
+  }),
+  ReturnType: (string) (len=4) "void",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=4 cap=4) {
+   (ast.UnlessToken) {
+    Condition: (ast.ReferenceToken) {
+     Name: (string) (len=1) "x",
+     Position: (int) 55,
+     Decorators: ([]ast.DecoratorToken) <nil>
+    },
+    Position: (int) 48,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.MethodCallToken) {
+      Name: (string) (len=1) "y",
+      Position: (int) 67,
+      Arguments: ([]interface {}) {
+      },
+      ChainedCall: (interface {}) <nil>
+     }
+    },
+    Else: (*ast.ElseToken)(<nil>)
+   },
+   (ast.UnlessToken) {
+    Condition: (ast.ReferenceToken) {
+     Name: (string) (len=1) "x",
+     Position: (int) 89,
+     Decorators: ([]ast.DecoratorToken) <nil>
+    },
+    Position: (int) 82,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.MethodCallToken) {
+      Name: (string) (len=1) "y",
+      Position: (int) 93,
+      Arguments: ([]interface {}) {
+      },
+      ChainedCall: (interface {}) <nil>
+     }
+    },
+    Else: (*ast.ElseToken)(<nil>)
+   },
+   (ast.UnlessToken) {
+    Condition: (ast.ReferenceToken) {
+     Name: (string) (len=1) "x",
+     Position: (int) 111,
+     Decorators: ([]ast.DecoratorToken) <nil>
+    },
+    Position: (int) 104,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.ReferenceToken) {
+      Name: (string) (len=1) "y",
+      Position: (int) 122,
+      Decorators: ([]ast.DecoratorToken) <nil>
+     }
+    },
+    Else: (*ast.ElseToken)({
+     Position: (int) 130,
+     Statements: ([]interface {}) (len=1 cap=1) {
+      (ast.NumberLiteralToken) {
+       Value: (int) 1234,
+       Position: (int) 147
+      }
+     },
+     Condition: (ast.ReferenceToken) {
+      Name: (string) (len=1) "z",
+      Position: (int) 135,
+      Decorators: ([]ast.DecoratorToken) <nil>
+     },
+     Next: (*ast.ElseToken)({
+      Position: (int) 158,
+      Statements: ([]interface {}) (len=1 cap=1) {
+       (ast.MethodCallToken) {
+        Name: (string) (len=4) "test",
+        Position: (int) 173,
+        Arguments: ([]interface {}) {
+        },
+        ChainedCall: (interface {}) <nil>
+       }
+      },
+      Condition: (interface {}) <nil>,
+      Next: (*ast.ElseToken)(<nil>)
+     })
+    })
+   },
+   (ast.UnlessToken) {
+    Condition: (ast.BooleanLiteralToken) {
+     Value: (bool) true,
+     Position: (int) 198
+    },
+    Position: (int) 191,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.MethodCallToken) {
+      Name: (string) (len=1) "y",
+      Position: (int) 213,
+      Arguments: ([]interface {}) {
+      },
+      ChainedCall: (interface {}) <nil>
+     }
+    },
+    Else: (*ast.ElseToken)(<nil>)
+   }
+  }
+ }
+}

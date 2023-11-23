@@ -1,0 +1,60 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=14) "IfInMethodCall",
+  Argument: (*ast.ContractArgumentToken)({
+   Name: (string) (len=1) "x",
+   NameIndex: (int) 25,
+   Type: (string) (len=4) "bool",
+   TypeIndex: (int) 26
+  }),
+  ReturnType: (string) (len=4) "void",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=2 cap=2) {
+   (ast.InlineIfToken) {
+    Condition: (ast.ReferenceToken) {
+     Name: (string) (len=1) "x",
+     Position: (int) 54,
+     Decorators: ([]ast.DecoratorToken) <nil>
+    },
+    Position: (int) 51,
+    Token: (ast.MethodCallToken) {
+     Name: (string) (len=1) "y",
+     Position: (int) 47,
+     Arguments: ([]interface {}) {
+     },
+     ChainedCall: (interface {}) <nil>
+    }
+   },
+   (ast.InlineIfToken) {
+    Condition: (ast.ReferenceToken) {
+     Name: (string) (len=1) "X",
+     Position: (int) 98,
+     Decorators: ([]ast.DecoratorToken) <nil>
+    },
+    Position: (int) 95,
+    Token: (ast.MethodCallToken) {
+     Name: (string) (len=1) "y",
+     Position: (int) 60,
+     Arguments: ([]interface {}) (len=1 cap=1) {
+      (ast.ObjectLiteralToken) {
+       Values: (map[string]interface {}) (len=1) {
+        (string) (len=5) "hello": (ast.StringLiteralToken) {
+         Value: (string) (len=5) "world",
+         Position: (int) 80
+        }
+       },
+       Comments: ([]ast.CommentToken) {
+       },
+       Position: (int) 62
+      }
+     },
+     ChainedCall: (interface {}) <nil>
+    }
+   }
+  }
+ }
+}

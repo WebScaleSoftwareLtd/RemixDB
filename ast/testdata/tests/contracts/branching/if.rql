@@ -1,0 +1,21 @@
+contract IfStatement(x: bool) -> void {
+    if x {
+        y()
+    }
+    elss = y()
+
+    if x { y() }
+
+    if x{
+        y
+    } elif z {
+        1234
+    } else {
+        test()
+    }
+
+    if true {
+        y()
+    }
+    e = y()
+}

@@ -1,0 +1,6 @@
+contract IfInMethodCall(x: bool) -> void {
+    y() if x
+    y({
+        hello = 'world'
+    }) if X
+}

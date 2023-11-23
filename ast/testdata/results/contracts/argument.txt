@@ -1,0 +1,19 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=4) "Test",
+  Argument: (*ast.ContractArgumentToken)({
+   Name: (string) (len=1) "a",
+   NameIndex: (int) 15,
+   Type: (string) (len=6) "string",
+   TypeIndex: (int) 16
+  }),
+  ReturnType: (string) (len=10) "HelloWorld",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) {
+  }
+ }
+}

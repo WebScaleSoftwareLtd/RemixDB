@@ -1,0 +1,6 @@
+contract UnlessInMethodCall(x: bool) -> void {
+    y() unless x
+    y({
+        hello = 'world'
+    }) unless X
+}

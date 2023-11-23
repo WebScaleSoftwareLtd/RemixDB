@@ -1,0 +1,5 @@
+contract HitsFCase() -> void {
+    test(falsee)
+    test(fal)
+    test(f)
+}

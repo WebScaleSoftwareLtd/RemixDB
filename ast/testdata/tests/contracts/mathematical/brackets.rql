@@ -1,0 +1,8 @@
+contract Brackets() -> void {
+    hi()
+    ('abc' + 'd') +
+        'e' + a() + 'f' + c({
+            hello = "world/"
+        })
+    test()
+}

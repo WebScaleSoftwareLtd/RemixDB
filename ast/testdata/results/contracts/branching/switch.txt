@@ -1,0 +1,64 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=15) "SwitchStatement",
+  Argument: (*ast.ContractArgumentToken)({
+   Name: (string) (len=1) "x",
+   NameIndex: (int) 26,
+   Type: (string) (len=6) "string",
+   TypeIndex: (int) 27
+  }),
+  ReturnType: (string) (len=4) "void",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=3 cap=4) {
+   (ast.SwitchToken) {
+    Position: (int) 50,
+    Condition: (ast.ReferenceToken) {
+     Name: (string) (len=1) "x",
+     Position: (int) 57,
+     Decorators: ([]ast.DecoratorToken) <nil>
+    },
+    Cases: ([]ast.SwitchCaseToken) <nil>,
+    Comments: ([]ast.CommentToken) <nil>
+   },
+   (ast.SwitchToken) {
+    Position: (int) 291,
+    Condition: (ast.ReferenceToken) {
+     Name: (string) (len=1) "x",
+     Position: (int) 298,
+     Decorators: ([]ast.DecoratorToken) <nil>
+    },
+    Cases: ([]ast.SwitchCaseToken) (len=1 cap=1) {
+     (ast.SwitchCaseToken) {
+      Position: (int) 310,
+      Name: (ast.ReferenceToken) {
+       Name: (string) (len=1) "a",
+       Position: (int) 310,
+       Decorators: ([]ast.DecoratorToken) <nil>
+      },
+      Statements: ([]interface {}) (len=1 cap=1) {
+       (ast.NullLiteralToken) {
+        Position: (int) 314
+       }
+      }
+     }
+    },
+    Comments: ([]ast.CommentToken) {
+    }
+   },
+   (ast.SwitchToken) {
+    Position: (int) 330,
+    Condition: (ast.ReferenceToken) {
+     Name: (string) (len=1) "x",
+     Position: (int) 337,
+     Decorators: ([]ast.DecoratorToken) <nil>
+    },
+    Cases: ([]ast.SwitchCaseToken) <nil>,
+    Comments: ([]ast.CommentToken) <nil>
+   }
+  }
+ }
+}

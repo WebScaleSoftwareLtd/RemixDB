@@ -1,0 +1,102 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=15) "ReturnStatement",
+  Argument: (*ast.ContractArgumentToken)(<nil>),
+  ReturnType: (string) (len=4) "void",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=4 cap=4) {
+   (ast.IfToken) {
+    Condition: (ast.BooleanLiteralToken) {
+     Value: (bool) false,
+     Position: (int) 44
+    },
+    Position: (int) 41,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.ReturnToken) {
+      Token: (ast.MethodCallToken) {
+       Name: (string) (len=1) "x",
+       Position: (int) 67,
+       Arguments: ([]interface {}) {
+       },
+       ChainedCall: (interface {}) <nil>
+      },
+      Position: (int) 60
+     }
+    },
+    Else: (*ast.ElseToken)(<nil>)
+   },
+   (ast.IfToken) {
+    Condition: (ast.BooleanLiteralToken) {
+     Value: (bool) false,
+     Position: (int) 85
+    },
+    Position: (int) 82,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.ReturnToken) {
+      Token: (ast.ReferenceToken) {
+       Name: (string) (len=1) "x",
+       Position: (int) 108,
+       Decorators: ([]ast.DecoratorToken) <nil>
+      },
+      Position: (int) 101
+     }
+    },
+    Else: (*ast.ElseToken)(<nil>)
+   },
+   (ast.IfToken) {
+    Condition: (ast.BooleanLiteralToken) {
+     Value: (bool) false,
+     Position: (int) 124
+    },
+    Position: (int) 121,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.InlineUnlessToken) {
+      Condition: (ast.BooleanLiteralToken) {
+       Value: (bool) true,
+       Position: (int) 156
+      },
+      Position: (int) 149,
+      Token: (ast.ReturnToken) {
+       Token: (ast.ReferenceToken) {
+        Name: (string) (len=1) "x",
+        Position: (int) 147,
+        Decorators: ([]ast.DecoratorToken) <nil>
+       },
+       Position: (int) 140
+      }
+     }
+    },
+    Else: (*ast.ElseToken)(<nil>)
+   },
+   (ast.IfToken) {
+    Condition: (ast.BooleanLiteralToken) {
+     Value: (bool) false,
+     Position: (int) 175
+    },
+    Position: (int) 172,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.InlineIfToken) {
+      Condition: (ast.BooleanLiteralToken) {
+       Value: (bool) true,
+       Position: (int) 203
+      },
+      Position: (int) 200,
+      Token: (ast.ReturnToken) {
+       Token: (ast.ReferenceToken) {
+        Name: (string) (len=1) "x",
+        Position: (int) 198,
+        Decorators: ([]ast.DecoratorToken) <nil>
+       },
+       Position: (int) 191
+      }
+     }
+    },
+    Else: (*ast.ElseToken)(<nil>)
+   }
+  }
+ }
+}

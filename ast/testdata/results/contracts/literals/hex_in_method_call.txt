@@ -1,0 +1,25 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=15) "HexInMethodCall",
+  Argument: (*ast.ContractArgumentToken)(<nil>),
+  ReturnType: (string) (len=4) "void",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=1 cap=1) {
+   (ast.MethodCallToken) {
+    Name: (string) (len=4) "test",
+    Position: (int) 41,
+    Arguments: ([]interface {}) (len=1 cap=1) {
+     (ast.NumberLiteralToken) {
+      Value: (int) 255,
+      Position: (int) 46
+     }
+    },
+    ChainedCall: (interface {}) <nil>
+   }
+  }
+ }
+}

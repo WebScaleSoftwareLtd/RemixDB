@@ -1,0 +1,5 @@
+contract HitsNCase() -> void {
+    test(nullll)
+    test(nul)
+    test(n)
+}

@@ -1,0 +1,4 @@
+mapping MappingName using Item1, Item2 {
+    // Hello World!
+    x -> y
+}

@@ -1,0 +1,15 @@
+contract WhileStatement(x: bool) -> void {
+    while x {
+        y()
+    }
+
+    while x { y() }
+
+    while x{
+        y
+    }
+
+    while true {
+        y()
+    }
+}

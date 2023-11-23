@@ -1,0 +1,4 @@
+@thing
+mapping MappingName using Item {
+    x -> y
+}

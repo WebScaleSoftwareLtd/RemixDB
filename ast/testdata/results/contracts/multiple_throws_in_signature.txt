@@ -1,0 +1,22 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=4) "Test",
+  Argument: (*ast.ContractArgumentToken)(<nil>),
+  ReturnType: (string) (len=10) "HelloWorld",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) (len=2 cap=2) {
+   (ast.ContractThrowsToken) {
+    Name: (string) (len=1) "X",
+    Position: (int) 37
+   },
+   (ast.ContractThrowsToken) {
+    Name: (string) (len=13) "LongException",
+    Position: (int) 40
+   }
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) {
+  }
+ }
+}

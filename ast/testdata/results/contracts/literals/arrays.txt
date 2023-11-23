@@ -1,0 +1,31 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=6) "Arrays",
+  Argument: (*ast.ContractArgumentToken)(<nil>),
+  ReturnType: (string) (len=8) "string[]",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=1 cap=1) {
+   (ast.ArrayLiteralToken) {
+    Values: ([]interface {}) (len=3 cap=4) {
+     (ast.StringLiteralToken) {
+      Value: (string) (len=5) "hello",
+      Position: (int) 37
+     },
+     (ast.StringLiteralToken) {
+      Value: (string) (len=5) "world",
+      Position: (int) 46
+     },
+     (ast.StringLiteralToken) {
+      Value: (string) (len=27) "this is a test\n\ntesting 123",
+      Position: (int) 55
+     }
+    },
+    Position: (int) 36
+   }
+  }
+ }
+}

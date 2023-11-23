@@ -1,0 +1,7 @@
+@root
+struct demo {
+    @test(123)
+    hello: string
+
+    world: int
+}

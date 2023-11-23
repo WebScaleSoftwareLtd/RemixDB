@@ -1,0 +1,8 @@
+contract ChainedMethodCall() -> void {
+    x().
+        y({
+            hello = "world"
+        }).
+        z().
+        thing
+}

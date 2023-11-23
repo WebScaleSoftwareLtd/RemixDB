@@ -1,0 +1,3 @@
+contract FalseInMethodCall() -> void {
+    test(false)
+}

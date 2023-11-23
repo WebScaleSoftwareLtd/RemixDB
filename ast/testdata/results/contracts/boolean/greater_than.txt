@@ -1,0 +1,40 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=4) "Math",
+  Argument: (*ast.ContractArgumentToken)({
+   Name: (string) (len=1) "x",
+   NameIndex: (int) 15,
+   Type: (string) (len=3) "int",
+   TypeIndex: (int) 16
+  }),
+  ReturnType: (string) (len=4) "void",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=1 cap=1) {
+   (ast.IfToken) {
+    Condition: (ast.GreaterThanToken) {
+     Left: (ast.ReferenceToken) {
+      Name: (string) (len=1) "x",
+      Position: (int) 39,
+      Decorators: ([]ast.DecoratorToken) <nil>
+     },
+     Right: (ast.MethodCallToken) {
+      Name: (string) (len=1) "y",
+      Position: (int) 43,
+      Arguments: ([]interface {}) {
+      },
+      ChainedCall: (interface {}) <nil>
+     },
+     Position: (int) 40
+    },
+    Position: (int) 36,
+    Statements: ([]interface {}) {
+    },
+    Else: (*ast.ElseToken)(<nil>)
+   }
+  }
+ }
+}

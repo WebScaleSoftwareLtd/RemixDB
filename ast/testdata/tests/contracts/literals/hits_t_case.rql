@@ -1,0 +1,5 @@
+contract HitsTCase() -> void {
+    test(truee)
+    test(tru)
+    test(tr)
+}

@@ -1,0 +1,3 @@
+contract False() -> bool {
+    false
+}

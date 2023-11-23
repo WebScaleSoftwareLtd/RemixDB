@@ -1,0 +1,3 @@
+contract Binary() -> int {
+    0b100
+}

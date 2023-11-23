@@ -1,0 +1,9 @@
+contract Subtract() -> void {
+    if false {
+        1 - 1
+    }
+    'abc' - 'd' -
+        1 - a() - b - c({
+            hello = "world-"
+        })
+}

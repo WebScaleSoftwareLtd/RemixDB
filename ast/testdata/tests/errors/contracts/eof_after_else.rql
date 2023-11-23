@@ -1,0 +1,4 @@
+contract IfEOF() -> void {
+    if x {
+
+    } else

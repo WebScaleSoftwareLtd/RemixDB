@@ -1,0 +1,39 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.MappingToken) {
+  MappingPartialToken: (ast.MappingPartialToken) {
+   Position: (int) 0,
+   Key: (string) (len=1) "z",
+   Value: (ast.MappingPartialToken) {
+    Position: (int) 77,
+    Key: (string) (len=1) "z",
+    Value: (ast.MappingPartialToken) {
+     Position: (int) 123,
+     Key: (string) (len=1) "z",
+     Value: (string) (len=1) "a",
+     Comments: ([]ast.CommentToken) {
+     }
+    },
+    Comments: ([]ast.CommentToken) (len=1 cap=1) {
+     (ast.CommentToken) {
+      Comment: (string) (len=20) " wow lots of nesting",
+      Position: (int) 87
+     }
+    }
+   },
+   Comments: ([]ast.CommentToken) (len=1 cap=1) {
+    (ast.CommentToken) {
+     Comment: (string) (len=13) " Hello World!",
+     Position: (int) 52
+    }
+   }
+  },
+  Name: (string) (len=11) "MappingName",
+  Using: ([]string) (len=3 cap=4) {
+   (string) (len=5) "Item1",
+   (string) (len=5) "Item2",
+   (string) (len=5) "Item3"
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  }
+ }
+}

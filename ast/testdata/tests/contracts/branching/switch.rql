@@ -1,0 +1,21 @@
+contract SwitchStatement(x: string) -> void {
+    switch x {
+        'y' = {
+            'hello'
+        }
+        // wow! a comment!
+        'z' = // comment!
+            'hi'
+        // many many
+        // Comments
+        a = true
+        // wow! multiple
+        // Comments
+    }
+
+    switch x {
+        a = null
+    }
+
+    switch x {}
+}

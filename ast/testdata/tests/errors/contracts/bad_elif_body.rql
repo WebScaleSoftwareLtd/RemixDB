@@ -1,0 +1,7 @@
+contract BadBody() -> void {
+    if x {
+
+    } elif y() {
+        #
+    }
+}

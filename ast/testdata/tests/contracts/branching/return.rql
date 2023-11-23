@@ -1,0 +1,17 @@
+contract ReturnStatement() -> void {
+    if false {
+        return x()
+    }
+
+    if false {
+        return x
+    }
+
+    if false {
+        return x unless true
+    }
+
+    if false {
+        return x if true
+    }
+}

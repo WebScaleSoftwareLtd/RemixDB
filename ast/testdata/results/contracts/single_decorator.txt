@@ -1,0 +1,19 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=5) "World",
+  Argument: (*ast.ContractArgumentToken)(<nil>),
+  ReturnType: (string) (len=4) "void",
+  Position: (int) 7,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) (len=1 cap=1) {
+   (ast.DecoratorToken) {
+    Method: (string) (len=5) "hello",
+    Arguments: (string) "",
+    Position: (int) 0
+   }
+  },
+  Statements: ([]interface {}) {
+  }
+ }
+}

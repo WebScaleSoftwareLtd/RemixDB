@@ -1,0 +1,4 @@
+(*ast.ParserError)({
+ Message: (string) (len=32) "unexpected '#' in contract token",
+ Position: (int) 63
+})

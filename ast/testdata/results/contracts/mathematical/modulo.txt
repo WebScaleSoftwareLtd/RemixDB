@@ -1,0 +1,92 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=6) "Modulo",
+  Argument: (*ast.ContractArgumentToken)(<nil>),
+  ReturnType: (string) (len=4) "void",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=2 cap=2) {
+   (ast.IfToken) {
+    Condition: (ast.BooleanLiteralToken) {
+     Value: (bool) false,
+     Position: (int) 35
+    },
+    Position: (int) 32,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.ModuloToken) {
+      Left: (ast.NumberLiteralToken) {
+       Value: (int) 1,
+       Position: (int) 51
+      },
+      Right: (ast.NumberLiteralToken) {
+       Value: (int) 1,
+       Position: (int) 55
+      },
+      Position: (int) 52
+     }
+    },
+    Else: (*ast.ElseToken)(<nil>)
+   },
+   (ast.ModuloToken) {
+    Left: (ast.StringLiteralToken) {
+     Value: (string) (len=3) "abc",
+     Position: (int) 67
+    },
+    Right: (ast.ModuloToken) {
+     Left: (ast.StringLiteralToken) {
+      Value: (string) (len=1) "d",
+      Position: (int) 75
+     },
+     Right: (ast.ModuloToken) {
+      Left: (ast.NumberLiteralToken) {
+       Value: (int) 1,
+       Position: (int) 89
+      },
+      Right: (ast.ModuloToken) {
+       Left: (ast.MethodCallToken) {
+        Name: (string) (len=1) "a",
+        Position: (int) 93,
+        Arguments: ([]interface {}) {
+        },
+        ChainedCall: (interface {}) <nil>
+       },
+       Right: (ast.ModuloToken) {
+        Left: (ast.ReferenceToken) {
+         Name: (string) (len=1) "b",
+         Position: (int) 99,
+         Decorators: ([]ast.DecoratorToken) <nil>
+        },
+        Right: (ast.MethodCallToken) {
+         Name: (string) (len=1) "c",
+         Position: (int) 103,
+         Arguments: ([]interface {}) (len=1 cap=1) {
+          (ast.ObjectLiteralToken) {
+           Values: (map[string]interface {}) (len=1) {
+            (string) (len=5) "hello": (ast.StringLiteralToken) {
+             Value: (string) (len=6) "world%",
+             Position: (int) 127
+            }
+           },
+           Comments: ([]ast.CommentToken) {
+           },
+           Position: (int) 105
+          }
+         },
+         ChainedCall: (interface {}) <nil>
+        },
+        Position: (int) 100
+       },
+       Position: (int) 97
+      },
+      Position: (int) 90
+     },
+     Position: (int) 78
+    },
+    Position: (int) 72
+   }
+  }
+ }
+}

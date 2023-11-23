@@ -1,0 +1,15 @@
+contract Throws(x: bool) -> void {
+    if false {
+        throw MyAwesomeError()
+    }
+
+    if false {
+        throw MyAwesomeError({
+            hello = "world"
+        })
+    }
+
+    if false {
+        throw MyAwesomeError() if x
+    }
+}

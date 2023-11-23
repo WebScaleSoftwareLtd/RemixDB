@@ -1,0 +1,4 @@
+(*ast.ParserError)({
+ Message: (string) (len=63) "unexpected '\n\x00\x00\x00\x00\x00' after 'e' character - did you mean extends?",
+ Position: (int) 45
+})

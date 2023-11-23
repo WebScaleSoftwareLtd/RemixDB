@@ -1,0 +1,9 @@
+mapping MappingName using Item1, Item2, Item3 {
+    // Hello World!
+    x -> {
+        // wow lots of nesting
+        y -> {
+            z -> a
+        }
+    }
+}

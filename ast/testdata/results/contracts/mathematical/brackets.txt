@@ -1,0 +1,84 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=8) "Brackets",
+  Argument: (*ast.ContractArgumentToken)(<nil>),
+  ReturnType: (string) (len=4) "void",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=3 cap=4) {
+   (ast.MethodCallToken) {
+    Name: (string) (len=2) "hi",
+    Position: (int) 34,
+    Arguments: ([]interface {}) {
+    },
+    ChainedCall: (interface {}) <nil>
+   },
+   (ast.AddToken) {
+    Left: (ast.AddToken) {
+     Left: (ast.StringLiteralToken) {
+      Value: (string) (len=3) "abc",
+      Position: (int) 44
+     },
+     Right: (ast.StringLiteralToken) {
+      Value: (string) (len=1) "d",
+      Position: (int) 52
+     },
+     Position: (int) 49
+    },
+    Right: (ast.AddToken) {
+     Left: (ast.StringLiteralToken) {
+      Value: (string) (len=1) "e",
+      Position: (int) 67
+     },
+     Right: (ast.AddToken) {
+      Left: (ast.MethodCallToken) {
+       Name: (string) (len=1) "a",
+       Position: (int) 73,
+       Arguments: ([]interface {}) {
+       },
+       ChainedCall: (interface {}) <nil>
+      },
+      Right: (ast.AddToken) {
+       Left: (ast.StringLiteralToken) {
+        Value: (string) (len=1) "f",
+        Position: (int) 79
+       },
+       Right: (ast.MethodCallToken) {
+        Name: (string) (len=1) "c",
+        Position: (int) 85,
+        Arguments: ([]interface {}) (len=1 cap=1) {
+         (ast.ObjectLiteralToken) {
+          Values: (map[string]interface {}) (len=1) {
+           (string) (len=5) "hello": (ast.StringLiteralToken) {
+            Value: (string) (len=6) "world/",
+            Position: (int) 109
+           }
+          },
+          Comments: ([]ast.CommentToken) {
+          },
+          Position: (int) 87
+         }
+        },
+        ChainedCall: (interface {}) <nil>
+       },
+       Position: (int) 82
+      },
+      Position: (int) 77
+     },
+     Position: (int) 70
+    },
+    Position: (int) 56
+   },
+   (ast.MethodCallToken) {
+    Name: (string) (len=4) "test",
+    Position: (int) 133,
+    Arguments: ([]interface {}) {
+    },
+    ChainedCall: (interface {}) <nil>
+   }
+  }
+ }
+}

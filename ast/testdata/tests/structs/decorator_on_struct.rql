@@ -1,0 +1,4 @@
+@hello
+struct x {
+    a: string
+}

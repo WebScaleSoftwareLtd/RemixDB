@@ -1,0 +1,19 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ExtendsToken) {
+  Token: (ast.StructToken) {
+   Name: (string) (len=1) "x",
+   Position: (int) 8,
+   Decorators: ([]ast.DecoratorToken) {
+   },
+   Fields: ([]interface {}) (len=1 cap=1) {
+    (ast.ReferenceToken) {
+     Name: (string) (len=1) "y",
+     Position: (int) 23,
+     Decorators: ([]ast.DecoratorToken) {
+     }
+    }
+   }
+  },
+  Position: (int) 0
+ }
+}

@@ -1,0 +1,72 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=17) "TryCatchStatement",
+  Argument: (*ast.ContractArgumentToken)(<nil>),
+  ReturnType: (string) (len=4) "void",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=3 cap=4) {
+   (ast.MethodCallToken) {
+    Name: (string) (len=1) "a",
+    Position: (int) 43,
+    Arguments: ([]interface {}) {
+    },
+    ChainedCall: (interface {}) <nil>
+   },
+   (ast.TryToken) {
+    Position: (int) 51,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.ReferenceToken) {
+      Name: (string) (len=1) "x",
+      Position: (int) 65,
+      Decorators: ([]ast.DecoratorToken) <nil>
+     }
+    },
+    Catch: (*ast.CatchToken)({
+     Position: (int) 51,
+     Statements: ([]interface {}) (len=1 cap=1) {
+      (ast.MethodCallToken) {
+       Name: (string) (len=5) "hello",
+       Position: (int) 99,
+       Arguments: ([]interface {}) {
+       },
+       ChainedCall: (interface {}) <nil>
+      }
+     },
+     Exception: (string) (len=4) "Test",
+     Variable: (string) (len=1) "e",
+     Next: (*ast.CatchToken)({
+      Position: (int) 51,
+      Statements: ([]interface {}) {
+      },
+      Exception: (string) (len=1) "A",
+      Variable: (string) (len=13) "ALongVariable",
+      Next: (*ast.CatchToken)({
+       Position: (int) 51,
+       Statements: ([]interface {}) (len=1 cap=1) {
+        (ast.ReferenceToken) {
+         Name: (string) (len=1) "a",
+         Position: (int) 167,
+         Decorators: ([]ast.DecoratorToken) <nil>
+        }
+       },
+       Exception: (string) (len=9) "Exception",
+       Variable: (string) "",
+       Next: (*ast.CatchToken)(<nil>)
+      })
+     })
+    })
+   },
+   (ast.MethodCallToken) {
+    Name: (string) (len=7) "testing",
+    Position: (int) 179,
+    Arguments: ([]interface {}) {
+    },
+    ChainedCall: (interface {}) <nil>
+   }
+  }
+ }
+}

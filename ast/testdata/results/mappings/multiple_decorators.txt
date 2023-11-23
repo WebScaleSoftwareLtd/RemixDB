@@ -1,0 +1,27 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.MappingToken) {
+  MappingPartialToken: (ast.MappingPartialToken) {
+   Position: (int) 20,
+   Key: (string) (len=1) "x",
+   Value: (string) (len=1) "y",
+   Comments: ([]ast.CommentToken) {
+   }
+  },
+  Name: (string) (len=11) "MappingName",
+  Using: ([]string) (len=1 cap=1) {
+   (string) (len=4) "Item"
+  },
+  Decorators: ([]ast.DecoratorToken) (len=2 cap=2) {
+   (ast.DecoratorToken) {
+    Method: (string) (len=5) "thing",
+    Arguments: (string) "",
+    Position: (int) 0
+   },
+   (ast.DecoratorToken) {
+    Method: (string) (len=6) "thing2",
+    Arguments: (string) (len=3) "123",
+    Position: (int) 7
+   }
+  }
+ }
+}

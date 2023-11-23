@@ -1,0 +1,6 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.CommentToken) {
+  Comment: (string) (len=19) " This is a comment!",
+  Position: (int) 0
+ }
+}

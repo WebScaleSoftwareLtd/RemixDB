@@ -1,0 +1,5 @@
+contract SingleQuote() -> string {
+    'This is a single quoted string! \'wow strings!\'
+
+multi line!'
+}

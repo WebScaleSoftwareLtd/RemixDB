@@ -1,0 +1,64 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=12) "ForStatement",
+  Argument: (*ast.ContractArgumentToken)({
+   Name: (string) (len=1) "x",
+   NameIndex: (int) 23,
+   Type: (string) (len=4) "bool",
+   TypeIndex: (int) 24
+  }),
+  ReturnType: (string) (len=4) "void",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=1 cap=1) {
+   (ast.ForToken) {
+    Assignment: (ast.AssignmentToken) {
+     Name: (string) (len=1) "i",
+     Value: (ast.NumberLiteralToken) {
+      Value: (int) 0,
+      Position: (int) 53
+     },
+     Position: (int) 49
+    },
+    Condition: (ast.LessThanToken) {
+     Left: (ast.ReferenceToken) {
+      Name: (string) (len=1) "i",
+      Position: (int) 56,
+      Decorators: ([]ast.DecoratorToken) <nil>
+     },
+     Right: (ast.NumberLiteralToken) {
+      Value: (int) 10,
+      Position: (int) 60
+     },
+     Position: (int) 57
+    },
+    Increment: (ast.AssignmentToken) {
+     Name: (string) (len=1) "i",
+     Value: (ast.AddToken) {
+      Left: (ast.ReferenceToken) {
+       Name: (string) (len=1) "i",
+       Position: (int) 68,
+       Decorators: ([]ast.DecoratorToken) <nil>
+      },
+      Right: (ast.NumberLiteralToken) {
+       Value: (int) 1,
+       Position: (int) 72
+      },
+      Position: (int) 69
+     },
+     Position: (int) 64
+    },
+    Position: (int) 45,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.CommentToken) {
+      Comment: (string) (len=19) " This is a comment.",
+      Position: (int) 84
+     }
+    }
+   }
+  }
+ }
+}

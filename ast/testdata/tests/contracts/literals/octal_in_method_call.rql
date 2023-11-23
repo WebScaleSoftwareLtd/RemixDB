@@ -1,0 +1,3 @@
+contract OctalInMethodCall() -> void {
+    test(0o777)
+}

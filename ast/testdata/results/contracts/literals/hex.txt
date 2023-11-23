@@ -1,0 +1,18 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=3) "Hex",
+  Argument: (*ast.ContractArgumentToken)(<nil>),
+  ReturnType: (string) (len=3) "int",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=1 cap=1) {
+   (ast.NumberLiteralToken) {
+    Value: (int) 255,
+    Position: (int) 28
+   }
+  }
+ }
+}

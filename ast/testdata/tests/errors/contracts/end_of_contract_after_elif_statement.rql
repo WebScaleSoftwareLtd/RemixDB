@@ -1,0 +1,5 @@
+contract IfEOF() -> void {
+    if x {
+
+    } elif y()
+}

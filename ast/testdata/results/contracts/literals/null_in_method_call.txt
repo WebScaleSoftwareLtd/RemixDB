@@ -1,0 +1,24 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=16) "NullInMethodCall",
+  Argument: (*ast.ContractArgumentToken)(<nil>),
+  ReturnType: (string) (len=4) "void",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=1 cap=1) {
+   (ast.MethodCallToken) {
+    Name: (string) (len=1) "m",
+    Position: (int) 42,
+    Arguments: ([]interface {}) (len=1 cap=1) {
+     (ast.NullLiteralToken) {
+      Position: (int) 44
+     }
+    },
+    ChainedCall: (interface {}) <nil>
+   }
+  }
+ }
+}

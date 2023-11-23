@@ -1,0 +1,11 @@
+contract TryCatchStatement() -> void {
+    a()
+    try {
+        x
+    } catch Test -> e {
+        hello()
+    } catch A -> ALongVariable {} catch Exception {
+        a
+    }
+    testing()
+}

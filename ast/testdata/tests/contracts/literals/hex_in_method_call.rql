@@ -1,0 +1,3 @@
+contract HexInMethodCall() -> void {
+    test(0xFF)
+}

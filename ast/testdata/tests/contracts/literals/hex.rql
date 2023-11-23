@@ -1,0 +1,3 @@
+contract Hex() -> int {
+    0xFF
+}

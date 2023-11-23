@@ -1,0 +1,27 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.StructToken) {
+  Name: (string) (len=1) "x",
+  Position: (int) 19,
+  Decorators: ([]ast.DecoratorToken) (len=2 cap=2) {
+   (ast.DecoratorToken) {
+    Method: (string) (len=5) "hello",
+    Arguments: (string) "",
+    Position: (int) 0
+   },
+   (ast.DecoratorToken) {
+    Method: (string) (len=5) "world",
+    Arguments: (string) (len=3) "123",
+    Position: (int) 7
+   }
+  },
+  Fields: ([]interface {}) (len=1 cap=1) {
+   (ast.FieldToken) {
+    Name: (string) (len=1) "a",
+    Type: (string) (len=6) "string",
+    Position: (int) 34,
+    Decorators: ([]ast.DecoratorToken) {
+    }
+   }
+  }
+ }
+}

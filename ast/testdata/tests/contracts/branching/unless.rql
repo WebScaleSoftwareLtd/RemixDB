@@ -1,0 +1,19 @@
+contract UnlessStatement(x: bool) -> void {
+    unless x {
+        y()
+    }
+
+    unless x { y() }
+
+    unless x{
+        y
+    } elif z {
+        1234
+    } else {
+        test()
+    }
+
+    unless true {
+        y()
+    }
+}

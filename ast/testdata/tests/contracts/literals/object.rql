@@ -1,0 +1,9 @@
+contract Object() -> void {
+    test({
+        // a comment! wow!
+        thing = 123
+        "double quotes \"with quotes embedded\"" = 69
+        'single quotes \'with quotes embedded\'' = 420
+        other_thing = 456
+    })
+}

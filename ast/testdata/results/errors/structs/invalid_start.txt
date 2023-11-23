@@ -1,0 +1,4 @@
+(*ast.ParserError)({
+ Message: (string) (len=61) "unexpected 'rruct' after 's' character - did you mean struct?",
+ Position: (int) 0
+})

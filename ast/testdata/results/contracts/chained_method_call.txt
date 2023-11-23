@@ -1,0 +1,48 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=17) "ChainedMethodCall",
+  Argument: (*ast.ContractArgumentToken)(<nil>),
+  ReturnType: (string) (len=4) "void",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=1 cap=1) {
+   (ast.MethodCallToken) {
+    Name: (string) (len=1) "x",
+    Position: (int) 43,
+    Arguments: ([]interface {}) {
+    },
+    ChainedCall: (ast.MethodCallToken) {
+     Name: (string) (len=1) "y",
+     Position: (int) 58,
+     Arguments: ([]interface {}) (len=1 cap=1) {
+      (ast.ObjectLiteralToken) {
+       Values: (map[string]interface {}) (len=1) {
+        (string) (len=5) "hello": (ast.StringLiteralToken) {
+         Value: (string) (len=5) "world",
+         Position: (int) 80
+        }
+       },
+       Comments: ([]ast.CommentToken) {
+       },
+       Position: (int) 58
+      }
+     },
+     ChainedCall: (ast.MethodCallToken) {
+      Name: (string) (len=1) "z",
+      Position: (int) 110,
+      Arguments: ([]interface {}) {
+      },
+      ChainedCall: (ast.ReferenceToken) {
+       Name: (string) (len=5) "thing",
+       Position: (int) 112,
+       Decorators: ([]ast.DecoratorToken) <nil>
+      }
+     }
+    }
+   }
+  }
+ }
+}

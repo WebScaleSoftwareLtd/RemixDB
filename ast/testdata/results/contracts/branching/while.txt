@@ -1,0 +1,84 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.ContractToken) {
+  Name: (string) (len=14) "WhileStatement",
+  Argument: (*ast.ContractArgumentToken)({
+   Name: (string) (len=1) "x",
+   NameIndex: (int) 25,
+   Type: (string) (len=4) "bool",
+   TypeIndex: (int) 26
+  }),
+  ReturnType: (string) (len=4) "void",
+  Position: (int) 0,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=4 cap=4) {
+   (ast.WhileToken) {
+    Condition: (ast.ReferenceToken) {
+     Name: (string) (len=1) "x",
+     Position: (int) 53,
+     Decorators: ([]ast.DecoratorToken) <nil>
+    },
+    Position: (int) 47,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.MethodCallToken) {
+      Name: (string) (len=1) "y",
+      Position: (int) 65,
+      Arguments: ([]interface {}) {
+      },
+      ChainedCall: (interface {}) <nil>
+     }
+    }
+   },
+   (ast.WhileToken) {
+    Condition: (ast.ReferenceToken) {
+     Name: (string) (len=1) "x",
+     Position: (int) 86,
+     Decorators: ([]ast.DecoratorToken) <nil>
+    },
+    Position: (int) 80,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.MethodCallToken) {
+      Name: (string) (len=1) "y",
+      Position: (int) 90,
+      Arguments: ([]interface {}) {
+      },
+      ChainedCall: (interface {}) <nil>
+     }
+    }
+   },
+   (ast.WhileToken) {
+    Condition: (ast.ReferenceToken) {
+     Name: (string) (len=1) "x",
+     Position: (int) 107,
+     Decorators: ([]ast.DecoratorToken) <nil>
+    },
+    Position: (int) 101,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.ReferenceToken) {
+      Name: (string) (len=1) "y",
+      Position: (int) 118,
+      Decorators: ([]ast.DecoratorToken) <nil>
+     }
+    }
+   },
+   (ast.WhileToken) {
+    Condition: (ast.BooleanLiteralToken) {
+     Value: (bool) true,
+     Position: (int) 137
+    },
+    Position: (int) 131,
+    Statements: ([]interface {}) (len=1 cap=1) {
+     (ast.MethodCallToken) {
+      Name: (string) (len=1) "y",
+      Position: (int) 152,
+      Arguments: ([]interface {}) {
+      },
+      ChainedCall: (interface {}) <nil>
+     }
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,14 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.StructToken) {
+  Name: (string) (len=4) "test",
+  Position: (int) 0,
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Fields: ([]interface {}) (len=1 cap=1) {
+   (ast.CommentToken) {
+    Comment: (string) (len=13) " Hello world!",
+    Position: (int) 18
+   }
+  }
+ }
+}

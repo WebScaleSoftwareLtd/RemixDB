@@ -1,0 +1,5 @@
+contract SingleQuoteInMethodCall() -> void {
+    test('This is a single quoted string! \'wow strings!\'
+
+multi line!')
+}

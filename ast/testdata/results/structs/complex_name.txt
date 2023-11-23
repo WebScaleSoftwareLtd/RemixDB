@@ -1,0 +1,17 @@
+([]interface {}) (len=1 cap=1) {
+ (ast.StructToken) {
+  Name: (string) (len=29) "ThisIsATestOfVeryComplexNames",
+  Position: (int) 0,
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Fields: ([]interface {}) (len=1 cap=1) {
+   (ast.FieldToken) {
+    Name: (string) (len=12) "inEverything",
+    Type: (string) (len=6) "string",
+    Position: (int) 43,
+    Decorators: ([]ast.DecoratorToken) {
+    }
+   }
+  }
+ }
+}

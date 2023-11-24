@@ -1,0 +1,2 @@
+contract EOF() -> void {
+    x().

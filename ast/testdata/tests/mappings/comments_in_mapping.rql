@@ -1,4 +1,8 @@
-mapping MappingName using Item1, Item2 {
+mapping // a comment!
+MappingName using Item1, // comment!
+Item2 // comment before bracket!
+{
     // Hello World!
-    x -> y
+    x -> // hi!
+        y
 }

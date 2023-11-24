@@ -4,10 +4,26 @@
    Position: (int) 0,
    Key: (string) (len=1) "x",
    Value: (string) (len=1) "y",
-   Comments: ([]ast.CommentToken) (len=1 cap=1) {
+   Comments: ([]ast.CommentToken) (len=5 cap=8) {
+    (ast.CommentToken) {
+     Comment: (string) (len=11) " a comment!",
+     Position: (int) 8
+    },
+    (ast.CommentToken) {
+     Comment: (string) (len=9) " comment!",
+     Position: (int) 47
+    },
+    (ast.CommentToken) {
+     Comment: (string) (len=24) " comment before bracket!",
+     Position: (int) 65
+    },
     (ast.CommentToken) {
      Comment: (string) (len=13) " Hello World!",
-     Position: (int) 45
+     Position: (int) 98
+    },
+    (ast.CommentToken) {
+     Comment: (string) (len=4) " hi!",
+     Position: (int) 123
     }
    }
   },

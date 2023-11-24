@@ -1,0 +1,4 @@
+(*ast.ParserError)({
+ Message: (string) (len=35) "expected whitespace after 'mapping'",
+ Position: (int) 0
+})

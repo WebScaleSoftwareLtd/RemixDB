@@ -1,0 +1,3 @@
+contract NoEnd() -> void {
+    x = (a() / 2
+}

@@ -1,0 +1,4 @@
+(*ast.ParserError)({
+ Message: (string) (len=47) "unexpected end of file during contract argument",
+ Position: (int) 14
+})

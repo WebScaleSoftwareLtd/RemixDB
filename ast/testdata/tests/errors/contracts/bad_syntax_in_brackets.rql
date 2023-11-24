@@ -1,0 +1,3 @@
+contract BadBrackets() -> void {
+    x = (#)
+}

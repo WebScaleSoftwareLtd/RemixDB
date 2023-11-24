@@ -1,0 +1,4141 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>ast: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">remixdb.io/ast/contract_inner_parser.go (79.3%)</option>
+				
+				<option value="file1">remixdb.io/ast/contract_literal_parsers.go (74.0%)</option>
+				
+				<option value="file2">remixdb.io/ast/contract_parser.go (85.5%)</option>
+				
+				<option value="file3">remixdb.io/ast/mapping_parser.go (68.9%)</option>
+				
+				<option value="file4">remixdb.io/ast/parser.go (75.4%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">// RemixDB. Copyright (C) 2023 Web Scale Software Ltd.
+// Author: Astrid Gealer &lt;astrid@gealer.email&gt;
+
+package ast
+
+import (
+        "io"
+        "strings"
+)
+
+type parserHn = func(*strings.Reader) ([]any, *ParserError)
+
+// Handle parsing a else statement.
+func parsePotentialElse(r *strings.Reader, parser parserHn) (*ElseToken, *ParserError) <span class="cov8" title="1">{
+        var first *ElseToken
+        var last *ElseToken
+        for </span><span class="cov8" title="1">{
+                // Gulp the whitespace.
+                gulpWhitespace(r)
+
+                // Get the position.
+                pos := getReaderPos(r)
+
+                // Read the next Unicode character.
+                c, _, errIface := r.ReadRune()
+                if errIface != nil </span><span class="cov8" title="1">{
+                        // Return first. Let the parent handle the error.
+                        return first, nil
+                }</span>
+
+                // Handle if the character is not 'e'.
+                <span class="cov8" title="1">if c != 'e' </span><span class="cov8" title="1">{
+                        // Unread the rune.
+                        _ = r.UnreadRune()
+
+                        // Return first.
+                        return first, nil
+                }</span>
+
+                // Read the next 3 bytes.
+                <span class="cov8" title="1">b := make([]byte, 3)
+                if _, err := r.Read(b); err != nil </span><span class="cov0" title="0">{
+                        // Un-read the byte and return first.
+                        _, _ = r.Seek(-1, io.SeekCurrent)
+                        return first, nil
+                }</span>
+
+                // Handle if the bytes are not 'lse' or 'lif'.
+                <span class="cov8" title="1">if string(b) != "lse" &amp;&amp; string(b) != "lif" </span><span class="cov8" title="1">{
+                        // Un-read the bytes and return first.
+                        _, _ = r.Seek(-4, io.SeekCurrent)
+                        return first, nil
+                }</span>
+
+                // Gulp the whitespace.
+                <span class="cov8" title="1">gulpWhitespace(r)
+
+                // Read the condition.
+                var condition any
+                var perr *ParserError
+                if string(b) != "lse" </span><span class="cov8" title="1">{
+                        condition, perr = parseInnerContractTokenWithOpGrouping(r, '{')
+                        if perr != nil </span><span class="cov8" title="1">{
+                                // Return the error.
+                                return nil, perr
+                        }</span>
+                }
+
+                // Gulp the whitespace.
+                <span class="cov8" title="1">gulpWhitespace(r)
+
+                // Read the next Unicode character.
+                c, _, errIface = r.ReadRune()
+                if errIface != nil </span><span class="cov8" title="1">{
+                        // Return an error.
+                        return nil, &amp;ParserError{
+                                Message:  "unexpected end of file in else statement",
+                                Position: getReaderPos(r),
+                        }
+                }</span>
+
+                // Handle if the character is not '{'.
+                <span class="cov8" title="1">if c != '{' </span><span class="cov8" title="1">{
+                        // Return an error.
+                        return nil, &amp;ParserError{
+                                Message:  "unexpected character '" + string(c) + "' in else statement",
+                                Position: getReaderPos(r),
+                        }
+                }</span>
+
+                // Parse the body.
+                <span class="cov8" title="1">body, perr := parser(r)
+                if perr != nil </span><span class="cov8" title="1">{
+                        return nil, perr
+                }</span>
+
+                // Create the else token.
+                <span class="cov8" title="1">prevLast := last
+                last = &amp;ElseToken{
+                        Condition:  condition,
+                        Position:   pos,
+                        Statements: body,
+                }
+                if prevLast == nil </span><span class="cov8" title="1">{
+                        first = last
+                }</span> else<span class="cov8" title="1"> {
+                        prevLast.Next = last
+                }</span>
+        }
+}
+
+// Handle parsing a unless statement.
+func unlessParser(r *strings.Reader, pos int, parser parserHn) (any, *ParserError) <span class="cov8" title="1">{
+        // Parse the token.
+        token, err := parseInnerContractTokenWithOpGrouping(r, '{')
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Gulp the whitespace.
+        <span class="cov8" title="1">gulpWhitespace(r)
+
+        // Read the next Unicode character.
+        c, _, errIface := r.ReadRune()
+        if errIface != nil </span><span class="cov0" title="0">{
+                // Return an error.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected end of file after 'unless' in unless statement",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Handle if the character is not '{'.
+        <span class="cov8" title="1">if c != '{' </span><span class="cov0" title="0">{
+                // Return an error.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected character '" + string(c) + "' after 'unless' in unless statement",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Parse the body.
+        <span class="cov8" title="1">body, err := parser(r)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Return the unless token.
+        <span class="cov8" title="1">else_, err := parsePotentialElse(r, parser)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return UnlessToken{
+                Condition:  token,
+                Position:   pos,
+                Statements: body,
+                Else:       else_,
+        }, nil</span>
+}
+
+// Handle parsing a if statement.
+func ifParser(r *strings.Reader, pos int, parser parserHn) (any, *ParserError) <span class="cov8" title="1">{
+        // Parse the token.
+        token, err := parseInnerContractTokenWithOpGrouping(r, '{')
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Gulp the whitespace.
+        <span class="cov8" title="1">gulpWhitespace(r)
+
+        // Read the next Unicode character.
+        c, _, errIface := r.ReadRune()
+        if errIface != nil </span><span class="cov0" title="0">{
+                // Return an error.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected end of file after 'if' in if statement",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Handle if the character is not '{'.
+        <span class="cov8" title="1">if c != '{' </span><span class="cov0" title="0">{
+                // Return an error.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected character '" + string(c) + "' after 'if' in if statement",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Parse the body.
+        <span class="cov8" title="1">body, err := parser(r)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Return the if token.
+        <span class="cov8" title="1">else_, err := parsePotentialElse(r, parser)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return IfToken{
+                Condition:  token,
+                Position:   pos,
+                Statements: body,
+                Else:       else_,
+        }, nil</span>
+}
+
+// Handle parsing a return statement.
+func returnParser(r *strings.Reader, pos int, _ parserHn) (any, *ParserError) <span class="cov8" title="1">{
+        // Parse the token.
+        token, err := parseInnerContractTokenWithOpGrouping(r, '}')
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Wrap in a return token.
+        <span class="cov8" title="1">token = ReturnToken{
+                Token:    token,
+                Position: pos,
+        }
+
+        // Return with the inline if/else handler.
+        return handleInlineIfElse(r, token)</span>
+}
+
+// Handle parsing a throw statement.
+func throwParser(r *strings.Reader, pos int, _ parserHn) (any, *ParserError) <span class="cov8" title="1">{
+        // Parse the token.
+        token, err := parseInnerContractTokenWithOpGrouping(r, '}')
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Wrap in a throw token.
+        <span class="cov8" title="1">token = ThrowLiteralToken{
+                Token:    token,
+                Position: pos,
+        }
+
+        // Return with the inline if/else handler.
+        return handleInlineIfElse(r, token)</span>
+}
+
+// Handle parsing a while statement.
+func whileParser(r *strings.Reader, pos int, parser parserHn) (any, *ParserError) <span class="cov8" title="1">{
+        // Parse the token.
+        token, err := parseInnerContractTokenWithOpGrouping(r, '{')
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Gulp the whitespace.
+        <span class="cov8" title="1">gulpWhitespace(r)
+
+        // Read the next Unicode character.
+        c, _, errIface := r.ReadRune()
+        if errIface != nil </span><span class="cov0" title="0">{
+                // Return an error.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected end of file after 'while' in while statement",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Handle if the character is not '{'.
+        <span class="cov8" title="1">if c != '{' </span><span class="cov0" title="0">{
+                // Return an error.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected character '" + string(c) + "' after 'while' in while statement",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Parse the body.
+        <span class="cov8" title="1">body, err := parser(r)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Return the while token.
+        <span class="cov8" title="1">return WhileToken{
+                Condition:  token,
+                Position:   pos,
+                Statements: body,
+        }, nil</span>
+}
+
+// Make sure the semi-colon is gobbled.
+func gulpSemiColon(r *strings.Reader) <span class="cov8" title="1">{
+        // Gulp the whitespace.
+        gulpWhitespace(r)
+
+        // Read the next Unicode character.
+        c, _, _ := r.ReadRune()
+        if c != ';' </span><span class="cov8" title="1">{
+                // Rewind the rune.
+                _ = r.UnreadRune()
+        }</span>
+}
+
+// Handle parsing a for statement.
+func forParser(r *strings.Reader, pos int, parser parserHn) (any, *ParserError) <span class="cov8" title="1">{
+        // Parse the initial assignment.
+        initial, err := potentialAssignmentRef(r, ';', false)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">gulpSemiColon(r)
+
+        // Parse the condition.
+        condition, err := potentialAssignmentRef(r, ';', false)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">gulpSemiColon(r)
+
+        // Parse the increment.
+        increment, err := potentialAssignmentRef(r, '{', false)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">gulpSemiColon(r)
+
+        // Gulp the whitespace.
+        gulpWhitespace(r)
+
+        // Read the next Unicode character.
+        c, _, errIface := r.ReadRune()
+        if errIface != nil </span><span class="cov0" title="0">{
+                // Return an error.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected end of file after 'for' in for statement",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Handle if the character is not '{'.
+        <span class="cov8" title="1">if c != '{' </span><span class="cov0" title="0">{
+                // Return an error.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected character '" + string(c) + "' after 'for' in for statement",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Parse the body.
+        <span class="cov8" title="1">body, err := parser(r)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Return the for token.
+        <span class="cov8" title="1">return ForToken{
+                Assignment: initial,
+                Condition:  condition,
+                Increment:  increment,
+                Position:   pos,
+                Statements: body,
+        }, nil</span>
+}
+
+type switchCasesResult struct {
+        cases    []SwitchCaseToken
+        comments []CommentToken
+}
+
+// Handle parsing switch cases.
+func switchCasesParser(r *strings.Reader, parser parserHn) (switchCasesResult, *ParserError) <span class="cov8" title="1">{
+        // Defines all of the token cases.
+        tokens := []SwitchCaseToken{}
+
+        // Defines all of the comment tokens.
+        comments := []CommentToken{}
+
+        // Gulp the whitespace.
+        gulpWhitespace(r)
+
+        for </span><span class="cov8" title="1">{
+                // Check if the next character is '}'. This means that this is an empty switch.
+                c, _, _ := r.ReadRune()
+                if c == '}' </span><span class="cov8" title="1">{
+                        // Return here.
+                        return switchCasesResult{}, nil
+                }</span>
+                <span class="cov8" title="1">_ = r.UnreadRune()
+
+                // Get the position.
+                pos := getReaderPos(r)
+
+                // Parse the name.
+                name, err := parseInnerContractTokenWithOpGrouping(r, '=')
+                if err != nil </span><span class="cov0" title="0">{
+                        return switchCasesResult{}, err
+                }</span>
+
+                // Handle if the name is a comment token.
+                <span class="cov8" title="1">if x, ok := name.(CommentToken); ok </span><span class="cov8" title="1">{
+                        // Add the comment token.
+                        comments = append(comments, x)
+
+                        // Continue the loop.
+                        continue</span>
+                }
+
+                // Handle if there is more content present.
+                <span class="cov8" title="1">if name != nil </span><span class="cov8" title="1">{
+                </span>eqRead:
+                        // Gulp the whitespace.
+                        <span class="cov8" title="1">gulpWhitespace(r)
+
+                        // Read the next Unicode character.
+                        ru, _, errIface := r.ReadRune()
+                        if errIface != nil </span><span class="cov0" title="0">{
+                                // Return an error.
+                                return switchCasesResult{}, &amp;ParserError{
+                                        Message:  "unexpected end of file after name in switch statement",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+
+                        // Handle if the character is not '='.
+                        <span class="cov8" title="1">if ru != '=' </span><span class="cov0" title="0">{
+                                // If it is a slash, consume the comment and then go back.
+                                if ru == '/' </span><span class="cov0" title="0">{
+                                        var x []any
+                                        if err := parseComment(r, &amp;x); err != nil </span><span class="cov0" title="0">{
+                                                return switchCasesResult{}, err
+                                        }</span>
+                                        <span class="cov0" title="0">comments = append(comments, x[0].(CommentToken))
+                                        goto eqRead</span>
+                                }
+
+                                // Return an error.
+                                <span class="cov0" title="0">return switchCasesResult{}, &amp;ParserError{
+                                        Message:  "unexpected character '" + string(ru) + "' after name in switch statement",
+                                        Position: getReaderPos(r),
+                                }</span>
+                        }
+
+                valueRead:
+                        // Gulp the whitespace.
+                        <span class="cov8" title="1">gulpWhitespace(r)
+
+                        // Get the first byte of the next token.
+                        var inner []any
+                        ru, _, _ = r.ReadRune()
+                        if ru == '{' </span><span class="cov8" title="1">{
+                                // Inline statements.
+                                inner, err = parser(r)
+                                if err != nil </span><span class="cov0" title="0">{
+                                        return switchCasesResult{}, err
+                                }</span>
+                        } else<span class="cov8" title="1"> {
+                                // Unread the rune.
+                                _ = r.UnreadRune()
+
+                                // Parse the token.
+                                x, err := parseInnerContractTokenWithOpGrouping(r, '}')
+                                if err != nil </span><span class="cov0" title="0">{
+                                        return switchCasesResult{}, err
+                                }</span>
+                                <span class="cov8" title="1">if x != nil </span><span class="cov8" title="1">{
+                                        // Handle any comments.
+                                        if x, ok := x.(CommentToken); ok </span><span class="cov8" title="1">{
+                                                // Add the comment token.
+                                                comments = append(comments, x)
+
+                                                // Go back to the start of parsing the value.
+                                                goto valueRead</span>
+                                        }
+
+                                        // Set the inner to only this object.
+                                        <span class="cov8" title="1">inner = []any{x}</span>
+                                }
+                        }
+
+                        // Push the token.
+                        <span class="cov8" title="1">tokens = append(tokens, SwitchCaseToken{
+                                Position:   pos,
+                                Name:       name,
+                                Statements: inner,
+                        })</span>
+                }
+
+                // Gulp the whitespace.
+                <span class="cov8" title="1">gulpWhitespace(r)
+
+                // Read the next Unicode character.
+                c, _, errIface := r.ReadRune()
+                if errIface != nil </span><span class="cov0" title="0">{
+                        // Return an error.
+                        return switchCasesResult{}, &amp;ParserError{
+                                Message:  "unexpected end of file in switch statement",
+                                Position: getReaderPos(r),
+                        }
+                }</span>
+
+                <span class="cov8" title="1">switch c </span>{
+                case '}':<span class="cov8" title="1">
+                        // Handle if the character is '}'.
+                        return switchCasesResult{
+                                cases:    tokens,
+                                comments: comments,
+                        }, nil</span>
+                default:<span class="cov8" title="1">
+                        // Rewind the rune.
+                        _ = r.UnreadRune()</span>
+                }
+        }
+}
+
+// Handle parsing a switch statement.
+func switchParser(r *strings.Reader, pos int, parser parserHn) (any, *ParserError) <span class="cov8" title="1">{
+        // Parse the token.
+        token, err := parseInnerContractTokenWithOpGrouping(r, '{')
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Gulp the whitespace.
+        <span class="cov8" title="1">gulpWhitespace(r)
+
+        // Read the next Unicode character.
+        c, _, errIface := r.ReadRune()
+        if errIface != nil </span><span class="cov0" title="0">{
+                // Return an error.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected end of file after 'switch' in switch statement",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Handle if the character is not '{'.
+        <span class="cov8" title="1">if c != '{' </span><span class="cov0" title="0">{
+                // Return an error.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected character '" + string(c) + "' after 'switch' in switch statement",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Handle switch cases.
+        <span class="cov8" title="1">res, err := switchCasesParser(r, parser)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Return the switch token.
+        <span class="cov8" title="1">return SwitchToken{
+                Condition: token,
+                Position:  pos,
+                Cases:     res.cases,
+                Comments:  res.comments,
+        }, nil</span>
+}
+
+// Handle parsing catch statements.
+func catchesParser(r *strings.Reader, pos int, parser parserHn) (*CatchToken, *ParserError) <span class="cov8" title="1">{
+        var first *CatchToken
+        var last *CatchToken
+
+        for </span><span class="cov8" title="1">{
+                // Gulp the whitespace.
+                gulpWhitespace(r)
+
+                // Read the next Unicode character.
+                c, _, errIface := r.ReadRune()
+                if errIface != nil </span><span class="cov0" title="0">{
+                        // Return first. Let the parent handle the error.
+                        return first, nil
+                }</span>
+
+                // Handle if the character is not 'c'.
+                <span class="cov8" title="1">if c != 'c' </span><span class="cov8" title="1">{
+                        // Unread the rune.
+                        _ = r.UnreadRune()
+
+                        // Return first.
+                        return first, nil
+                }</span>
+
+                // Read the next 4 bytes.
+                <span class="cov8" title="1">b := make([]byte, 4)
+                if _, err := r.Read(b); err != nil </span><span class="cov0" title="0">{
+                        // Un-read the bytes and return first.
+                        _, _ = r.Seek(-4, io.SeekCurrent)
+                        return first, nil
+                }</span>
+
+                // Handle if the bytes are not 'atch'.
+                <span class="cov8" title="1">if string(b) != "atch" </span><span class="cov0" title="0">{
+                        // Un-read the bytes and return first.
+                        _, _ = r.Seek(-4, io.SeekCurrent)
+                        return first, nil
+                }</span>
+
+                // Gulp the whitespace.
+                <span class="cov8" title="1">gulpWhitespace(r)
+
+                // Read the exception.
+                exception := ""
+                for </span><span class="cov8" title="1">{
+                        // Read the next Unicode character.
+                        c, _, err := r.ReadRune()
+                        if err != nil </span><span class="cov0" title="0">{
+                                // Return an error.
+                                return nil, &amp;ParserError{
+                                        Message:  "unexpected end of file after 'catch' in catch statement",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+
+                        // Handle if the character is ' ', '{' or '-'.
+                        <span class="cov8" title="1">if c == '{' || c == '-' || c == ' ' </span><span class="cov8" title="1">{
+                                // Unread the rune.
+                                _ = r.UnreadRune()
+
+                                // Break the loop.
+                                break</span>
+                        }
+
+                        // Add the character to the exception.
+                        <span class="cov8" title="1">exception += string(c)</span>
+                }
+
+                // Gulp the whitespace.
+                <span class="cov8" title="1">gulpWhitespace(r)
+
+                // Read the next Unicode character.
+                c, _, errIface = r.ReadRune()
+                if errIface != nil </span><span class="cov0" title="0">{
+                        // Return an error.
+                        return nil, &amp;ParserError{
+                                Message:  "unexpected end of file after 'catch' in catch statement",
+                                Position: getReaderPos(r),
+                        }
+                }</span>
+
+                // Defines the variable name.
+                <span class="cov8" title="1">variable := ""
+
+                // Switch on the character.
+                switch c </span>{
+                case '-':<span class="cov8" title="1">
+                        // Read the next Unicode character.
+                        c, _, err := r.ReadRune()
+                        if err != nil </span><span class="cov0" title="0">{
+                                // Return an error.
+                                return nil, &amp;ParserError{
+                                        Message:  "unexpected end of file after name in catch statement",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+
+                        // Handle if the character is not '&gt;'.
+                        <span class="cov8" title="1">if c != '&gt;' </span><span class="cov0" title="0">{
+                                // Return an error.
+                                return nil, &amp;ParserError{
+                                        Message:  "unexpected character '" + string(c) + "' after name in catch statement",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+
+                        // Gulp the whitespace.
+                        <span class="cov8" title="1">gulpWhitespace(r)
+
+                        // Read the variable name.
+                        for </span><span class="cov8" title="1">{
+                                // Read the next Unicode character.
+                                c, _, err := r.ReadRune()
+                                if err != nil </span><span class="cov0" title="0">{
+                                        // Return an error.
+                                        return nil, &amp;ParserError{
+                                                Message:  "unexpected end of file after name in catch statement",
+                                                Position: getReaderPos(r),
+                                        }
+                                }</span>
+
+                                // Handle if the character is a end of variable.
+                                <span class="cov8" title="1">if c == '{' || c == ' ' || c == '\t' || c == '\n' || c == '\r' </span><span class="cov8" title="1">{
+                                        // Unread the rune.
+                                        _ = r.UnreadRune()
+
+                                        // Break the loop.
+                                        break</span>
+                                }
+
+                                // Add the character to the variable.
+                                <span class="cov8" title="1">variable += string(c)</span>
+                        }
+
+                        // Gulp the whitespace.
+                        <span class="cov8" title="1">gulpWhitespace(r)
+
+                        // Read the next Unicode character.
+                        c, _, errIface = r.ReadRune()
+                        if errIface != nil </span><span class="cov0" title="0">{
+                                // Return an error.
+                                return nil, &amp;ParserError{
+                                        Message:  "unexpected end of file after variable in catch statement",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+
+                        // Handle if the character is not '{'.
+                        <span class="cov8" title="1">if c != '{' </span><span class="cov0" title="0">{
+                                // Return an error.
+                                return nil, &amp;ParserError{
+                                        Message:  "unexpected character '" + string(c) + "' after variable in catch statement",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+
+                        // Fallthrough.
+                        <span class="cov8" title="1">fallthrough</span>
+                case '{':<span class="cov8" title="1">
+                        // Do the parse.
+                        body, err := parser(r)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return nil, err
+                        }</span>
+
+                        // Create the catch token.
+                        <span class="cov8" title="1">prevLast := last
+                        last = &amp;CatchToken{
+                                Exception:  exception,
+                                Position:   pos,
+                                Statements: body,
+                                Variable:   variable,
+                        }
+                        if prevLast == nil </span><span class="cov8" title="1">{
+                                first = last
+                        }</span> else<span class="cov8" title="1"> {
+                                prevLast.Next = last
+                        }</span>
+                default:<span class="cov0" title="0">
+                        // Unexpected character.
+                        return nil, &amp;ParserError{
+                                Message:  "unexpected character '" + string(c) + "' after exception in catch statement",
+                                Position: getReaderPos(r),
+                        }</span>
+                }
+        }
+}
+
+// Handle parsing a try statement.
+func tryParser(r *strings.Reader, pos int, parser parserHn) (any, *ParserError) <span class="cov8" title="1">{
+        // Gulp the whitespace.
+        gulpWhitespace(r)
+
+        // Read the next Unicode character.
+        c, _, errIface := r.ReadRune()
+        if errIface != nil </span><span class="cov0" title="0">{
+                // Return an error.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected end of file after 'try' in try statement",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Handle if the character is not '{'.
+        <span class="cov8" title="1">if c != '{' </span><span class="cov0" title="0">{
+                // Return an error.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected character '" + string(c) + "' after 'try' in try statement",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Parse the body.
+        <span class="cov8" title="1">body, err := parser(r)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Handle any caches.
+        <span class="cov8" title="1">catches, err := catchesParser(r, pos, parser)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">if catches == nil </span><span class="cov0" title="0">{
+                // No catches with the try statement.
+                return nil, &amp;ParserError{
+                        Message:  "expected 'catch' after 'try' in try statement",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Return the try token.
+        <span class="cov8" title="1">return TryToken{
+                Position:   pos,
+                Statements: body,
+                Catch:      catches,
+        }, nil</span>
+}
+
+// Handle cases where we break into another branch.
+var branchingCases = map[string]func(*strings.Reader, int, parserHn) (any, *ParserError){
+        "unless": unlessParser,
+        "if":     ifParser,
+        "throw":  throwParser,
+        "return": returnParser,
+        "while":  whileParser,
+        "for":    forParser,
+        "switch": switchParser,
+        "try":    tryParser,
+}
+
+// Parses a potential assignment or branching case.
+func parsePotentialAssignmentOrBranchingCase(r *strings.Reader, eot rune, allowBigStatements bool) (any, *ParserError) <span class="cov8" title="1">{
+        // Defines the reference buffer. The reference buffer is stored in if something could
+        // be either a assignment or reference. If it is the later, it is drained back into
+        // the tokens array. If it is the former, it is parsed as a method call. refPos will be
+        // -1 if there is no reference buffer.
+        refBuf := ""
+        refPos := -1
+
+        // Attempts to drain the buffer if needed.
+        drain := func() (any, *ParserError) </span><span class="cov8" title="1">{
+                if refPos == -1 </span><span class="cov8" title="1">{
+                        // Nothing to drain.
+                        return nil, nil
+                }</span>
+
+                // Set the position of the reader to the start of the thing that is not a method call.
+                <span class="cov8" title="1">r.Seek(int64(refPos), io.SeekStart)
+
+                // Parse the token.
+                token, err := parseInnerContractTokenWithOpGrouping(r, eot)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+
+                // Return the token.
+                <span class="cov8" title="1">return token, nil</span>
+        }
+
+        // Gulp the whitespace.
+        <span class="cov8" title="1">gulpWhitespace(r)
+
+        for </span><span class="cov8" title="1">{
+                // Read the position.
+                pos := getReaderPos(r)
+
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov8" title="1">{
+                        // EOF in the middle of a contract body before the ending brace.
+                        return nil, &amp;ParserError{
+                                Message:  "unexpected end of file before closing bracket",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case eot:<span class="cov8" title="1">
+                        // Drain our local buffer and return.
+                        return drain()</span>
+                case '=':<span class="cov8" title="1">
+                        // Handle if the reference buffer is blank.
+                        if refPos == -1 </span><span class="cov0" title="0">{
+                                return nil, &amp;ParserError{
+                                        Message:  "unexpected '=' without assignment name",
+                                        Position: pos,
+                                }
+                        }</span>
+
+                        // This is not a reference, this is a assignment. Go ahead and parse the next token.
+                        <span class="cov8" title="1">next, err := parseInnerContractTokenWithOpGrouping(r, '}')
+                        if err != nil </span><span class="cov8" title="1">{
+                                // Assigned thing is not valid.
+                                return nil, err
+                        }</span>
+
+                        // next == nil is ignored because it is picked up next loop iteration and will be a
+                        // syntax error.
+
+                        // Return the assignment token.
+                        <span class="cov8" title="1">return AssignmentToken{
+                                Name:     refBuf,
+                                Position: refPos,
+                                Value:    next,
+                        }, nil</span>
+                case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+                        'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+                        'u', 'v', 'w', 'x', 'y', 'z', '_', 'A', 'B', 'C',
+                        'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+                        'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
+                        'X', 'Y', 'Z':<span class="cov8" title="1">
+                        if refPos == -1 </span><span class="cov8" title="1">{
+                                // If the reference buffer is blank, set the position.
+                                refPos = pos
+                        }</span>
+
+                        // Add the character to the reference buffer.
+                        <span class="cov8" title="1">refBuf += string(c)</span>
+                case '\r', '\n', '\t', ' ':<span class="cov8" title="1">
+                        // If this is \r, handle this.
+                        useThisCheck := true
+                        if c == '\r' </span><span class="cov0" title="0">{
+                                // Initially, don't use this check.
+                                useThisCheck = false
+
+                                // Read the next char.
+                                x, _, _ := r.ReadRune()
+                                if x == '\n' </span><span class="cov0" title="0">{
+                                        // +1 to the position and use this check.
+                                        pos++
+                                        useThisCheck = true
+                                }</span> else<span class="cov0" title="0"> {
+                                        // Unread the rune.
+                                        _ = r.UnreadRune()
+                                }</span>
+                        }
+
+                        // Handle any branching cases.
+                        <span class="cov8" title="1">if useThisCheck &amp;&amp; allowBigStatements </span><span class="cov8" title="1">{
+                                x := branchingCases[refBuf]
+                                if x != nil </span><span class="cov8" title="1">{
+                                        // Get the position minus the length of the branching case.
+                                        posMinusLen := pos - len(refBuf)
+
+                                        // Gulp the whitespace.
+                                        gulpWhitespace(r)
+
+                                        // Return the method.
+                                        return x(r, posMinusLen, parseInnerContract)
+                                }</span>
+                        }
+                default:<span class="cov8" title="1">
+                        // Rewind the rune.
+                        _ = r.UnreadRune()
+
+                        // Any other characters result in the existing buffer being drained.
+                        x, err := drain()
+                        if x != nil || err != nil </span><span class="cov8" title="1">{
+                                // Return the content because draining at least returned something.
+                                return x, err
+                        }</span>
+
+                        // Use the default parser. Not a possible assignment but a token hit off the bat.
+                        <span class="cov8" title="1">return parseInnerContractTokenWithOpGrouping(r, eot)</span>
+                }
+        }
+}
+
+var potentialAssignmentRef func(*strings.Reader, rune, bool) (any, *ParserError)
+
+func init() <span class="cov8" title="1">{
+        // Create a ref copy to stop circular dependency.
+        potentialAssignmentRef = parsePotentialAssignmentOrBranchingCase
+}</span>
+
+// Parses the inner of the contract and ending brace. Expects everything up to after the starting brace
+// to be consumed.
+func parseInnerContract(r *strings.Reader) ([]any, *ParserError) <span class="cov8" title="1">{
+        // Defines the tokens that have been parsed.
+        tokens := []any{}
+
+        for </span><span class="cov8" title="1">{
+                // Run the parser.
+                token, err := parsePotentialAssignmentOrBranchingCase(r, '}', true)
+                if err != nil </span><span class="cov8" title="1">{
+                        // Return the parser error.
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">if token == nil </span><span class="cov8" title="1">{
+                        // End of contract. Return the tokens.
+                        return tokens, nil
+                }</span>
+
+                // Add the token to the tokens.
+                <span class="cov8" title="1">tokens = append(tokens, token)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">// RemixDB. Copyright (C) 2023 Web Scale Software Ltd.
+// Author: Astrid Gealer &lt;astrid@gealer.email&gt;
+
+package ast
+
+import (
+        "math/big"
+        "strconv"
+        "strings"
+)
+
+// Parses a single quoted string. The first single quote has already been read.
+func parseSingleQuotedString(r *strings.Reader) (StringLiteralToken, *ParserError) <span class="cov8" title="1">{
+        pos := getReaderPos(r) - 1
+        content := ""
+        esc := false
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        // End of file.
+                        return StringLiteralToken{}, &amp;ParserError{
+                                Message:  "unexpected end of file after single quoted string",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case '\'':<span class="cov8" title="1">
+                        // If we are escaped, add the character.
+                        if esc </span><span class="cov8" title="1">{
+                                content += string(c)
+                                esc = false
+                                continue</span>
+                        }
+
+                        // Return the string literal.
+                        <span class="cov8" title="1">return StringLiteralToken{
+                                Value:    content,
+                                Position: pos,
+                        }, nil</span>
+                case '\\':<span class="cov8" title="1">
+                        // If we are escaped, add the character.
+                        if esc </span><span class="cov0" title="0">{
+                                content += string(c)
+                                esc = false
+                                continue</span>
+                        }
+
+                        // We are now escaped.
+                        <span class="cov8" title="1">esc = true</span>
+                default:<span class="cov8" title="1">
+                        // Add the character to the content.
+                        content += string(c)
+
+                        // We are no longer escaped if we were.
+                        esc = false</span>
+                }
+        }
+}
+
+// Parses a double quoted string. The first double quote has already been read.
+func parseDoubleQuotedString(r *strings.Reader) (StringLiteralToken, *ParserError) <span class="cov8" title="1">{
+        pos := getReaderPos(r) - 1
+        content := ""
+        esc := false
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        // End of file.
+                        return StringLiteralToken{}, &amp;ParserError{
+                                Message:  "unexpected end of file after double quoted string",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case '"':<span class="cov8" title="1">
+                        // If we are escaped, add the character.
+                        if esc </span><span class="cov8" title="1">{
+                                content += string(c)
+                                esc = false
+                                continue</span>
+                        }
+
+                        // Return the string literal.
+                        <span class="cov8" title="1">return StringLiteralToken{
+                                Value:    content,
+                                Position: pos,
+                        }, nil</span>
+                case '\\':<span class="cov8" title="1">
+                        // If we are escaped, add the character.
+                        if esc </span><span class="cov0" title="0">{
+                                content += string(c)
+                                esc = false
+                                continue</span>
+                        }
+
+                        // We are now escaped.
+                        <span class="cov8" title="1">esc = true</span>
+                default:<span class="cov8" title="1">
+                        // Add the character to the content.
+                        content += string(c)
+
+                        // We are no longer escaped if we were.
+                        esc = false</span>
+                }
+        }
+}
+
+// Parses a number literal.
+func parseNumberLiteral(r *strings.Reader, eot rune) (any, *ParserError) <span class="cov8" title="1">{
+        // Defines the start position.
+        pos := getReaderPos(r)
+
+        // Defines the content.
+        content := ""
+
+        // Defines the state.
+        state := 0
+
+        // Get the number content.
+numberGetLoop:
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov8" title="1">{
+                        // Before end of token so this is a error.
+                        return NumberLiteralToken{}, &amp;ParserError{
+                                Message:  "unexpected end of file after number literal",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case eot, ',', ' ', '\t', '\n', '\r':<span class="cov8" title="1">
+                        // Rewind the rune.
+                        _ = r.UnreadRune()
+
+                        // Break the loop.
+                        break numberGetLoop</span>
+                case '-':<span class="cov0" title="0">
+                        // Make sure we are in state 0.
+                        if state != 0 </span><span class="cov0" title="0">{
+                                return NumberLiteralToken{}, &amp;ParserError{
+                                        Message:  "unexpected '-' after start of number",
+                                        Position: pos,
+                                }
+                        }</span>
+
+                        // We are now in state 2.
+                        <span class="cov0" title="0">state = 2</span>
+                case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '+', 'a', 'A',
+                        'b', 'B', 'c', 'C', 'd', 'D', 'e', 'E', 'f', 'F', 'x', 'o':<span class="cov8" title="1">
+                        // If we are in state 0, set it to 1.
+                        if state == 0 </span><span class="cov8" title="1">{
+                                state = 1
+                        }</span>
+
+                        // Add the character to the content.
+                        <span class="cov8" title="1">content += string(c)</span>
+                }
+        }
+
+        // Check if the content is a float.
+        <span class="cov8" title="1">if strings.Contains(content, ".") </span><span class="cov0" title="0">{
+                // If it starts with a dot, add a zero.
+                if strings.HasPrefix(content, ".") </span><span class="cov0" title="0">{
+                        content = "0" + content
+                }</span>
+
+                // Parse the float as a float64.
+                <span class="cov0" title="0">float, err := strconv.ParseFloat(content, 64)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, &amp;ParserError{
+                                Message:  "error while parsing float: " + err.Error(),
+                                Position: pos,
+                        }
+                }</span>
+
+                // Return the float literal.
+                <span class="cov0" title="0">return FloatLiteralToken{
+                        Value:    float,
+                        Position: pos,
+                }, nil</span>
+        }
+
+        // If content is 0, return a zero.
+        <span class="cov8" title="1">if content == "0" </span><span class="cov8" title="1">{
+                return NumberLiteralToken{
+                        Value:    0,
+                        Position: pos,
+                }, nil
+        }</span>
+
+        // Check if this is another base.
+        <span class="cov8" title="1">base := 10
+        switch </span>{
+        case strings.HasPrefix(content, "0x"):<span class="cov8" title="1">
+                base = 16
+                content = content[2:]</span>
+        case strings.HasPrefix(content, "0b"):<span class="cov8" title="1">
+                base = 2
+                content = content[2:]</span>
+        case strings.HasPrefix(content, "0"):<span class="cov8" title="1">
+                base = 8
+                content = content[1:]
+                if content[0] == 'o' </span><span class="cov8" title="1">{
+                        content = content[1:]
+                }</span>
+        }
+
+        // Check if the content fits in a 64 bit integer.
+        <span class="cov8" title="1">v, err := strconv.ParseInt(content, base, 64)
+        if err == nil </span><span class="cov8" title="1">{
+                // Return the number literal.
+                return NumberLiteralToken{
+                        Value:    int(v),
+                        Position: pos,
+                }, nil
+        }</span>
+
+        // Check if this is a valid big integer.
+        <span class="cov0" title="0">x, _ := big.NewInt(0).SetString(content, base)
+        if x != nil </span><span class="cov0" title="0">{
+                // Return the big integer literal.
+                return BigIntLiteralToken{
+                        Value:    content,
+                        Position: pos,
+                }, nil
+        }</span>
+
+        // Return a error.
+        <span class="cov0" title="0">return nil, &amp;ParserError{
+                Message:  "invalid number literal",
+                Position: pos,
+        }</span>
+}
+
+// Parses the inners of an object literal. The first brace has already been read.
+func parseObjectLiteral(r *strings.Reader) (ObjectLiteralToken, *ParserError) <span class="cov8" title="1">{
+        m := map[string]any{}
+        comments := []CommentToken{}
+        pos := getReaderPos(r) - 1
+
+        for </span><span class="cov8" title="1">{
+                // Loop to get the information we need.
+                name := ""
+        nameLoop:
+                for </span><span class="cov8" title="1">{
+                        // Get the next Unicode character.
+                        c, _, err := r.ReadRune()
+                        if err != nil </span><span class="cov0" title="0">{
+                                // End of file.
+                                return ObjectLiteralToken{}, &amp;ParserError{
+                                        Message:  "unexpected end of file after object literal",
+                                        Position: pos,
+                                }
+                        }</span>
+
+                        // Switch on the character.
+                        <span class="cov8" title="1">switch c </span>{
+                        case '}':<span class="cov8" title="1">
+                                // Handle if a name is present.
+                                if name != "" </span><span class="cov0" title="0">{
+                                        return ObjectLiteralToken{}, &amp;ParserError{
+                                                Message:  "unexpected '}' after object literal name",
+                                                Position: pos,
+                                        }
+                                }</span>
+
+                                // Return the object literal.
+                                <span class="cov8" title="1">return ObjectLiteralToken{
+                                        Values:   m,
+                                        Comments: comments,
+                                        Position: pos,
+                                }, nil</span>
+                        case '/':<span class="cov8" title="1">
+                                // Parse the comment.
+                                a := []any{}
+                                e := parseComment(r, &amp;a)
+                                if e != nil </span><span class="cov0" title="0">{
+                                        return ObjectLiteralToken{}, e
+                                }</span>
+
+                                // Add the comment.
+                                <span class="cov8" title="1">comments = append(comments, a[0].(CommentToken))
+
+                                // Break the name loop if there's a name.
+                                if name != "" </span><span class="cov0" title="0">{
+                                        break nameLoop</span>
+                                }
+                        case '=':<span class="cov0" title="0">
+                                // Rewind the rune.
+                                _ = r.UnreadRune()
+
+                                // If the name is blank, this is a syntax error.
+                                if name == "" </span><span class="cov0" title="0">{
+                                        return ObjectLiteralToken{}, &amp;ParserError{
+                                                Message:  "unexpected '=' without object literal name",
+                                                Position: pos,
+                                        }
+                                }</span>
+
+                                // Break the name loop.
+                                <span class="cov0" title="0">break nameLoop</span>
+                        case ' ', '\t', '\n', '\r':<span class="cov8" title="1">
+                                // Handle if a name is present.
+                                if name != "" </span><span class="cov8" title="1">{
+                                        break nameLoop</span>
+                                }
+                        case '"':<span class="cov8" title="1">
+                                // Handle if a name is present.
+                                if name != "" </span><span class="cov0" title="0">{
+                                        return ObjectLiteralToken{}, &amp;ParserError{
+                                                Message:  "unexpected '\"' after object literal name",
+                                                Position: pos,
+                                        }
+                                }</span>
+
+                                // Parse the double quoted string.
+                                <span class="cov8" title="1">str, err := parseDoubleQuotedString(r)
+                                if err != nil </span><span class="cov0" title="0">{
+                                        return ObjectLiteralToken{}, err
+                                }</span>
+
+                                // Set the name to the string.
+                                <span class="cov8" title="1">name = str.Value
+
+                                // Break the name loop.
+                                break nameLoop</span>
+                        case '\'':<span class="cov8" title="1">
+                                // Handle if a name is present.
+                                if name != "" </span><span class="cov0" title="0">{
+                                        return ObjectLiteralToken{}, &amp;ParserError{
+                                                Message:  "unexpected ''' after object literal name",
+                                                Position: pos,
+                                        }
+                                }</span>
+
+                                // Parse the single quoted string.
+                                <span class="cov8" title="1">str, err := parseSingleQuotedString(r)
+                                if err != nil </span><span class="cov0" title="0">{
+                                        return ObjectLiteralToken{}, err
+                                }</span>
+
+                                // Set the name to the string.
+                                <span class="cov8" title="1">name = str.Value
+
+                                // Break the name loop.
+                                break nameLoop</span>
+                        default:<span class="cov8" title="1">
+                                // Add the character to the name.
+                                name += string(c)</span>
+                        }
+                }
+
+                // Consume all of the whitespace.
+                <span class="cov8" title="1">gulpWhitespace(r)
+
+                // Get the next character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        // End of file.
+                        return ObjectLiteralToken{}, &amp;ParserError{
+                                Message:  "unexpected end of file after object literal name",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Make sure this is a equals sign.
+                <span class="cov8" title="1">if c != '=' </span><span class="cov0" title="0">{
+                        return ObjectLiteralToken{}, &amp;ParserError{
+                                Message:  "unexpected '" + string(c) + "' after object literal name",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Consume all of the whitespace.
+                <span class="cov8" title="1">gulpWhitespace(r)
+
+                // Read the argument.
+                arg, perr := parseInnerContractTokenWithOpGrouping(r, ')')
+                if perr != nil </span><span class="cov0" title="0">{
+                        // The argument was unable to be read.
+                        return ObjectLiteralToken{}, perr
+                }</span>
+
+                // Add the argument.
+                <span class="cov8" title="1">m[name] = arg</span>
+        }
+}
+
+// Parses the inners of an array literal. The first bracket has already been read.
+func parseArrayLiteral(r *strings.Reader) (ArrayLiteralToken, *ParserError) <span class="cov8" title="1">{
+        items := []any{}
+        pos := getReaderPos(r) - 1
+        for </span><span class="cov8" title="1">{
+                // Get the next token.
+                token, err := parseInnerContractTokenWithOpGrouping(r, ']')
+                if err != nil </span><span class="cov0" title="0">{
+                        return ArrayLiteralToken{}, err
+                }</span>
+                <span class="cov8" title="1">if token == nil </span><span class="cov0" title="0">{
+                        // Return the array literal.
+                        return ArrayLiteralToken{
+                                Values:   items,
+                                Position: pos,
+                        }, nil
+                }</span>
+
+                // Add the token.
+                <span class="cov8" title="1">items = append(items, token)
+
+                // Consume the next spaces until either a comma or closing bracket.
+        commaLoop:
+                for </span><span class="cov8" title="1">{
+                        // Read the next Unicode character.
+                        c, _, err := r.ReadRune()
+                        if err != nil </span><span class="cov0" title="0">{
+                                // End of file.
+                                return ArrayLiteralToken{}, &amp;ParserError{
+                                        Message:  "unexpected end of file after array literal",
+                                        Position: pos,
+                                }
+                        }</span>
+
+                        // Switch on the character.
+                        <span class="cov8" title="1">switch c </span>{
+                        case ' ', '\t', '\n', '\r':<span class="cov0" title="0"></span>
+                                // Ignore whitespace.
+                        case ',':<span class="cov8" title="1">
+                                // Break the comma loop.
+                                break commaLoop</span>
+                        case ']':<span class="cov8" title="1">
+                                // Return the array literal.
+                                return ArrayLiteralToken{
+                                        Values:   items,
+                                        Position: pos,
+                                }, nil</span>
+                        }
+                }
+        }
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">// RemixDB. Copyright (C) 2023 Web Scale Software Ltd.
+// Author: Astrid Gealer &lt;astrid@gealer.email&gt;
+
+package ast
+
+import (
+        "io"
+        "strings"
+)
+
+// Handle any special tokens that start with 't'.
+func parseContractTokenCasesStartingT(r *strings.Reader, eot rune) (any, *ParserError) <span class="cov8" title="1">{
+        // Read ahead 4 bytes.
+        pos := getReaderPos(r) - 1
+        b := make([]byte, 4)
+        _, err := r.Read(b)
+        if err != nil </span><span class="cov0" title="0">{
+                // Not really our business.
+                return nil, nil
+        }</span>
+
+        // Unread 1 byte.
+        <span class="cov8" title="1">_, _ = r.Seek(-1, io.SeekCurrent)
+
+        // Switch on the end byte.
+        switch b[3] </span>{
+        case ',', '=', '/', ' ', '\t', '\n', '\r', byte(eot):<span class="cov8" title="1">
+                // Check if the remaining bytes are 'rue'.
+                if b[0] == 'r' &amp;&amp; b[1] == 'u' &amp;&amp; b[2] == 'e' </span><span class="cov8" title="1">{
+                        // Return the boolean literal.
+                        return BooleanLiteralToken{
+                                Value:    true,
+                                Position: pos,
+                        }, nil
+                }</span>
+
+                // Fallthrough.
+                <span class="cov8" title="1">fallthrough</span>
+        default:<span class="cov8" title="1">
+                // Rewind the reader more.
+                _, _ = r.Seek(-3, io.SeekCurrent)
+
+                // Return nil.
+                return nil, nil</span>
+        }
+}
+
+// Handle any special tokens that start with 'f'.
+func parseContractTokenCasesStartingF(r *strings.Reader, eot rune) (any, *ParserError) <span class="cov8" title="1">{
+        // Read ahead 5 bytes.
+        pos := getReaderPos(r) - 1
+        b := make([]byte, 5)
+
+        // Read the bytes.
+        _, err := r.Read(b)
+        if err != nil </span><span class="cov0" title="0">{
+                // Not really our business.
+                return nil, nil
+        }</span>
+
+        // Unread 1 byte.
+        <span class="cov8" title="1">_, _ = r.Seek(-1, io.SeekCurrent)
+
+        // Switch on the end byte.
+        switch b[4] </span>{
+        case ',', '=', ' ', '/', '\t', '\n', '\r', byte(eot):<span class="cov8" title="1">
+                // Check if the remaining bytes are 'alse'.
+                if b[0] == 'a' &amp;&amp; b[1] == 'l' &amp;&amp; b[2] == 's' &amp;&amp; b[3] == 'e' </span><span class="cov8" title="1">{
+                        // Return the boolean literal.
+                        return BooleanLiteralToken{
+                                Value:    false,
+                                Position: pos,
+                        }, nil
+                }</span>
+
+                // Fallthrough.
+                <span class="cov8" title="1">fallthrough</span>
+        default:<span class="cov8" title="1">
+                // Rewind the reader more.
+                _, _ = r.Seek(-4, io.SeekCurrent)
+
+                // Return nil.
+                return nil, nil</span>
+        }
+}
+
+// Handle any special tokens that start with 'n'.
+func parseContractTokenCasesStartingN(r *strings.Reader, eot rune) (any, *ParserError) <span class="cov8" title="1">{
+        // Read ahead 4 bytes.
+        pos := getReaderPos(r) - 1
+        b := make([]byte, 4)
+
+        // Read the bytes.
+        _, err := r.Read(b)
+        if err != nil </span><span class="cov0" title="0">{
+                // Not really our business.
+                return nil, nil
+        }</span>
+
+        // Unread 1 byte.
+        <span class="cov8" title="1">_, _ = r.Seek(-1, io.SeekCurrent)
+
+        // Switch on the end byte.
+        switch b[3] </span>{
+        case ',', '=', ' ', '/', '\t', '\n', '\r', byte(eot):<span class="cov8" title="1">
+                // Check if the remaining bytes are 'ull'.
+                if b[0] == 'u' &amp;&amp; b[1] == 'l' &amp;&amp; b[2] == 'l' </span><span class="cov8" title="1">{
+                        // Return the null literal.
+                        return NullLiteralToken{
+                                Position: pos,
+                        }, nil
+                }</span>
+
+                // Fallthrough.
+                <span class="cov8" title="1">fallthrough</span>
+        default:<span class="cov8" title="1">
+                // Rewind the reader more.
+                _, _ = r.Seek(-3, io.SeekCurrent)
+
+                // Return nil.
+                return nil, nil</span>
+        }
+}
+
+// Handles checking for a chained call.
+func handleChainedCall(r *strings.Reader) any <span class="cov8" title="1">{
+        // Check if the next rune is a dot.
+        c, _, err := r.ReadRune()
+        if err != nil </span><span class="cov0" title="0">{
+                // End of file.
+                return nil
+        }</span>
+
+        // If it's not a dot, rewind the rune and return.
+        <span class="cov8" title="1">if c != '.' </span><span class="cov8" title="1">{
+                _ = r.UnreadRune()
+                return nil
+        }</span>
+
+        // Grab the name.
+        <span class="cov8" title="1">name := ""
+        pos := getReaderPos(r)
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov8" title="1">{
+                        // End of file.
+                        return nil
+                }</span>
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case ' ', '\t', '\n', '\r':<span class="cov8" title="1">
+                        // End of the name if there's anything in it.
+                        if name != "" </span><span class="cov8" title="1">{
+                                return ReferenceToken{
+                                        Name:     name,
+                                        Position: pos,
+                                }
+                        }</span>
+                case '(':<span class="cov8" title="1">
+                        // Handle if the name is blank.
+                        if name == "" </span><span class="cov0" title="0">{
+                                // This would be '.(' which is illegal. Rewind so
+                                // the next token can handle it.
+                                _ = r.UnreadRune()
+                                return nil
+                        }</span>
+
+                        // Parse the method call.
+                        <span class="cov8" title="1">methodCall, err := parseMethodCall(r, getReaderPos(r), name)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return nil
+                        }</span>
+                        <span class="cov8" title="1">return methodCall</span>
+                default:<span class="cov8" title="1">
+                        // Add the character to the name.
+                        name += string(c)</span>
+                }
+        }
+}
+
+// Parses a method call inside a contract.
+func parseMethodCall(r *strings.Reader, pos int, name string) (any, *ParserError) <span class="cov8" title="1">{
+        // Defines the arguments.
+        args := []any{}
+
+        // Consume all of the whitespace.
+        gulpWhitespace(r)
+
+        // Check if there's even any arguments.
+        c, _, err := r.ReadRune()
+        if err != nil </span><span class="cov0" title="0">{
+                // End of file.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected end of file after method call starting bracket",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+        <span class="cov8" title="1">if c == ')' </span><span class="cov8" title="1">{
+                // No arguments.
+                return handleInlineIfElse(r, MethodCallToken{
+                        Name:        name,
+                        Position:    pos,
+                        Arguments:   args,
+                        ChainedCall: handleChainedCall(r),
+                })
+        }</span>
+
+        // Rewind the rune.
+        <span class="cov8" title="1">_ = r.UnreadRune()
+
+        // Loop to get the information we need.
+        for </span><span class="cov8" title="1">{
+                // Read the argument.
+                arg, err := parseInnerContractTokenWithOpGrouping(r, ')')
+                if err != nil </span><span class="cov0" title="0">{
+                        return MethodCallToken{}, err
+                }</span>
+
+                // Add the argument.
+                <span class="cov8" title="1">if arg == nil </span><span class="cov0" title="0">{
+                        break</span>
+                }
+                <span class="cov8" title="1">args = append(args, arg)
+
+                // Gulp all the whitespace.
+                gulpWhitespace(r)
+
+                // Read the next Unicode character.
+                c, _, x := r.ReadRune()
+                if x != nil </span><span class="cov0" title="0">{
+                        // End of file.
+                        return MethodCallToken{}, &amp;ParserError{
+                                Message:  "unexpected end of file after method call argument",
+                                Position: getReaderPos(r),
+                        }
+                }</span>
+
+                // If this is a closing bracket, return the method call.
+                <span class="cov8" title="1">if c == ')' </span><span class="cov8" title="1">{
+                        return handleInlineIfElse(r, MethodCallToken{
+                                Name:        name,
+                                Position:    pos,
+                                Arguments:   args,
+                                ChainedCall: handleChainedCall(r),
+                        })
+                }</span>
+
+                // If this isn't a comma, raise a error.
+                <span class="cov0" title="0">if c != ',' </span><span class="cov0" title="0">{
+                        return MethodCallToken{}, &amp;ParserError{
+                                Message:  "unexpected '" + string(c) + "' after method call argument",
+                                Position: getReaderPos(r),
+                        }
+                }</span>
+        }
+
+        // This is a syntax error because there's no closing bracket.
+        <span class="cov0" title="0">return MethodCallToken{}, &amp;ParserError{
+                Message:  "unexpected end of file after method call",
+                Position: getReaderPos(r),
+        }</span>
+}
+
+// Parses a contract reference or call, figuring out which one it is.
+func parseContractReferenceOrCall(r *strings.Reader, eot, c rune) (any, *ParserError) <span class="cov8" title="1">{
+        // Defines the name.
+        name := ""
+
+        // Defines the position.
+        pos := getReaderPos(r) - 1
+
+        for </span><span class="cov8" title="1">{
+                // Switch on the character.
+                switch c </span>{
+                case eot, ' ', '\t', '\n', '\r', ',':<span class="cov8" title="1">
+                        // Handle returning a reference token if the name is not blank.
+                        if name != "" </span><span class="cov8" title="1">{
+                                _ = r.UnreadRune()
+                                return ReferenceToken{
+                                        Name:     name,
+                                        Position: pos,
+                                }, nil
+                        }</span>
+                case '(':<span class="cov8" title="1">
+                        // Parse the method call.
+                        return parseMethodCall(r, pos, name)</span>
+                default:<span class="cov8" title="1">
+                        // Add the character to the name.
+                        name += string(c)</span>
+                }
+
+                // Read the next Unicode character.
+                <span class="cov8" title="1">var err error
+                c, _, err = r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        // End of file.
+                        return nil, &amp;ParserError{
+                                Message:  "unexpected end of file after contract reference or call",
+                                Position: pos,
+                        }
+                }</span>
+        }
+}
+
+// Parses a token which is inside a contract. eot is the end of the contract token or what
+// this is inside (for example, a end bracket for a method call). Use parseInnerContractTokenWithOpGrouping
+// if you want to parse a token that is inside a contract and uses operations.
+func parseInnerContractToken(r *strings.Reader, eot rune) (any, *ParserError) <span class="cov8" title="1">{
+        // Read the next Unicode character.
+        c, _, err := r.ReadRune()
+        if err != nil </span><span class="cov0" title="0">{
+                // End of file before closing bracket.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected end of file before closing bracket",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Switch on the character.
+        <span class="cov8" title="1">switch c </span>{
+        case '\'':<span class="cov8" title="1">
+                // Parse the single quoted string.
+                return parseSingleQuotedString(r)</span>
+        case '"':<span class="cov8" title="1">
+                // Parse the double quoted string.
+                return parseDoubleQuotedString(r)</span>
+        case '[':<span class="cov8" title="1">
+                // Parse the array literal.
+                return parseArrayLiteral(r)</span>
+        case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-', '+':<span class="cov8" title="1">
+                // Rewind the rune.
+                _ = r.UnreadRune()
+
+                // Parse the number literal.
+                return parseNumberLiteral(r, eot)</span>
+        case eot, ',':<span class="cov0" title="0">
+                // Rewind the rune.
+                _ = r.UnreadRune()
+
+                // Return nil.
+                return nil, nil</span>
+        case '{':<span class="cov8" title="1">
+                // Parse the object literal.
+                return parseObjectLiteral(r)</span>
+        case '/':<span class="cov8" title="1">
+                // Parse the comment.
+                a := []any{}
+                e := parseComment(r, &amp;a)
+                if e != nil </span><span class="cov0" title="0">{
+                        return nil, e
+                }</span>
+                <span class="cov8" title="1">return a[0], nil</span>
+        case 't':<span class="cov8" title="1">
+                // Handle all special tokens that start with 't'.
+                token, err := parseContractTokenCasesStartingT(r, eot)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">if token != nil </span><span class="cov8" title="1">{
+                        return token, nil
+                }</span>
+        case 'f':<span class="cov8" title="1">
+                // Handle all special tokens that start with 'f'.
+                token, err := parseContractTokenCasesStartingF(r, eot)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">if token != nil </span><span class="cov8" title="1">{
+                        return token, nil
+                }</span>
+        case 'n':<span class="cov8" title="1">
+                // Handle all special tokens that start with 'n'.
+                token, err := parseContractTokenCasesStartingN(r, eot)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">if token != nil </span><span class="cov8" title="1">{
+                        return token, nil
+                }</span>
+        }
+
+        // Make sure this is a-z or A-Z.
+        <span class="cov8" title="1">if !(c &gt;= 'a' &amp;&amp; c &lt;= 'z' || c &gt;= 'A' &amp;&amp; c &lt;= 'Z') </span><span class="cov8" title="1">{
+                return nil, &amp;ParserError{
+                        Message:  "unexpected '" + string(c) + "' in contract token",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Handle all other characters.
+        <span class="cov8" title="1">return parseContractReferenceOrCall(r, eot, c)</span>
+}
+
+// Parses the maths or boolean operation inside a contract. Returns 0 if there's no math operation.
+func parseMathOrBoolOp(r *strings.Reader) rune <span class="cov8" title="1">{
+        // Gulps all of the whitespace.
+        gulpWhitespace(r)
+
+        // Read the next Unicode character.
+        c, _, err := r.ReadRune()
+        if err != nil </span><span class="cov8" title="1">{
+                // Not really our business.
+                return 0
+        }</span>
+
+        // Switch on the character.
+        <span class="cov8" title="1">switch c </span>{
+        case '/':<span class="cov8" title="1">
+                // Look ahead for a slash.
+                c2, _, err := r.ReadRune()
+                if c2 == '/' </span><span class="cov8" title="1">{
+                        // Rewind twice.
+                        _, _ = r.Seek(-2, io.SeekCurrent)
+
+                        // Return nothing.
+                        return 0
+                }</span>
+
+                // Rewind the reader.
+                <span class="cov8" title="1">if err == nil </span><span class="cov8" title="1">{
+                        _ = r.UnreadRune()
+                }</span>
+
+                // Return the slash.
+                <span class="cov8" title="1">return c</span>
+        case '+', '-', '*', '%', '^':<span class="cov8" title="1">
+                // We found a operator.
+                return c</span>
+        case '&lt;', '&gt;':<span class="cov8" title="1">
+                // Read ahead a rune.
+                c2, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        // Return for this.
+                        return 0
+                }</span>
+
+                // If c2 is not a =, rewind the rune and return the operator.
+                <span class="cov8" title="1">if c2 != '=' </span><span class="cov8" title="1">{
+                        _ = r.UnreadRune()
+                        return c
+                }</span>
+
+                // Return the operator.
+                <span class="cov8" title="1">if c == '&lt;' </span><span class="cov8" title="1">{
+                        return '≤'
+                }</span>
+                <span class="cov8" title="1">return '≥'</span>
+        case '=', '!', '&amp;', '|':<span class="cov8" title="1">
+                // Read the next Unicode character.
+                c2, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        // Return for this.
+                        return 0
+                }</span>
+
+                // Set the comparison character to = if it is a !.
+                <span class="cov8" title="1">ogC := c
+                if c == '!' </span><span class="cov8" title="1">{
+                        c = '='
+                }</span>
+
+                // If c isn't equal to c2, return 0 and rewind the last couple of runes.
+                <span class="cov8" title="1">if c != c2 </span><span class="cov8" title="1">{
+                        _, _ = r.Seek(-2, io.SeekCurrent)
+                        return 0
+                }</span>
+
+                // Return the operator.
+                <span class="cov8" title="1">return ogC</span>
+        default:<span class="cov8" title="1">
+                // Rewind the rune.
+                _ = r.UnreadRune()
+
+                // Return nothing.
+                return 0</span>
+        }
+}
+
+// Ensure the next thing is a bracket.
+func ensureClosingBracket(r *strings.Reader) *ParserError <span class="cov8" title="1">{
+        // Gulps all of the whitespace.
+        gulpWhitespace(r)
+
+        // Read the next Unicode character.
+        c, _, err := r.ReadRune()
+        if err != nil </span><span class="cov8" title="1">{
+                // End of file before closing bracket.
+                return &amp;ParserError{
+                        Message:  "unexpected end of file before closing bracket",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Make sure this is a closing bracket.
+        <span class="cov8" title="1">if c != ')' </span><span class="cov8" title="1">{
+                return &amp;ParserError{
+                        Message:  "unexpected '" + string(c) + "' after contract token",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Return nil.
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Parses a token and looks ahead for a group that should group with the token.
+func parseInnerContractTokenWithOpGrouping(r *strings.Reader, eot rune) (any, *ParserError) <span class="cov8" title="1">{
+        // Consume all of the whitespace.
+        gulpWhitespace(r)
+
+        // Read the next Unicode character.
+        c, _, err := r.ReadRune()
+        if err != nil </span><span class="cov8" title="1">{
+                // End of file before closing bracket.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected end of file before closing bracket",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Handle the result.
+        <span class="cov8" title="1">var res any
+        var perr *ParserError
+        switch c </span>{
+        case '(':<span class="cov8" title="1">
+                // Call ourselves with a end bracket.
+                res, perr = parseInnerContractTokenWithOpGrouping(r, ')')
+
+                if res == nil &amp;&amp; perr == nil </span><span class="cov0" title="0">{
+                        // This is a special case where we have a empty bracket.
+                        return nil, &amp;ParserError{
+                                Message:  "unexpected empty bracket",
+                                Position: getReaderPos(r),
+                        }
+                }</span>
+
+                // Check for the closing bracket.
+                <span class="cov8" title="1">if perr := ensureClosingBracket(r); perr != nil </span><span class="cov8" title="1">{
+                        return nil, perr
+                }</span>
+        case '!':<span class="cov8" title="1">
+                // Get the position of this bang.
+                pos := getReaderPos(r) - 1
+
+                // Check what the next rune is.
+                ru, _, err := r.ReadRune()
+
+                if ru == '(' </span><span class="cov8" title="1">{
+                        // Parse with op grouping until the end bracket.
+                        res, perr = parseInnerContractTokenWithOpGrouping(r, ')')
+
+                        // Check for the closing bracket.
+                        if perr := ensureClosingBracket(r); perr != nil </span><span class="cov8" title="1">{
+                                return nil, perr
+                        }</span>
+                } else<span class="cov8" title="1"> {
+                        // Unread the rune.
+                        if err == nil </span><span class="cov8" title="1">{
+                                _ = r.UnreadRune()
+                        }</span>
+
+                        // Parse the inner token without any op grouping.
+                        <span class="cov8" title="1">res, perr = parseInnerContractToken(r, eot)</span>
+                }
+
+                <span class="cov8" title="1">if res != nil </span><span class="cov8" title="1">{
+                        // Wrap the token in a not token.
+                        res = NotToken{
+                                Token:    res,
+                                Position: pos,
+                        }
+                }</span>
+        default:<span class="cov8" title="1">
+                // Rewind the rune.
+                _ = r.UnreadRune()
+
+                // Parse the token.
+                res, perr = parseInnerContractToken(r, eot)</span>
+        }
+
+        // Return if there's a error.
+        <span class="cov8" title="1">if perr != nil </span><span class="cov8" title="1">{
+                return nil, perr
+        }</span>
+
+        // If we didn't pick up a token, return nil.
+        <span class="cov8" title="1">if res == nil </span><span class="cov8" title="1">{
+                return nil, nil
+        }</span>
+
+        // Look ahead for a operator.
+        <span class="cov8" title="1">pos := getReaderPos(r)
+        op := parseMathOrBoolOp(r)
+        if op == 0 </span><span class="cov8" title="1">{
+                // No operator.
+                return res, nil
+        }</span>
+
+        // Parse the next token.
+        <span class="cov8" title="1">next, perr := parseInnerContractTokenWithOpGrouping(r, eot)
+        if perr != nil </span><span class="cov8" title="1">{
+                return nil, perr
+        }</span>
+
+        // Return the math operation.
+        <span class="cov8" title="1">switch op </span>{
+        case '+':<span class="cov8" title="1">
+                return AddToken{
+                        Left:     res,
+                        Right:    next,
+                        Position: pos,
+                }, nil</span>
+        case '-':<span class="cov8" title="1">
+                return SubtractToken{
+                        Left:     res,
+                        Right:    next,
+                        Position: pos,
+                }, nil</span>
+        case '*':<span class="cov8" title="1">
+                return MultiplyToken{
+                        Left:     res,
+                        Right:    next,
+                        Position: pos,
+                }, nil</span>
+        case '/':<span class="cov8" title="1">
+                return DivideToken{
+                        Left:     res,
+                        Right:    next,
+                        Position: pos,
+                }, nil</span>
+        case '%':<span class="cov8" title="1">
+                return ModuloToken{
+                        Left:     res,
+                        Right:    next,
+                        Position: pos,
+                }, nil</span>
+        case '^':<span class="cov8" title="1">
+                return ExponentToken{
+                        Left:     res,
+                        Right:    next,
+                        Position: pos,
+                }, nil</span>
+        case '&lt;':<span class="cov8" title="1">
+                return LessThanToken{
+                        Left:     res,
+                        Right:    next,
+                        Position: pos,
+                }, nil</span>
+        case '&gt;':<span class="cov8" title="1">
+                return GreaterThanToken{
+                        Left:     res,
+                        Right:    next,
+                        Position: pos,
+                }, nil</span>
+        case '=':<span class="cov8" title="1">
+                return EqualToken{
+                        Left:     res,
+                        Right:    next,
+                        Position: pos,
+                }, nil</span>
+        case '!':<span class="cov8" title="1">
+                return NotEqualToken{
+                        Left:     res,
+                        Right:    next,
+                        Position: pos,
+                }, nil</span>
+        case '&amp;':<span class="cov8" title="1">
+                return AndToken{
+                        Left:     res,
+                        Right:    next,
+                        Position: pos,
+                }, nil</span>
+        case '|':<span class="cov8" title="1">
+                return OrToken{
+                        Left:     res,
+                        Right:    next,
+                        Position: pos,
+                }, nil</span>
+        case '≤':<span class="cov8" title="1">
+                return LessThanOrEqualToken{
+                        Left:     res,
+                        Right:    next,
+                        Position: pos,
+                }, nil</span>
+        case '≥':<span class="cov8" title="1">
+                return GreaterThanOrEqualToken{
+                        Left:     res,
+                        Right:    next,
+                        Position: pos,
+                }, nil</span>
+        default:<span class="cov0" title="0">
+                // This should never happen.
+                panic("unexpected operator value")</span>
+        }
+}
+
+// Parses a contract argument.
+func parseContractArgument(r *strings.Reader) (*ContractArgumentToken, *ParserError) <span class="cov8" title="1">{
+        // Get the next Unicode character.
+        c, _, err := r.ReadRune()
+        if err != nil </span><span class="cov0" title="0">{
+                // End of file.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected end of file after contract argument bracket",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Check if there's even any arguments.
+        <span class="cov8" title="1">if c == ')' </span><span class="cov8" title="1">{
+                // No arguments.
+                return nil, nil
+        }</span>
+
+        // Defines the argument name and type.
+        <span class="cov8" title="1">name := ""
+        nameIndex := getReaderPos(r)
+        type_ := ""
+        typeState := false
+        typeIndex := -1
+
+        // Loop to get the information we need.
+        for </span><span class="cov8" title="1">{
+                // Switch on the character.
+                switch c </span>{
+                case ':':<span class="cov8" title="1">
+                        // Make sure we are not already in type mode.
+                        if typeState </span><span class="cov0" title="0">{
+                                return nil, &amp;ParserError{
+                                        Message:  "unexpected ':' after ':'",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+
+                        // Handle if no name is present.
+                        <span class="cov8" title="1">if name == "" </span><span class="cov0" title="0">{
+                                return nil, &amp;ParserError{
+                                        Message:  "unexpected ':' after '('",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+
+                        // We are now in type mode.
+                        <span class="cov8" title="1">typeState = true
+                        typeIndex = getReaderPos(r)</span>
+                case ' ', '\t', '\n', '\r':<span class="cov8" title="1">
+                        // Check if the mode we are in has content.
+                        hasContent := name != ""
+                        if typeState </span><span class="cov8" title="1">{
+                                hasContent = type_ != ""
+                        }</span>
+
+                        // If there's content, this is in the middle of the argument.
+                        <span class="cov8" title="1">if hasContent </span><span class="cov8" title="1">{
+                                return nil, &amp;ParserError{
+                                        Message:  "unexpected whitespace in the middle of an argument",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+                case ')':<span class="cov8" title="1">
+                        // Handle if no name is present.
+                        if name == "" </span><span class="cov0" title="0">{
+                                return nil, &amp;ParserError{
+                                        Message:  "unexpected ')' after '('",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+
+                        // Handle if no type is present.
+                        <span class="cov8" title="1">if typeState &amp;&amp; type_ == "" </span><span class="cov0" title="0">{
+                                return nil, &amp;ParserError{
+                                        Message:  "unexpected ')' after ':'",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+
+                        // Handle if the colon for the type is missing.
+                        <span class="cov8" title="1">if !typeState </span><span class="cov0" title="0">{
+                                return nil, &amp;ParserError{
+                                        Message:  "unexpected ')' after argument name - did you forget the type?",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+
+                        // Return the token.
+                        <span class="cov8" title="1">return &amp;ContractArgumentToken{
+                                Name:      name,
+                                NameIndex: nameIndex,
+                                Type:      type_,
+                                TypeIndex: typeIndex,
+                        }, nil</span>
+                default:<span class="cov8" title="1">
+                        // Add the character to the name or type.
+                        if typeState </span><span class="cov8" title="1">{
+                                type_ += string(c)
+                        }</span> else<span class="cov8" title="1"> {
+                                name += string(c)
+                        }</span>
+                }
+
+                // Read the next Unicode character.
+                <span class="cov8" title="1">c, _, err = r.ReadRune()
+                if err != nil </span><span class="cov8" title="1">{
+                        // End of file.
+                        return nil, &amp;ParserError{
+                                Message:  "unexpected end of file during contract argument",
+                                Position: getReaderPos(r),
+                        }
+                }</span>
+        }
+}
+
+// Parses a contract return type.
+func parseContractReturnType(r *strings.Reader) (string, *ParserError) <span class="cov8" title="1">{
+        state := 0
+        content := ""
+        for </span><span class="cov8" title="1">{
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        // End of file.
+                        return "", &amp;ParserError{
+                                Message:  "unexpected end of file after contract return type bracket",
+                                Position: getReaderPos(r),
+                        }
+                }</span>
+
+                <span class="cov8" title="1">switch c </span>{
+                case '-':<span class="cov8" title="1">
+                        if state != 0 </span><span class="cov0" title="0">{
+                                return "", &amp;ParserError{
+                                        Message:  "unexpected '-' after '-'",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+                        <span class="cov8" title="1">state = 1</span>
+                case '&gt;':<span class="cov8" title="1">
+                        if state != 1 </span><span class="cov0" title="0">{
+                                return "", &amp;ParserError{
+                                        Message:  "unexpected '&gt;' that is not preceded by '-'",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+                        <span class="cov8" title="1">state = 2</span>
+                case ' ', '\t', '\n', '\r':<span class="cov8" title="1">
+                        if state == 1 </span><span class="cov0" title="0">{
+                                return "", &amp;ParserError{
+                                        Message:  "unexpected whitespace after '-'",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+
+                        // Return when we are in state 2 unless its a blank string.
+                        <span class="cov8" title="1">if state == 2 &amp;&amp; content != "" </span><span class="cov8" title="1">{
+                                // Rewind the rune.
+                                _ = r.UnreadRune()
+
+                                return content, nil
+                        }</span>
+                default:<span class="cov8" title="1">
+                        if state == 2 </span><span class="cov8" title="1">{
+                                content += string(c)
+                        }</span> else<span class="cov8" title="1"> {
+                                // Unexpected character.
+                                return "", &amp;ParserError{
+                                        Message:  "unexpected '" + string(c) + "' after contract return type",
+                                        Position: getReaderPos(r),
+                                }
+                        }</span>
+                }
+        }
+}
+
+// Parses the inners of a contract throws.
+func parseInnerContractThrows(r *strings.Reader) ([]ContractThrowsToken, *ParserError) <span class="cov8" title="1">{
+        // Defines all of the throw tokens.
+        throws := []ContractThrowsToken{}
+
+        // Defines the loop to get each throw token.
+        for </span><span class="cov8" title="1">{
+                // Defines the position of the throw token.
+                pos := -1
+
+                // Defines the buffer holding the throw token.
+                buffer := ""
+
+                // Defines the method to drain the buffer.
+                drainBuffer := func() </span><span class="cov8" title="1">{
+                        // Drain the buffer.
+                        if buffer != "" </span><span class="cov8" title="1">{
+                                throws = append(throws, ContractThrowsToken{
+                                        Name:     buffer,
+                                        Position: pos,
+                                })
+                        }</span>
+                }
+
+                // Gulp the whitespace.
+                <span class="cov8" title="1">gulpWhitespace(r)
+
+                // Defines the loop to consume the throw token.
+        nameLoop:
+                for </span><span class="cov8" title="1">{
+                        // Read the next Unicode character.
+                        c, _, err := r.ReadRune()
+                        if err != nil </span><span class="cov0" title="0">{
+                                // End of file.
+                                return nil, &amp;ParserError{
+                                        Message:  "unexpected end of file after start of throws token",
+                                        Position: pos,
+                                }
+                        }</span>
+
+                        // Switch on the character.
+                        <span class="cov8" title="1">switch c </span>{
+                        case '{':<span class="cov8" title="1">
+                                // This is the end of the throw token. Rewind and return
+                                // since we are done.
+                                _ = r.UnreadRune()
+                                drainBuffer()
+                                return throws, nil</span>
+                        case ' ', '\t', '\n', '\r':<span class="cov8" title="1">
+                                // If the buffer is blank, break.
+                                if buffer == "" </span><span class="cov0" title="0">{
+                                        break</span>
+                                }
+
+                                // Drain the buffer.
+                                <span class="cov8" title="1">drainBuffer()
+
+                                // Gulp the whitespace.
+                                gulpWhitespace(r)
+
+                                // Read the next Unicode character.
+                                c, _, err := r.ReadRune()
+                                if err != nil </span><span class="cov0" title="0">{
+                                        // End of file.
+                                        return nil, &amp;ParserError{
+                                                Message:  "unexpected end of file after start of throws token",
+                                                Position: pos,
+                                        }
+                                }</span>
+
+                                // Switch on the character.
+                                <span class="cov8" title="1">switch c </span>{
+                                case '{':<span class="cov8" title="1">
+                                        // Rewind the rune and return.
+                                        _ = r.UnreadRune()
+                                        return throws, nil</span>
+                                case ',':<span class="cov0" title="0">
+                                        // Break the name loop.
+                                        break nameLoop</span>
+                                default:<span class="cov0" title="0">
+                                        // Unexpected character.
+                                        return nil, &amp;ParserError{
+                                                Message:  "unexpected '" + string(c) + "' after space in throws token",
+                                                Position: getReaderPos(r),
+                                        }</span>
+                                }
+                        case ',':<span class="cov8" title="1">
+                                // Drain the buffer.
+                                drainBuffer()
+
+                                // Break the name loop.
+                                break nameLoop</span>
+                        default:<span class="cov8" title="1">
+                                // If buffer is blank, set the position.
+                                if buffer == "" </span><span class="cov8" title="1">{
+                                        pos = getReaderPos(r) - 1
+                                }</span>
+
+                                // Add the character to the buffer.
+                                <span class="cov8" title="1">buffer += string(c)</span>
+                        }
+                }
+        }
+}
+
+// Parses what a contract throws.
+func parseContractThrows(r *strings.Reader) ([]ContractThrowsToken, *ParserError) <span class="cov8" title="1">{
+        // Gulp the whitespace.
+        whitespace, _ := gulpWhitespace(r)
+        if !whitespace </span><span class="cov0" title="0">{
+                // Cannot be 'throws'.
+                return []ContractThrowsToken{}, nil
+        }</span>
+
+        // Read the next Unicode character.
+        <span class="cov8" title="1">c, _, err := r.ReadRune()
+        if err != nil </span><span class="cov0" title="0">{
+                // End of file.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected end of file after contract return",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Make sure this is 't'.
+        <span class="cov8" title="1">if c != 't' </span><span class="cov8" title="1">{
+                // Rewind the rune and return.
+                _ = r.UnreadRune()
+                return []ContractThrowsToken{}, nil
+        }</span>
+
+        // Check the next bit is 'hrows'.
+        <span class="cov8" title="1">b := make([]byte, 5)
+        _, err = r.Read(b)
+        if err != nil </span><span class="cov0" title="0">{
+                // End of file.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected end of file after start of throws token",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Make sure this is 'hrows'.
+        <span class="cov8" title="1">if string(b) != "hrows" </span><span class="cov0" title="0">{
+                // If not, this is just an unexpected 't'.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected 't' after contract return",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Gulp the whitespace.
+        <span class="cov8" title="1">whitespace, _ = gulpWhitespace(r)
+        if !whitespace </span><span class="cov0" title="0">{
+                // Throws needs to be followed by a space.
+                return nil, &amp;ParserError{
+                        Message:  "unexpected lack of whitespace after 'throws' keyword",
+                        Position: getReaderPos(r),
+                }
+        }</span>
+
+        // Parse the inner contract throws.
+        <span class="cov8" title="1">return parseInnerContractThrows(r)</span>
+}
+
+// Parses a contract. The first c should be consumed.
+func parseContract(r *strings.Reader, decorators []DecoratorToken) (ContractToken, *ParserError) <span class="cov8" title="1">{
+        // Get the position of the start of the contract.
+        pos := getReaderPos(r) - 1
+
+        // Make sure the next content is 'ontract'.
+        b := make([]byte, 7)
+        _, err := r.Read(b)
+        if err != nil </span><span class="cov0" title="0">{
+                // End of file.
+                return ContractToken{}, &amp;ParserError{
+                        Message:  "unexpected end of file after 'c' character",
+                        Position: pos,
+                }
+        }</span>
+        <span class="cov8" title="1">content := string(b)
+        if content != "ontract" </span><span class="cov0" title="0">{
+                return ContractToken{}, &amp;ParserError{
+                        Message:  "unexpected '" + content + "' after 'c' character - did you mean contract?",
+                        Position: pos,
+                }
+        }</span>
+
+        // Expect a space or newline.
+        <span class="cov8" title="1">whitespace, perr := gulpWhitespace(r)
+        if perr != nil </span><span class="cov0" title="0">{
+                return ContractToken{}, perr
+        }</span>
+        <span class="cov8" title="1">if !whitespace </span><span class="cov0" title="0">{
+                return ContractToken{}, &amp;ParserError{
+                        Message:  "unexpected non-space after 'contract' keyword - did you forget a space?",
+                        Position: pos,
+                }
+        }</span>
+
+        // Get the name of the contract.
+        <span class="cov8" title="1">name := ""
+nameReader:
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        // End of file.
+                        return ContractToken{}, &amp;ParserError{
+                                Message:  "unexpected end of file after start of contract definition",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case '(':<span class="cov8" title="1">
+                        // If the contract name is blank, this is illegal.
+                        if name == "" </span><span class="cov0" title="0">{
+                                return ContractToken{}, &amp;ParserError{
+                                        Message:  "unexpected '(' after 'contract' keyword - did you forget the contract name?",
+                                        Position: pos,
+                                }
+                        }</span>
+
+                        // We found the opening bracket.
+                        <span class="cov8" title="1">break nameReader</span>
+                case ' ', '\t':<span class="cov0" title="0"></span>
+                        // Ignore whitespace.
+                case '\n', '\r':<span class="cov0" title="0">
+                        // Error since arguments cannot be on a new line.
+                        return ContractToken{}, &amp;ParserError{
+                                Message:  "unexpected line ending after 'contract' keyword - did you put a new line before the arguments?",
+                                Position: pos,
+                        }</span>
+                default:<span class="cov8" title="1">
+                        // Add the character to the name.
+                        name += string(c)</span>
+                }
+        }
+
+        // Make sure the name starts with a a-z or A-Z.
+        <span class="cov8" title="1">if !(name[0] &gt;= 'a' &amp;&amp; name[0] &lt;= 'z') &amp;&amp; !(name[0] &gt;= 'A' &amp;&amp; name[0] &lt;= 'Z') </span><span class="cov8" title="1">{
+                return ContractToken{}, &amp;ParserError{
+                        Message:  "unexpected '" + string(name[0]) + "' as first character of contract name",
+                        Position: pos,
+                }
+        }</span>
+
+        // Get the argument of the contract.
+        <span class="cov8" title="1">arg, perr := parseContractArgument(r)
+        if perr != nil </span><span class="cov8" title="1">{
+                return ContractToken{}, perr
+        }</span>
+
+        // Parse the return type of the contract.
+        <span class="cov8" title="1">returnType, perr := parseContractReturnType(r)
+        if perr != nil </span><span class="cov8" title="1">{
+                return ContractToken{}, perr
+        }</span>
+
+        // Parses anything this throws.
+        <span class="cov8" title="1">throws, perr := parseContractThrows(r)
+        if perr != nil </span><span class="cov0" title="0">{
+                return ContractToken{}, perr
+        }</span>
+
+        // Look for the opening bracket.
+<span class="cov8" title="1">openingBracketFind:
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        // End of file.
+                        return ContractToken{}, &amp;ParserError{
+                                Message:  "unexpected end of file after contract name",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case ' ', '\t', '\n', '\r':<span class="cov0" title="0"></span>
+                        // Do nothing.
+                case '{':<span class="cov8" title="1">
+                        // We found the opening bracket.
+                        break openingBracketFind</span>
+                default:<span class="cov8" title="1">
+                        // Unexpected character.
+                        return ContractToken{}, &amp;ParserError{
+                                Message:  "unexpected '" + string(c) + "' after contract definition",
+                                Position: pos,
+                        }</span>
+                }
+        }
+
+        // Parse the inner contract.
+        <span class="cov8" title="1">inner, perr := parseInnerContract(r)
+        if perr != nil </span><span class="cov8" title="1">{
+                // This means the inside of the contract was invalid.
+                return ContractToken{}, perr
+        }</span>
+
+        // Return the contract.
+        <span class="cov8" title="1">return ContractToken{
+                Name:       name,
+                Position:   pos,
+                ReturnType: returnType,
+                Argument:   arg,
+                Throws:     throws,
+                Decorators: decorators,
+                Statements: inner,
+        }, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">// RemixDB. Copyright (C) 2023 Web Scale Software Ltd.
+// Author: Astrid Gealer &lt;astrid@gealer.email&gt;
+
+package ast
+
+import (
+        "io"
+        "strings"
+)
+
+// Parses the using types of a mapping.
+func parseMappingUsingTypes(r *strings.Reader, comments *[]CommentToken) ([]string, *ParserError) <span class="cov8" title="1">{
+        // Defines the type names.
+        typeNames := []string{}
+        currentTypeName := ""
+
+        // Get the position.
+        pos := getReaderPos(r)
+
+        // Defines the state.
+        state := 0
+
+        // Defines the loop.
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, &amp;ParserError{
+                                Message:  "expected using type, got EOF",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case ' ', '\t', '\n', '\r':<span class="cov8" title="1">
+                        // If it is whitespace, check the state.
+                        if state == 1 </span><span class="cov8" title="1">{
+                                // If it is 1, add the type name to the list.
+                                typeNames = append(typeNames, currentTypeName)
+                                currentTypeName = ""
+                                state = 2
+                        }</span>
+                case ',':<span class="cov8" title="1">
+                        // If it is a comma, check the state.
+                        switch state </span>{
+                        case 0:<span class="cov8" title="1">
+                                // Comma before anything else is an error.
+                                return nil, &amp;ParserError{
+                                        Message:  "expected using type, got ','",
+                                        Position: pos,
+                                }</span>
+                        case 1:<span class="cov8" title="1">
+                                // This is just the type name, meaning we can add it to the list.
+                                typeNames = append(typeNames, currentTypeName)
+                                currentTypeName = ""
+                                state = 0</span>
+                        case 2:<span class="cov0" title="0">
+                                // Reset the state.
+                                state = 0</span>
+                        }
+                case '{':<span class="cov8" title="1">
+                        // If the state is 0, there is no type name.
+                        if state == 0 &amp;&amp; len(typeNames) == 0 </span><span class="cov0" title="0">{
+                                return nil, &amp;ParserError{
+                                        Message:  "expected using type, got '{'",
+                                        Position: pos,
+                                }
+                        }</span>
+
+                        // Rewind a rune and return.
+                        <span class="cov8" title="1">_ = r.UnreadRune()
+                        if currentTypeName != "" </span><span class="cov0" title="0">{
+                                typeNames = append(typeNames, currentTypeName)
+                        }</span>
+                        <span class="cov8" title="1">return typeNames, nil</span>
+                case '/':<span class="cov8" title="1">
+                        // If it is a slash, parse a comment.
+                        a := []any{}
+                        err := parseComment(r, &amp;a)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return []string{}, err
+                        }</span>
+                        <span class="cov8" title="1">*comments = append(*comments, a[0].(CommentToken))
+
+                        // Gulps the whitespace.
+                        gulpWhitespace(r)</span>
+                case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+                        'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+                        'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D',
+                        'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+                        'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+                        'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7',
+                        '8', '9':<span class="cov8" title="1">
+                        // Handle the state.
+                        switch state </span>{
+                        case 0, 1:<span class="cov8" title="1">
+                                // Add the character to the type name.
+                                state = 1
+                                currentTypeName += string(c)</span>
+                        case 2:<span class="cov0" title="0">
+                                // Expected a comma.
+                                return nil, &amp;ParserError{
+                                        Message:  "expected ',' after using type, got '" + string(c) + "'",
+                                        Position: pos,
+                                }</span>
+                        }
+                }
+        }
+}
+
+// Parses the inner of a mapping.
+func parseMappingInner(r *strings.Reader, comments *[]CommentToken) (string, any, *ParserError) <span class="cov8" title="1">{
+        // Gulps the whitespace.
+        _, err := gulpWhitespace(r)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", nil, err
+        }</span>
+
+        // Get the start of the mapping insides index.
+        <span class="cov8" title="1">pos := getReaderPos(r)
+
+        // Get the key.
+        key := ""
+keyLoop:
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        return "", nil, &amp;ParserError{
+                                Message:  "expected mapping key, got EOF",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case '-':<span class="cov0" title="0">
+                        // Rewind a rune and break.
+                        _ = r.UnreadRune()
+                        break keyLoop</span>
+                case ' ', '\t', '\n', '\r':<span class="cov8" title="1">
+                        // If it is whitespace, break.
+                        break keyLoop</span>
+                case '/':<span class="cov8" title="1">
+                        // If it is a slash, parse a comment.
+                        a := []any{}
+                        err := parseComment(r, &amp;a)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return "", nil, err
+                        }</span>
+                        <span class="cov8" title="1">*comments = append(*comments, a[0].(CommentToken))
+
+                        // Gulps the whitespace.
+                        gulpWhitespace(r)
+
+                        // Set the position.
+                        pos = getReaderPos(r)</span>
+                default:<span class="cov8" title="1">
+                        // If it is anything else, add it to the key.
+                        key += string(c)</span>
+                }
+        }
+
+        // Make sure the key isn't empty.
+        <span class="cov8" title="1">if len(key) == 0 </span><span class="cov0" title="0">{
+                return "", nil, &amp;ParserError{
+                        Message:  "mapping key cannot be empty",
+                        Position: pos,
+                }
+        }</span>
+
+        <span class="cov8" title="1">for </span><span class="cov8" title="1">{
+                // Gulps the whitespace.
+                _, err = gulpWhitespace(r)
+                if err != nil </span><span class="cov0" title="0">{
+                        return "", nil, err
+                }</span>
+
+                // Get the next 2 bytes.
+                <span class="cov8" title="1">b := make([]byte, 2)
+                _, _ = r.Read(b)
+
+                // If they are '//', rewind one and parse a comment.
+                if string(b) == "//" </span><span class="cov0" title="0">{
+                        _, _ = r.Seek(-1, io.SeekCurrent)
+                        a := []any{}
+                        err := parseComment(r, &amp;a)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return "", nil, err
+                        }</span>
+                        <span class="cov0" title="0">*comments = append(*comments, a[0].(CommentToken))
+                        continue</span>
+                }
+
+                // Make sure the next 2 characters are '-&gt;'.
+                <span class="cov8" title="1">if string(b) != "-&gt;" </span><span class="cov0" title="0">{
+                        return "", nil, &amp;ParserError{
+                                Message:  "expected '-&gt;' after mapping key, got '" + string(b) + "'",
+                                Position: pos,
+                        }
+                }</span>
+                <span class="cov8" title="1">break</span>
+        }
+
+        <span class="cov8" title="1">for </span><span class="cov8" title="1">{
+                // Gulps the whitespace.
+                _, err = gulpWhitespace(r)
+                if err != nil </span><span class="cov0" title="0">{
+                        return "", nil, err
+                }</span>
+
+                // Get the next character.
+                <span class="cov8" title="1">c, _, errIface := r.ReadRune()
+                if errIface != nil </span><span class="cov0" title="0">{
+                        return "", nil, &amp;ParserError{
+                                Message:  "expected mapping value, got EOF",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case '/':<span class="cov8" title="1">
+                        // If it is a slash, parse a comment.
+                        a := []any{}
+                        err := parseComment(r, &amp;a)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return "", nil, err
+                        }</span>
+
+                        // Add the comment.
+                        <span class="cov8" title="1">*comments = append(*comments, a[0].(CommentToken))</span>
+                case '{':<span class="cov8" title="1">
+                        // Get the position of the mapping.
+                        pos := getReaderPos(r) - 1
+
+                        // Get the mapping we will embed.
+                        commentsInner := []CommentToken{}
+                        key, value, err := parseMappingInner(r, &amp;commentsInner)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return "", nil, err
+                        }</span>
+                        <span class="cov8" title="1">innerMapping := MappingPartialToken{
+                                Value:    value,
+                                Position: pos,
+                                Key:      key,
+                                Comments: commentsInner,
+                        }
+
+                        // Gulp the whitespace.
+                        _, err = gulpWhitespace(r)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return "", nil, err
+                        }</span>
+
+                        // Make sure the next character is '}'.
+                        <span class="cov8" title="1">c, _, errIface = r.ReadRune()
+                        if errIface != nil </span><span class="cov0" title="0">{
+                                return "", nil, &amp;ParserError{
+                                        Message:  "expected '}' after mapping value, got EOF",
+                                        Position: pos,
+                                }
+                        }</span>
+                        <span class="cov8" title="1">if c != '}' </span><span class="cov0" title="0">{
+                                return "", nil, &amp;ParserError{
+                                        Message:  "expected '}' after mapping value, got '" + string(c) + "'",
+                                        Position: pos,
+                                }
+                        }</span>
+
+                        // Return the mapping.
+                        <span class="cov8" title="1">return key, innerMapping, nil</span>
+                case '}':<span class="cov0" title="0">
+                        // This is a syntax error because it is pointing to the end of the mapping.
+                        return "", nil, &amp;ParserError{
+                                Message:  "expected mapping value, got '}'",
+                                Position: pos,
+                        }</span>
+                default:<span class="cov8" title="1">
+                        // Start consuming the value.
+                        value := string(c)
+                valueLoop:
+                        for </span><span class="cov8" title="1">{
+                                // Read the next Unicode character.
+                                c, _, err := r.ReadRune()
+                                if err != nil </span><span class="cov0" title="0">{
+                                        return "", nil, &amp;ParserError{
+                                                Message:  "expected mapping value, got EOF",
+                                                Position: pos,
+                                        }
+                                }</span>
+
+                                // Switch on the character.
+                                <span class="cov8" title="1">switch c </span>{
+                                case '/':<span class="cov0" title="0">
+                                        // If it is a slash, parse a comment.
+                                        a := []any{}
+                                        err := parseComment(r, &amp;a)
+                                        if err != nil </span><span class="cov0" title="0">{
+                                                return "", nil, err
+                                        }</span>
+
+                                        // Add the comment.
+                                        <span class="cov0" title="0">*comments = append(*comments, a[0].(CommentToken))</span>
+                                case ' ', '\t', '\n', '\r':<span class="cov8" title="1">
+                                        // If it is whitespace, break unless value is empty.
+                                        if len(value) != 0 </span><span class="cov8" title="1">{
+                                                break valueLoop</span>
+                                        }
+                                case '}':<span class="cov0" title="0">
+                                        // If it is the end bracket, return.
+                                        if len(value) == 0 </span><span class="cov0" title="0">{
+                                                return "", nil, &amp;ParserError{
+                                                        Message:  "mapping value cannot be empty",
+                                                        Position: pos,
+                                                }
+                                        }</span>
+                                        <span class="cov0" title="0">return key, value, nil</span>
+                                default:<span class="cov0" title="0">
+                                        // If it is anything else, add it to the value.
+                                        value += string(c)</span>
+                                }
+                        }
+
+                        // Make sure the value isn't empty.
+                        <span class="cov8" title="1">if len(value) == 0 </span><span class="cov0" title="0">{
+                                return "", nil, &amp;ParserError{
+                                        Message:  "mapping value cannot be empty",
+                                        Position: pos,
+                                }
+                        }</span>
+
+                        // Gulps the whitespace.
+                        <span class="cov8" title="1">_, err = gulpWhitespace(r)
+                        if err != nil </span><span class="cov8" title="1">{
+                                return "", nil, err
+                        }</span>
+
+                        // Make sure the next character is '}'.
+                        <span class="cov8" title="1">c, _, errIface = r.ReadRune()
+                        if errIface != nil </span><span class="cov0" title="0">{
+                                return "", nil, &amp;ParserError{
+                                        Message:  "expected '}' after mapping value, got EOF",
+                                        Position: pos,
+                                }
+                        }</span>
+                        <span class="cov8" title="1">if c != '}' </span><span class="cov0" title="0">{
+                                return "", nil, &amp;ParserError{
+                                        Message:  "expected '}' after mapping value, got '" + string(c) + "'",
+                                        Position: pos,
+                                }
+                        }</span>
+
+                        // Return the value.
+                        <span class="cov8" title="1">return key, value, nil</span>
+                }
+        }
+}
+
+// Parses the mapping keyword. The first 'm' should have been read already.
+func parseMapping(r *strings.Reader, decorators []DecoratorToken) (MappingToken, *ParserError) <span class="cov8" title="1">{
+        // Get the position with one subtracted because it was already read.
+        pos := getReaderPos(r) - 1
+
+        // Make sure the next bit is 'apping'.
+        b := make([]byte, 6)
+        r.Read(b)
+        if string(b) != "apping" </span><span class="cov8" title="1">{
+                return MappingToken{}, &amp;ParserError{
+                        Message:  "expected 'mapping', got '" + string(b) + "'",
+                        Position: pos,
+                }
+        }</span>
+
+        // Make sure there was whitespace.
+        <span class="cov8" title="1">wasWhitespace, err := gulpWhitespace(r)
+        if err != nil </span><span class="cov8" title="1">{
+                return MappingToken{}, err
+        }</span>
+        <span class="cov8" title="1">if !wasWhitespace </span><span class="cov8" title="1">{
+                return MappingToken{}, &amp;ParserError{
+                        Message:  "expected whitespace after 'mapping'",
+                        Position: pos,
+                }
+        }</span>
+
+        // Read the name of the mapping.
+        <span class="cov8" title="1">comments := []CommentToken{}
+        name := ""
+nameLoop:
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        return MappingToken{}, &amp;ParserError{
+                                Message:  "expected mapping name, got EOF",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case '{':<span class="cov0" title="0">
+                        // If it's the start bracket, rewind a rune and fall through.
+                        _ = r.UnreadRune()
+                        fallthrough</span>
+                case ' ', '\t', '\n', '\r':<span class="cov8" title="1">
+                        // If it is whitespace, break.
+                        break nameLoop</span>
+                case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+                        'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+                        'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D',
+                        'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+                        'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+                        'Y', 'Z':<span class="cov8" title="1">
+                        // If it is a letter, add it to the name.
+                        name += string(c)</span>
+                case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':<span class="cov0" title="0">
+                        // If it is a number, add it to the name if it isn't the first character.
+                        if len(name) == 0 </span><span class="cov0" title="0">{
+                                return MappingToken{}, &amp;ParserError{
+                                        Message:  "mapping name cannot start with a number",
+                                        Position: pos,
+                                }
+                        }</span>
+                        <span class="cov0" title="0">name += string(c)</span>
+                case '/':<span class="cov8" title="1">
+                        // If it is a slash, parse a comment.
+                        a := []any{}
+                        err := parseComment(r, &amp;a)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return MappingToken{}, err
+                        }</span>
+                        <span class="cov8" title="1">comments = append(comments, a[0].(CommentToken))
+
+                        // Gulps the whitespace.
+                        gulpWhitespace(r)</span>
+                default:<span class="cov0" title="0">
+                        // If it is anything else, error.
+                        return MappingToken{}, &amp;ParserError{
+                                Message:  "unexpected character '" + string(c) + "' in mapping name",
+                                Position: pos,
+                        }</span>
+                }
+        }
+
+        // Make sure the name isn't empty.
+        <span class="cov8" title="1">if len(name) == 0 </span><span class="cov0" title="0">{
+                return MappingToken{}, &amp;ParserError{
+                        Message:  "mapping name cannot be empty",
+                        Position: pos,
+                }
+        }</span>
+
+        // Make sure that we have a 'using' after the name.
+        <span class="cov8" title="1">b = make([]byte, 5)
+        _, _ = r.Read(b)
+        if string(b) != "using" </span><span class="cov0" title="0">{
+                return MappingToken{}, &amp;ParserError{
+                        Message:  "expected 'using' after mapping keyword, got '" + string(b) + "'",
+                        Position: pos,
+                }
+        }</span>
+
+        // Make sure there was whitespace.
+        <span class="cov8" title="1">wasWhitespace, err = gulpWhitespace(r)
+        if err != nil </span><span class="cov8" title="1">{
+                return MappingToken{}, err
+        }</span>
+        <span class="cov8" title="1">if !wasWhitespace </span><span class="cov0" title="0">{
+                return MappingToken{}, &amp;ParserError{
+                        Message:  "expected whitespace after 'using'",
+                        Position: pos,
+                }
+        }</span>
+
+        // Read the using types of the mapping.
+        <span class="cov8" title="1">usingTypes, err := parseMappingUsingTypes(r, &amp;comments)
+        if err != nil </span><span class="cov8" title="1">{
+                return MappingToken{}, err
+        }</span>
+
+        // Find the start bracket.
+<span class="cov8" title="1">startBracketLoop:
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        return MappingToken{}, &amp;ParserError{
+                                Message:  "expected '{' after mapping name, got EOF",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case '{':<span class="cov8" title="1">
+                        // If it's the start bracket, break.
+                        break startBracketLoop</span>
+                case ' ', '\t', '\n', '\r':<span class="cov0" title="0"></span>
+                        // Ignore whitespace.
+                case '/':<span class="cov0" title="0">
+                        // If it is a slash, parse a comment.
+                        a := []any{}
+                        err := parseComment(r, &amp;a)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return MappingToken{}, err
+                        }</span>
+                        <span class="cov0" title="0">comments = append(comments, a[0].(CommentToken))</span>
+                default:<span class="cov0" title="0">
+                        // If it is anything else, error.
+                        return MappingToken{}, &amp;ParserError{
+                                Message:  "expected '{' after mapping name, got '" + string(c) + "'",
+                                Position: pos,
+                        }</span>
+                }
+        }
+
+        // Parse the inners of the mapping.
+        <span class="cov8" title="1">key, value, err := parseMappingInner(r, &amp;comments)
+        if err != nil </span><span class="cov8" title="1">{
+                return MappingToken{}, err
+        }</span>
+
+        // Return the mapping.
+        <span class="cov8" title="1">return MappingToken{
+                MappingPartialToken: MappingPartialToken{
+                        Position: pos,
+                        Key:      key,
+                        Value:    value,
+                        Comments: comments,
+                },
+                Name:       name,
+                Using:      usingTypes,
+                Decorators: decorators,
+        }, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">// RemixDB. Copyright (C) 2023 Web Scale Software Ltd.
+// Author: Astrid Gealer &lt;astrid@gealer.email&gt;
+
+package ast
+
+import (
+        "regexp"
+        "strings"
+)
+
+// ParserError is used to define an error that occurred while parsing.
+type ParserError struct {
+        // Message is the error message.
+        Message string
+
+        // Position is the position of the error.
+        Position int
+}
+
+func getReaderPos(r *strings.Reader) int <span class="cov8" title="1">{
+        return int(r.Size()) - r.Len()
+}</span>
+
+// Gulps the whitespace.
+func gulpWhitespace(r *strings.Reader) (bool, *ParserError) <span class="cov8" title="1">{
+        pos := getReaderPos(r)
+        wasWhitespace := false
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov8" title="1">{
+                        return false, &amp;ParserError{
+                                Message:  "expected whitespace, got EOF",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Check if it is whitespace.
+                <span class="cov8" title="1">if c == ' ' || c == '\t' || c == '\n' || c == '\r' </span><span class="cov8" title="1">{
+                        // If it is \r, check if the next character is \n.
+                        if c == '\r' </span><span class="cov8" title="1">{
+                                c, _, err = r.ReadRune()
+                                if err != nil </span><span class="cov8" title="1">{
+                                        return false, &amp;ParserError{
+                                                Message:  "expected whitespace, got EOF",
+                                                Position: pos,
+                                        }
+                                }</span>
+                                <span class="cov8" title="1">if c != '\n' </span><span class="cov8" title="1">{
+                                        return false, &amp;ParserError{
+                                                Message:  "expected whitespace, got '" + string(c) + "'",
+                                                Position: pos,
+                                        }
+                                }</span>
+                        }
+
+                        <span class="cov8" title="1">wasWhitespace = true</span>
+                } else<span class="cov8" title="1"> {
+                        // If it wasn't whitespace, put it back and break.
+                        r.UnreadRune()
+                        break</span>
+                }
+        }
+
+        <span class="cov8" title="1">return wasWhitespace, nil</span>
+}
+
+// Parses a comment. This assumes that the starting slash has already been read.
+func parseComment(r *strings.Reader, tokens *[]any) *ParserError <span class="cov8" title="1">{
+        // Get the position of the comment.
+        pos := getReaderPos(r) - 1
+
+        // Read the next Unicode character.
+        c, _, err := r.ReadRune()
+        if err != nil </span><span class="cov0" title="0">{
+                // End of file.
+                return nil
+        }</span>
+
+        // Switch on the character.
+        <span class="cov8" title="1">switch c </span>{
+        case '/':<span class="cov8" title="1">
+                // Parse a single line comment.
+                comment := ""
+        commentLoop:
+                for </span><span class="cov8" title="1">{
+                        // Read the next Unicode character.
+                        c, _, err := r.ReadRune()
+                        if err != nil </span><span class="cov0" title="0">{
+                                // End of file.
+                                break</span>
+                        }
+
+                        // Switch on the character.
+                        <span class="cov8" title="1">switch c </span>{
+                        case '\r':<span class="cov8" title="1">
+                                // Read the next Unicode character.
+                                c, _, err := r.ReadRune()
+                                if err != nil </span><span class="cov0" title="0">{
+                                        // End of file.
+                                        break commentLoop</span>
+                                }
+                                <span class="cov8" title="1">if c == '\n' </span><span class="cov0" title="0">{
+                                        // End of the comment.
+                                        break commentLoop</span>
+                                }
+
+                                // Add the character to the comment.
+                                <span class="cov8" title="1">comment += string(c)</span>
+                        case '\n':<span class="cov8" title="1">
+                                // End of the comment.
+                                break commentLoop</span>
+                        default:<span class="cov8" title="1">
+                                // Add the character to the comment.
+                                comment += string(c)</span>
+                        }
+                }
+
+                // Add the comment token.
+                <span class="cov8" title="1">*tokens = append(*tokens, CommentToken{
+                        Comment:  comment,
+                        Position: pos,
+                })</span>
+        default:<span class="cov0" title="0">
+                // Unexpected character.
+                return &amp;ParserError{
+                        Message:  "unexpected character '" + string(c) + "' after '/'",
+                        Position: pos,
+                }</span>
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Ensures a Windows or not EOF.
+func ensureWindowsOrNotEof(r *strings.Reader) *ParserError <span class="cov8" title="1">{
+        // Get the position of the newline.
+        pos := getReaderPos(r)
+
+        // Read the next Unicode character.
+        c, _, err := r.ReadRune()
+        if err != nil </span><span class="cov0" title="0">{
+                // End of file.
+                return nil
+        }</span>
+
+        // Switch on the character.
+        <span class="cov8" title="1">switch c </span>{
+        case '\r':<span class="cov0" title="0">
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        // A \r alone is not a valid return character.
+                        return &amp;ParserError{
+                                Message:  "unexpected '\\n' after '\\r'",
+                                Position: pos + 1,
+                        }
+                }</span>
+                <span class="cov0" title="0">if c != '\n' </span><span class="cov0" title="0">{
+                        // A \r alone is not a valid return character.
+                        return &amp;ParserError{
+                                Message:  "unexpected '" + string(c) + "' after '\\r'",
+                                Position: pos + 1,
+                        }
+                }</span>
+                <span class="cov0" title="0">return nil</span>
+        case '\n':<span class="cov8" title="1">
+                return nil</span>
+        default:<span class="cov0" title="0">
+                return &amp;ParserError{
+                        Message:  "unexpected '" + string(c) + "' instead of line ending",
+                        Position: pos + 1,
+                }</span>
+        }
+}
+
+const (
+        unexpectedEofAfterDeco = "unexpected end of file after decorator"
+        unexpectedAtSignAtEof  = "unexpected '@' at end of file"
+)
+
+// Parses a decorator. This assumes that the starting at has already been read.
+func parseDecorator(r *strings.Reader) (DecoratorToken, *ParserError) <span class="cov8" title="1">{
+        // Get the position of the decorator with 1 subtracted because we already read the character.
+        pos := getReaderPos(r) - 1
+
+        // Defines the decorator name.
+        name := ""
+
+        // Defines if we are in arguments mode.
+        inArgs := false
+
+        // Defines the arguments.
+        args := ""
+
+        parserPos := pos - 1
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, s, err := r.ReadRune()
+                parserPos += s
+                if err != nil </span><span class="cov0" title="0">{
+                        // End of file. This will always be illegal, but the error might be different
+                        // depending on the state of the parser.
+                        message := unexpectedAtSignAtEof
+                        if name != "" </span><span class="cov0" title="0">{
+                                message = unexpectedEofAfterDeco
+                        }</span>
+                        <span class="cov0" title="0">return DecoratorToken{}, &amp;ParserError{
+                                Message:  message,
+                                Position: pos,
+                        }</span>
+                }
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case '(':<span class="cov8" title="1">
+                        // Make sure the name is not empty.
+                        if name == "" </span><span class="cov0" title="0">{
+                                return DecoratorToken{}, &amp;ParserError{
+                                        Message:  "unexpected '(' after '@' - did you forget the decorator name?",
+                                        Position: parserPos,
+                                }
+                        }</span>
+
+                        // Make sure we are not already in arguments mode.
+                        <span class="cov8" title="1">if inArgs </span><span class="cov0" title="0">{
+                                return DecoratorToken{}, &amp;ParserError{
+                                        Message:  "unexpected '(' after starting bracket was already present",
+                                        Position: parserPos,
+                                }
+                        }</span>
+
+                        // We are now in arguments mode.
+                        <span class="cov8" title="1">inArgs = true</span>
+                case ')':<span class="cov8" title="1">
+                        // Make sure we are in arguments mode.
+                        if !inArgs </span><span class="cov0" title="0">{
+                                return DecoratorToken{}, &amp;ParserError{
+                                        Message:  "unexpected ')' before starting bracket",
+                                        Position: parserPos,
+                                }
+                        }</span>
+
+                        // Ensure a EOF and then return.
+                        <span class="cov8" title="1">err := ensureWindowsOrNotEof(r)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return DecoratorToken{}, err
+                        }</span>
+                        <span class="cov8" title="1">return DecoratorToken{
+                                Method:    name,
+                                Arguments: args,
+                                Position:  pos,
+                        }, nil</span>
+                case ' ', '\t':<span class="cov0" title="0">
+                        // Make sure we are in arguments mode.
+                        if !inArgs </span><span class="cov0" title="0">{
+                                return DecoratorToken{}, &amp;ParserError{
+                                        Message:  "unexpected whitespace before starting bracket",
+                                        Position: parserPos,
+                                }
+                        }</span>
+                        <span class="cov0" title="0">args += string(c)</span>
+                case '\r':<span class="cov0" title="0">
+                        if !inArgs </span><span class="cov0" title="0">{
+                                // Rewind a rune and use the line ending parser.
+                                _ = r.UnreadRune()
+                                err := ensureWindowsOrNotEof(r)
+                                if err != nil </span><span class="cov0" title="0">{
+                                        return DecoratorToken{}, err
+                                }</span>
+                        }
+
+                        // In arguments mode, just add the character.
+                        <span class="cov0" title="0">args += string(c)</span>
+                case '\n':<span class="cov8" title="1">
+                        if !inArgs </span><span class="cov8" title="1">{
+                                // Return the decorator.
+                                return DecoratorToken{
+                                        Method:    name,
+                                        Arguments: args,
+                                        Position:  pos,
+                                }, nil
+                        }</span>
+
+                        // In arguments mode, just add the character.
+                        <span class="cov0" title="0">args += string(c)</span>
+                default:<span class="cov8" title="1">
+                        // Add the character to the name or arguments.
+                        if inArgs </span><span class="cov8" title="1">{
+                                args += string(c)
+                        }</span> else<span class="cov8" title="1"> {
+                                name += string(c)
+                        }</span>
+                }
+        }
+}
+
+// Parses the extends keyword. This assumes the starting e of extends has already been read.
+func parseExtends(r *strings.Reader) *ParserError <span class="cov8" title="1">{
+        // Get the position of the extends with 1 subtracted because we already read the character.
+        pos := getReaderPos(r) - 1
+
+        // Make sure the next content is 'xtends'.
+        b := make([]byte, 6)
+        _, err := r.Read(b)
+        if err != nil </span><span class="cov0" title="0">{
+                // End of file.
+                return &amp;ParserError{
+                        Message:  "unexpected end of file after 'e' character",
+                        Position: pos,
+                }
+        }</span>
+
+        // Make sure the next content is 'xtends'.
+        <span class="cov8" title="1">content := string(b)
+        if content != "xtends" </span><span class="cov8" title="1">{
+                return &amp;ParserError{
+                        Message:  "unexpected '" + content + "' after 'e' character - did you mean extends?",
+                        Position: pos,
+                }
+        }</span>
+
+        // Return no errors.
+        <span class="cov8" title="1">return nil</span>
+}
+
+var typeSplitRegex = regexp.MustCompile(":[ \t]*[a-zA-Z]")
+
+// Parses a struct field or reference. c is the initial character that was consumed.
+func parseStructFieldOrReference(r *strings.Reader, c rune, decorators []DecoratorToken) (any, *ParserError) <span class="cov8" title="1">{
+        // Get the position of the field or reference with 1 subtracted because we already read the character.
+        pos := getReaderPos(r) - 1
+
+        // Parse until the newline.
+        content := ""
+        var err error
+contentParse:
+        for </span><span class="cov8" title="1">{
+                // Switch on the character.
+                switch c </span>{
+                case '\n':<span class="cov8" title="1">
+                        // End of the content.
+                        break contentParse</span>
+                case '\r':<span class="cov0" title="0"></span>
+                        // Ignore.
+                default:<span class="cov8" title="1">
+                        // Add the character to the content.
+                        content += string(c)</span>
+                }
+
+                // Read the next Unicode character.
+                <span class="cov8" title="1">c, _, err = r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        // End of file.
+                        return nil, &amp;ParserError{
+                                Message:  "unexpected end of file after start of field or reference",
+                                Position: pos,
+                        }
+                }</span>
+        }
+
+        // Trim the content.
+        <span class="cov8" title="1">content = strings.TrimSpace(content)
+
+        // Make sure the content is not empty.
+        if content == "" </span><span class="cov0" title="0">{
+                return nil, &amp;ParserError{
+                        Message:  "unexpected end of file after start of field or reference",
+                        Position: pos,
+                }
+        }</span>
+
+        // Handle checking for the type split.
+        <span class="cov8" title="1">split := typeSplitRegex.FindStringIndex(content)
+        if split == nil </span><span class="cov8" title="1">{
+                // This is a reference.
+                return ReferenceToken{
+                        Name:       content,
+                        Position:   pos,
+                        Decorators: decorators,
+                }, nil
+        }</span>
+
+        // This is a field.
+        <span class="cov8" title="1">return FieldToken{
+                Name:       content[:split[0]],
+                Type:       content[split[1]-1:],
+                Position:   pos,
+                Decorators: decorators,
+        }, nil</span>
+}
+
+// Parses the inners of a struct.
+func parseInnerStruct(r *strings.Reader) ([]any, *ParserError) <span class="cov8" title="1">{
+        tokens := []any{}
+        decos := []DecoratorToken{}
+
+        parserPos := getReaderPos(r)
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, s, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        // End of file before closing bracket.
+                        return nil, &amp;ParserError{
+                                Message:  "unexpected end of file before closing bracket",
+                                Position: parserPos,
+                        }
+                }</span>
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case ' ', '\t', '\n', '\r':<span class="cov8" title="1"></span>
+                        // Ignore whitespace.
+                case '/':<span class="cov8" title="1">
+                        // Parse a comment.
+                        err := parseComment(r, &amp;tokens)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return nil, err
+                        }</span>
+                case '@':<span class="cov8" title="1">
+                        // Parse a decorator.
+                        deco, err := parseDecorator(r)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return nil, err
+                        }</span>
+                        <span class="cov8" title="1">decos = append(decos, deco)</span>
+                case '}':<span class="cov8" title="1">
+                        // Handle if there's unhandled decorators.
+                        if len(decos) &gt; 0 </span><span class="cov0" title="0">{
+                                return nil, &amp;ParserError{
+                                        Message:  "unexpected decorators pointing to nothing",
+                                        Position: parserPos,
+                                }
+                        }</span>
+
+                        // Return the tokens.
+                        <span class="cov8" title="1">return tokens, nil</span>
+                default:<span class="cov8" title="1">
+                        // Parse the field or reference.
+                        token, err := parseStructFieldOrReference(r, c, decos)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return nil, err
+                        }</span>
+                        <span class="cov8" title="1">decos = []DecoratorToken{}
+                        tokens = append(tokens, token)</span>
+                }
+
+                // Update the parser position.
+                <span class="cov8" title="1">parserPos += s</span>
+        }
+}
+
+// Parses a struct. This assumes the s has already been read.
+func parseStruct(r *strings.Reader, decorators []DecoratorToken) (StructToken, *ParserError) <span class="cov8" title="1">{
+        // The position of the struct with 1 subtracted because we already read the character.
+        pos := getReaderPos(r) - 1
+
+        // Make sure the next content is 'truct'.
+        b := make([]byte, 5)
+        _, err := r.Read(b)
+        if err != nil </span><span class="cov0" title="0">{
+                // End of file.
+                return StructToken{}, &amp;ParserError{
+                        Message:  "unexpected end of file after 's' character",
+                        Position: pos,
+                }
+        }</span>
+        <span class="cov8" title="1">content := string(b)
+        if content != "truct" </span><span class="cov8" title="1">{
+                return StructToken{}, &amp;ParserError{
+                        Message:  "unexpected '" + content + "' after 's' character - did you mean struct?",
+                        Position: pos,
+                }
+        }</span>
+
+        // Expect a space or newline.
+        <span class="cov8" title="1">hasSpace, perr := gulpWhitespace(r)
+        if perr != nil </span><span class="cov0" title="0">{
+                return StructToken{}, perr
+        }</span>
+        <span class="cov8" title="1">if !hasSpace </span><span class="cov0" title="0">{
+                return StructToken{}, &amp;ParserError{
+                        Message:  "unexpected lack of a space after 'struct' keyword - did you forget a space?",
+                        Position: pos,
+                }
+        }</span>
+
+        // Get the name of the struct.
+        <span class="cov8" title="1">name := ""
+nameReader:
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        // End of file.
+                        return StructToken{}, &amp;ParserError{
+                                Message:  "unexpected end of file after start of struct definition",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case '\n', ' ', '\t':<span class="cov8" title="1">
+                        // End of the name if there's anything in it.
+                        if name != "" </span><span class="cov8" title="1">{
+                                break nameReader</span>
+                        }
+                case '\r':<span class="cov0" title="0">
+                        // Read the next Unicode character.
+                        c, _, err := r.ReadRune()
+                        if err != nil </span><span class="cov0" title="0">{
+                                // End of file.
+                                return StructToken{}, &amp;ParserError{
+                                        Message:  "unexpected end of file after '\\r'",
+                                        Position: pos,
+                                }
+                        }</span>
+                        <span class="cov0" title="0">if c == '\n' </span><span class="cov0" title="0">{
+                                // End of the name if there's anything in it.
+                                if name != "" </span><span class="cov0" title="0">{
+                                        break nameReader</span>
+                                }
+                        } else<span class="cov0" title="0"> {
+                                // A \r alone is not a valid return character.
+                                return StructToken{}, &amp;ParserError{
+                                        Message:  "unexpected '" + string(c) + "' after '\\r'",
+                                        Position: pos,
+                                }
+                        }</span>
+                default:<span class="cov8" title="1">
+                        // Add the character to the name.
+                        name += string(c)</span>
+                }
+        }
+
+        // Make sure the name is not empty.
+        <span class="cov8" title="1">if name == "" </span><span class="cov0" title="0">{
+                return StructToken{}, &amp;ParserError{
+                        Message:  "unexpected end of file after 'struct' keyword - did you forget the struct name?",
+                        Position: pos,
+                }
+        }</span>
+
+        // Make sure the name starts with a a-z or A-Z.
+        <span class="cov8" title="1">if !(name[0] &gt;= 'a' &amp;&amp; name[0] &lt;= 'z') &amp;&amp; !(name[0] &gt;= 'A' &amp;&amp; name[0] &lt;= 'Z') </span><span class="cov0" title="0">{
+                return StructToken{}, &amp;ParserError{
+                        Message:  "unexpected '" + string(name[0]) + "' as first character of struct name",
+                        Position: pos,
+                }
+        }</span>
+
+        // Look for the opening bracket.
+<span class="cov8" title="1">openingBracketFind:
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        // End of file.
+                        return StructToken{}, &amp;ParserError{
+                                Message:  "unexpected end of file after struct name",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Switch on the character.
+                <span class="cov8" title="1">switch c </span>{
+                case ' ', '\t', '\n', '\r':<span class="cov0" title="0"></span>
+                        // Do nothing.
+                case '{':<span class="cov8" title="1">
+                        // We found the opening bracket.
+                        break openingBracketFind</span>
+                default:<span class="cov0" title="0">
+                        // Unexpected character.
+                        return StructToken{}, &amp;ParserError{
+                                Message:  "unexpected '" + string(c) + "' after struct name",
+                                Position: pos,
+                        }</span>
+                }
+        }
+
+        // Parse the inner struct.
+        <span class="cov8" title="1">fields, perr := parseInnerStruct(r)
+        if perr != nil </span><span class="cov0" title="0">{
+                return StructToken{}, perr
+        }</span>
+        <span class="cov8" title="1">return StructToken{
+                Name:       name,
+                Position:   pos,
+                Decorators: decorators,
+                Fields:     fields,
+        }, nil</span>
+}
+
+// Parses tokens at the document root.
+func parseDocRootToken(r *strings.Reader, tokens *[]any, c rune) *ParserError <span class="cov8" title="1">{
+        // Defines all of the decorators that should be applied to the next non-decorator token.
+        decorators := []DecoratorToken{}
+
+        // Defines if the next token should be wrapped in a extends token.
+        extends := -1
+
+</span>parseStart:
+        // Get the position of the token. It is with 1 subtracted because we already read the character.
+        <span class="cov8" title="1">pos := getReaderPos(r) - 1
+
+        // Switch on the next character.
+        switch c </span>{
+        case '/':<span class="cov8" title="1">
+                // Parse a comment.
+                err := parseComment(r, tokens)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+
+                // Gulp the whitespace.
+                <span class="cov8" title="1">gulpWhitespace(r)
+
+                // Get the next thing and handle EOF.
+                var errIface error
+                c, _, errIface = r.ReadRune()
+                if errIface != nil </span><span class="cov8" title="1">{
+                        // End of file.
+                        return nil
+                }</span>
+
+                // Go to the start of the parse.
+                <span class="cov8" title="1">goto parseStart</span>
+        case '@':<span class="cov8" title="1">
+                // Parse a decorator.
+                deco, err := parseDecorator(r)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov8" title="1">decorators = append(decorators, deco)
+                var errIface error
+                c, _, errIface = r.ReadRune()
+                if errIface != nil </span><span class="cov0" title="0">{
+                        // End of file.
+                        return &amp;ParserError{
+                                Message:  unexpectedEofAfterDeco,
+                                Position: pos,
+                        }
+                }</span>
+                <span class="cov8" title="1">goto parseStart</span>
+        case 'e':<span class="cov8" title="1">
+                // Parse an extends.
+                err := parseExtends(r)
+                if err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+
+                // Gulp the whitespace.
+                <span class="cov8" title="1">gulpWhitespace(r)
+
+                // Get the next thing.
+                var errIface error
+                c, _, errIface = r.ReadRune()
+                if errIface != nil </span><span class="cov0" title="0">{
+                        // End of file.
+                        return &amp;ParserError{
+                                Message:  "unexpected end of file after 'extends' keyword",
+                                Position: pos,
+                        }
+                }</span>
+
+                // Handle if we were already in extends mode.
+                <span class="cov8" title="1">if extends != -1 </span><span class="cov0" title="0">{
+                        return &amp;ParserError{
+                                Message:  "unexpected second 'extends' keyword",
+                                Position: pos,
+                        }
+                }</span>
+                <span class="cov8" title="1">extends = pos
+
+                // Go to the start of the loop.
+                goto parseStart</span>
+        case 's':<span class="cov8" title="1">
+                // Parse a struct.
+                s, err := parseStruct(r, decorators)
+                if err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+                <span class="cov8" title="1">if extends == -1 </span><span class="cov8" title="1">{
+                        *tokens = append(*tokens, s)
+                }</span> else<span class="cov8" title="1"> {
+                        *tokens = append(*tokens, ExtendsToken{
+                                Token:    s,
+                                Position: extends,
+                        })
+                }</span>
+                <span class="cov8" title="1">return nil</span>
+        case 'c':<span class="cov8" title="1">
+                // Parse a contract.
+                c, err := parseContract(r, decorators)
+                if err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+                <span class="cov8" title="1">if extends != -1 </span><span class="cov0" title="0">{
+                        return &amp;ParserError{
+                                Message:  "unexpected 'contract' keyword after 'extends' keyword",
+                                Position: pos,
+                        }
+                }</span>
+                <span class="cov8" title="1">*tokens = append(*tokens, c)
+                return nil</span>
+        case 'm':<span class="cov8" title="1">
+                // Parse a mapping.
+                m, err := parseMapping(r, decorators)
+                if err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+                <span class="cov8" title="1">if extends != -1 </span><span class="cov0" title="0">{
+                        return &amp;ParserError{
+                                Message:  "unexpected 'mapping' keyword after 'extends' keyword",
+                                Position: pos,
+                        }
+                }</span>
+                <span class="cov8" title="1">*tokens = append(*tokens, m)
+                return nil</span>
+        default:<span class="cov0" title="0">
+                // Unexpected character.
+                return &amp;ParserError{
+                        Message:  "unexpected character '" + string(c) + "' was hit",
+                        Position: pos,
+                }</span>
+        }
+}
+
+// Handles a inline if/else statement.
+func handleInlineIfElse(r *strings.Reader, readToken any) (any, *ParserError) <span class="cov8" title="1">{
+        // Gulp just spaces specifically.
+        var consumedChar rune
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov8" title="1">{
+                        // Return here.
+                        return nil, nil
+                }</span>
+
+                // Handle if the character is not a space or tab.
+                <span class="cov8" title="1">if c != ' ' &amp;&amp; c != '\t' </span><span class="cov8" title="1">{
+                        // Set the consumed character.
+                        consumedChar = c
+
+                        // Break the loop.
+                        break</span>
+                }
+        }
+        <span class="cov8" title="1">pos := getReaderPos(r) - 1
+
+        // Switch on the character.
+        switch consumedChar </span>{
+        case 'i':<span class="cov8" title="1">
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov0" title="0">{
+                        // Return an error.
+                        return nil, &amp;ParserError{
+                                Message:  "unexpected end of file after 'i' in inline if/else statement",
+                                Position: getReaderPos(r),
+                        }
+                }</span>
+
+                // Handle if the character is not 'f'.
+                <span class="cov8" title="1">if c != 'f' </span><span class="cov0" title="0">{
+                        // Return an error.
+                        return nil, &amp;ParserError{
+                                Message:  "unexpected character '" + string(c) + "' after 'i' in inline if/else statement",
+                                Position: getReaderPos(r),
+                        }
+                }</span>
+
+                // Gulps the whitespace.
+                <span class="cov8" title="1">whitespace, _ := gulpWhitespace(r)
+                if !whitespace </span><span class="cov0" title="0">{
+                        // Return an error.
+                        return nil, &amp;ParserError{
+                                Message:  "expected whitespace after 'if' in inline if/else statement",
+                                Position: getReaderPos(r),
+                        }
+                }</span>
+
+                // Parse the condition.
+                <span class="cov8" title="1">condition, perr := parseInnerContractTokenWithOpGrouping(r, '}')
+                if perr != nil </span><span class="cov0" title="0">{
+                        // Return the error.
+                        return nil, perr
+                }</span>
+
+                // Return the inline if token.
+                <span class="cov8" title="1">return InlineIfToken{
+                        Condition: condition,
+                        Position:  pos,
+                        Token:     readToken,
+                }, nil</span>
+        case 'u':<span class="cov8" title="1">
+                // Read the next 5 bytes.
+                b := make([]byte, 5)
+                if _, err := r.Read(b); err != nil </span><span class="cov0" title="0">{
+                        // Return an error.
+                        return nil, &amp;ParserError{
+                                Message:  "unexpected end of file after 'u' in inline if/else statement",
+                                Position: getReaderPos(r),
+                        }
+                }</span>
+
+                // Handle if the bytes are not 'nless'.
+                <span class="cov8" title="1">if string(b) != "nless" </span><span class="cov0" title="0">{
+                        // Return an error.
+                        return nil, &amp;ParserError{
+                                Message:  "unexpected character '" + string(b) + "' after 'u' in inline if/else statement",
+                                Position: getReaderPos(r),
+                        }
+                }</span>
+
+                // Gulps the whitespace.
+                <span class="cov8" title="1">whitespace, _ := gulpWhitespace(r)
+                if !whitespace </span><span class="cov0" title="0">{
+                        // Return an error.
+                        return nil, &amp;ParserError{
+                                Message:  "expected whitespace after 'unless' in inline if/else statement",
+                                Position: getReaderPos(r),
+                        }
+                }</span>
+
+                // Parse the condition.
+                <span class="cov8" title="1">condition, perr := parseInnerContractTokenWithOpGrouping(r, '}')
+                if perr != nil </span><span class="cov0" title="0">{
+                        // Return the error.
+                        return nil, perr
+                }</span>
+
+                // Return the inline unless token.
+                <span class="cov8" title="1">return InlineUnlessToken{
+                        Condition: condition,
+                        Position:  pos,
+                        Token:     readToken,
+                }, nil</span>
+        default:<span class="cov8" title="1">
+                // Unread the rune and return the read token.
+                _ = r.UnreadRune()
+                return readToken, nil</span>
+        }
+}
+
+// Parse is used to parse a string into an AST. The any is all the types in tokens.go.
+func Parse(input string) ([]any, *ParserError) <span class="cov8" title="1">{
+        r := strings.NewReader(input)
+        tokens := []any{}
+
+        for </span><span class="cov8" title="1">{
+                // Read the next Unicode character.
+                c, _, err := r.ReadRune()
+                if err != nil </span><span class="cov8" title="1">{
+                        // End of file.
+                        return tokens, nil
+                }</span>
+
+                <span class="cov8" title="1">switch c </span>{
+                case ' ', '\t', '\n', '\r':<span class="cov8" title="1"></span>
+                        // Ignore whitespace.
+                default:<span class="cov8" title="1">
+                        // Parse tokens.
+                        if perr := parseDocRootToken(r, &amp;tokens, c); perr != nil </span><span class="cov8" title="1">{
+                                return nil, perr
+                        }</span>
+                }
+        }
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

@@ -7,6 +7,7 @@ import (
 	_ "embed"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -39,7 +40,7 @@ func processFile(fp string, t *testing.T) {
 	}
 
 	// Parse the file.
-	r, perr := ast.Parse(string(b))
+	r, perr := ast.Parse(strings.ReplaceAll(string(b), "<<R>>", "\r"))
 	var toString any
 	if perr == nil {
 		toString = r

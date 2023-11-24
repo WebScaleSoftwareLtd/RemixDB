@@ -13,8 +13,11 @@ struct TreePersonInformation {
     planterAge: integer
 }
 
+// A comment!
+
 contract GetPlanterOfTree(treeId: int) -> TreePersonInformation? {
-    Tree.first({
+    Tree.where({
         treeId = treeId
-    })
+    }).
+        first
 }

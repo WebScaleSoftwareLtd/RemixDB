@@ -16,6 +16,7 @@ struct TreePersonInformation {
 // A comment!
 
 contract GetPlanterOfTree(treeId: int) -> TreePersonInformation? {
+    hello = 'world'
     Tree.where({
         treeId = treeId
     }).

@@ -83,27 +83,35 @@
   },
   Decorators: ([]ast.DecoratorToken) {
   },
-  Statements: ([]interface {}) (len=1 cap=1) {
+  Statements: ([]interface {}) (len=2 cap=2) {
+   (ast.AssignmentToken) {
+    Name: (string) (len=5) "hello",
+    Value: (ast.StringLiteralToken) {
+     Value: (string) (len=5) "world",
+     Position: (int) 297
+    },
+    Position: (int) 289
+   },
    (ast.MethodCallToken) {
     Name: (string) (len=10) "Tree.where",
-    Position: (int) 289,
+    Position: (int) 309,
     Arguments: ([]interface {}) (len=1 cap=1) {
      (ast.ObjectLiteralToken) {
       Values: (map[string]interface {}) (len=1) {
        (string) (len=6) "treeId": (ast.ReferenceToken) {
         Name: (string) (len=6) "treeId",
-        Position: (int) 319,
+        Position: (int) 339,
         Decorators: ([]ast.DecoratorToken) <nil>
        }
       },
       Comments: ([]ast.CommentToken) {
       },
-      Position: (int) 300
+      Position: (int) 320
      }
     },
     ChainedCall: (ast.ReferenceToken) {
      Name: (string) (len=5) "first",
-     Position: (int) 333,
+     Position: (int) 353,
      Decorators: ([]ast.DecoratorToken) <nil>
     }
    }

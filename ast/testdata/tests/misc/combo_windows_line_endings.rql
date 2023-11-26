@@ -1,0 +1,23 @@
+struct Tree {
+    @autoincrement
+    treeId: int
+
+    @index
+    planterName: string
+    planterAge: integer
+}
+
+@notable
+struct TreePersonInformation {
+    planterName: string
+    planterAge: integer
+}
+
+// A comment!
+
+contract GetPlanterOfTree(treeId: int) -> TreePersonInformation? {
+    Tree.where({
+        treeId = treeId
+    }).
+        first
+}

@@ -131,167 +131,98 @@ func parseComment(r *strings.Reader, tokens *[]any) *ParserError {
 	return nil
 }
 
-// Ensures a Windows or not EOF.
-func ensureWindowsOrNotEof(r *strings.Reader) *ParserError {
-	// Get the position of the newline.
-	pos := getReaderPos(r)
-
-	// Read the next Unicode character.
-	c, _, err := r.ReadRune()
-	if err != nil {
-		// End of file.
-		return nil
-	}
-
-	// Switch on the character.
-	switch c {
-	case '\r':
-		// Read the next Unicode character.
-		c, _, err := r.ReadRune()
-		if err != nil {
-			// A \r alone is not a valid return character.
-			return &ParserError{
-				Message:  "unexpected '\\n' after '\\r'",
-				Position: pos + 1,
-			}
-		}
-		if c != '\n' {
-			// A \r alone is not a valid return character.
-			return &ParserError{
-				Message:  "unexpected '" + string(c) + "' after '\\r'",
-				Position: pos + 1,
-			}
-		}
-		return nil
-	case '\n':
-		return nil
-	default:
-		return &ParserError{
-			Message:  "unexpected '" + string(c) + "' instead of line ending",
-			Position: pos + 1,
-		}
-	}
-}
-
-const (
-	unexpectedEofAfterDeco = "unexpected end of file after decorator"
-	unexpectedAtSignAtEof  = "unexpected '@' at end of file"
-)
+const unexpectedEofAfterDeco = "unexpected end of file after decorator"
 
 // Parses a decorator. This assumes that the starting at has already been read.
 func parseDecorator(r *strings.Reader) (DecoratorToken, *ParserError) {
-	// Get the position of the decorator with 1 subtracted because we already read the character.
+	// Get the position of the decorator. We subtract 1 because the at has already been read.
 	pos := getReaderPos(r) - 1
 
-	// Defines the decorator name.
+	// Get the decorator name.
 	name := ""
-
-	// Defines if we are in arguments mode.
-	inArgs := false
-
-	// Defines the arguments.
-	args := ""
-
-	parserPos := pos - 1
+nameReader:
 	for {
-		// Read the next Unicode character.
-		c, s, err := r.ReadRune()
-		parserPos += s
+		// Read the next unicode character.
+		c, _, err := r.ReadRune()
 		if err != nil {
-			// End of file. This will always be illegal, but the error might be different
-			// depending on the state of the parser.
-			message := unexpectedAtSignAtEof
-			if name != "" {
-				message = unexpectedEofAfterDeco
-			}
+			// End of file.
 			return DecoratorToken{}, &ParserError{
-				Message:  message,
+				Message:  unexpectedEofAfterDeco,
 				Position: pos,
 			}
 		}
 
 		// Switch on the character.
 		switch c {
-		case '(':
-			// Make sure the name is not empty.
-			if name == "" {
-				return DecoratorToken{}, &ParserError{
-					Message:  "unexpected '(' after '@' - did you forget the decorator name?",
-					Position: parserPos,
-				}
-			}
-
-			// Make sure we are not already in arguments mode.
-			if inArgs {
-				return DecoratorToken{}, &ParserError{
-					Message:  "unexpected '(' after starting bracket was already present",
-					Position: parserPos,
-				}
-			}
-
-			// We are now in arguments mode.
-			inArgs = true
-		case ')':
-			// Make sure we are in arguments mode.
-			if !inArgs {
-				return DecoratorToken{}, &ParserError{
-					Message:  "unexpected ')' before starting bracket",
-					Position: parserPos,
-				}
-			}
-
-			// Ensure a EOF and then return.
-			err := ensureWindowsOrNotEof(r)
-			if err != nil {
-				return DecoratorToken{}, err
-			}
-			return DecoratorToken{
-				Method:    name,
-				Arguments: args,
-				Position:  pos,
-			}, nil
 		case ' ', '\t':
-			// Make sure we are in arguments mode.
-			if !inArgs {
-				return DecoratorToken{}, &ParserError{
-					Message:  "unexpected whitespace before starting bracket",
-					Position: parserPos,
-				}
+			// No whitespace allowed before brackets.
+			return DecoratorToken{}, &ParserError{
+				Message:  "unexpected whitespace before decorator brackets",
+				Position: pos,
 			}
-			args += string(c)
-		case '\r':
-			if !inArgs {
-				// Rewind a rune and use the line ending parser.
-				_ = r.UnreadRune()
-				err := ensureWindowsOrNotEof(r)
-				if err != nil {
-					return DecoratorToken{}, err
-				}
-			}
+		case '\n', '\r':
+			// Gulps the whitespace.
+			gulpWhitespace(r)
 
-			// In arguments mode, just add the character.
-			args += string(c)
-		case '\n':
-			if !inArgs {
-				// Return the decorator.
-				return DecoratorToken{
-					Method:    name,
-					Arguments: args,
-					Position:  pos,
-				}, nil
-			}
-
-			// In arguments mode, just add the character.
-			args += string(c)
+			// This means the decorator arguments are empty.
+			return DecoratorToken{
+				Method:   name,
+				Position: pos,
+			}, nil
+		case '(':
+			// We found the end of the decorator name.
+			break nameReader
 		default:
-			// Add the character to the name or arguments.
-			if inArgs {
-				args += string(c)
-			} else {
-				name += string(c)
-			}
+			// Add the character to the name.
+			name += string(c)
 		}
 	}
+
+	// Make sure the name is not empty.
+	if name == "" {
+		return DecoratorToken{}, &ParserError{
+			Message:  "unexpected empty name after '@' character",
+			Position: pos,
+		}
+	}
+
+	// Consume everything in the token until the closing bracket.
+	content := ""
+contentReader:
+	for {
+		// Read the next unicode character.
+		c, _, err := r.ReadRune()
+		if err != nil {
+			// End of file.
+			return DecoratorToken{}, &ParserError{
+				Message:  unexpectedEofAfterDeco,
+				Position: pos,
+			}
+		}
+
+		// Switch on the character.
+		switch c {
+		case ')':
+			// We found the end of the decorator.
+			break contentReader
+		default:
+			// Add the character to the content.
+			content += string(c)
+		}
+	}
+
+	// Trim the content.
+	content = strings.TrimSpace(content)
+
+	// Gobble the whitespace.
+	gulpWhitespace(r)
+
+	// Return the decorator token.
+	return DecoratorToken{
+		Method:    name,
+		Position:  pos,
+		Arguments: content,
+	}, nil
 }
 
 // Parses the extends keyword. This assumes the starting e of extends has already been read.

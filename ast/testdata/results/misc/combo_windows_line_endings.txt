@@ -1,0 +1,112 @@
+([]interface {}) (len=4 cap=4) {
+ (ast.StructToken) {
+  Name: (string) (len=4) "Tree",
+  Position: (int) 0,
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Fields: ([]interface {}) (len=3 cap=4) {
+   (ast.FieldToken) {
+    Name: (string) (len=6) "treeId",
+    Type: (string) (len=3) "int",
+    Position: (int) 39,
+    Decorators: ([]ast.DecoratorToken) (len=1 cap=1) {
+     (ast.DecoratorToken) {
+      Method: (string) (len=13) "autoincrement",
+      Arguments: (string) "",
+      Position: (int) 19
+     }
+    }
+   },
+   (ast.FieldToken) {
+    Name: (string) (len=11) "planterName",
+    Type: (string) (len=6) "string",
+    Position: (int) 70,
+    Decorators: ([]ast.DecoratorToken) (len=1 cap=1) {
+     (ast.DecoratorToken) {
+      Method: (string) (len=5) "index",
+      Arguments: (string) "",
+      Position: (int) 58
+     }
+    }
+   },
+   (ast.FieldToken) {
+    Name: (string) (len=10) "planterAge",
+    Type: (string) (len=7) "integer",
+    Position: (int) 95,
+    Decorators: ([]ast.DecoratorToken) {
+    }
+   }
+  }
+ },
+ (ast.StructToken) {
+  Name: (string) (len=21) "TreePersonInformation",
+  Position: (int) 131,
+  Decorators: ([]ast.DecoratorToken) (len=1 cap=1) {
+   (ast.DecoratorToken) {
+    Method: (string) (len=7) "notable",
+    Arguments: (string) "",
+    Position: (int) 121
+   }
+  },
+  Fields: ([]interface {}) (len=2 cap=2) {
+   (ast.FieldToken) {
+    Name: (string) (len=11) "planterName",
+    Type: (string) (len=6) "string",
+    Position: (int) 167,
+    Decorators: ([]ast.DecoratorToken) {
+    }
+   },
+   (ast.FieldToken) {
+    Name: (string) (len=10) "planterAge",
+    Type: (string) (len=7) "integer",
+    Position: (int) 192,
+    Decorators: ([]ast.DecoratorToken) {
+    }
+   }
+  }
+ },
+ (ast.CommentToken) {
+  Comment: (string) (len=11) " A comment!",
+  Position: (int) 218
+ },
+ (ast.ContractToken) {
+  Name: (string) (len=16) "GetPlanterOfTree",
+  Argument: (*ast.ContractArgumentToken)({
+   Name: (string) (len=6) "treeId",
+   NameIndex: (int) 262,
+   Type: (string) (len=3) "int",
+   TypeIndex: (int) 268
+  }),
+  ReturnType: (string) (len=22) "TreePersonInformation?",
+  Position: (int) 235,
+  Throws: ([]ast.ContractThrowsToken) {
+  },
+  Decorators: ([]ast.DecoratorToken) {
+  },
+  Statements: ([]interface {}) (len=1 cap=1) {
+   (ast.MethodCallToken) {
+    Name: (string) (len=10) "Tree.where",
+    Position: (int) 307,
+    Arguments: ([]interface {}) (len=1 cap=1) {
+     (ast.ObjectLiteralToken) {
+      Values: (map[string]interface {}) (len=1) {
+       (string) (len=6) "treeId": (ast.ReferenceToken) {
+        Name: (string) (len=6) "treeId",
+        Position: (int) 338,
+        Decorators: ([]ast.DecoratorToken) <nil>
+       }
+      },
+      Comments: ([]ast.CommentToken) {
+      },
+      Position: (int) 318
+     }
+    },
+    ChainedCall: (ast.ReferenceToken) {
+     Name: (string) (len=5) "first",
+     Position: (int) 353,
+     Decorators: ([]ast.DecoratorToken) <nil>
+    }
+   }
+  }
+ }
+}

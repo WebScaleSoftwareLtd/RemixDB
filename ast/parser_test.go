@@ -29,7 +29,7 @@ func getResultsPath(fp string) string {
 		prev = prev[:len(prev)-4]
 	}
 
-	return resultsReplacement + prev + ".txt"
+	return resultsReplacement + prev + ".golden"
 }
 
 func processFile(fp string, t *testing.T) {
@@ -51,9 +51,9 @@ func processFile(fp string, t *testing.T) {
 	// Turn it into a spew string.
 	current := spew.Sdump(toString)
 
-	// If RESULTS_UPDATE is set to 1, write the current results to the results file.
+	// If GOLDEN_UPDATE is set to 1, write the current results to the results file.
 	resPath := getResultsPath(fp)
-	if os.Getenv("RESULTS_UPDATE") == "1" {
+	if os.Getenv("GOLDEN_UPDATE") == "1" {
 		// Ensure the directory exists.
 		err = os.MkdirAll(filepath.Dir(resPath), 0755)
 		if err != nil {
@@ -114,8 +114,8 @@ func TestParse(t *testing.T) {
 		spew.Config.DisablePointerAddresses = true
 		spew.Config.SortKeys = true
 
-		// If RESULTS_UPDATE is set to 1, we should delete the testdata/results directory.
-		if os.Getenv("RESULTS_UPDATE") == "1" {
+		// If GOLDEN_UPDATE is set to 1, we should delete the testdata/results directory.
+		if os.Getenv("GOLDEN_UPDATE") == "1" {
 			err := os.RemoveAll(resultsReplacement)
 			if err != nil {
 				t.Fatal(err)

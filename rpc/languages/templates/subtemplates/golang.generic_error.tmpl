@@ -1,0 +1,1 @@
+fmt.Sprint("{",{{ range $key, $_ := .Fields }} "{{ TitleCase $key }} =", e.{{ TitleCase $key }},{{ end }} "}")

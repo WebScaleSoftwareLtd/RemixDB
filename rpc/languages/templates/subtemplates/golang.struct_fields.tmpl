@@ -1,0 +1,3 @@
+{{ range $key, $value := .Fields }}{{ if ne $value.Comment "" }}{{ range $i, $line := SplitLines $value.Comment }}	// {{ if eq $i 0 }}{{ TitleCase $key }} {{ end }}{{ $line }}
+{{ end }}{{ end }}	{{ TitleCase $key }}{{ PadToMax (Keys .Fields) $key }}{{ if $value.Optional }}*{{ end }}{{ Switchfile "golang" $value.Type }}
+{{ end }}

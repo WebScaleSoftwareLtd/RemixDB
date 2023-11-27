@@ -9,19 +9,20 @@ import (
 	"remixdb.io/rpc/structure"
 )
 
-//go:embed preamble/golang.go.tmpl
+//go:embed templates/golang.tmpl
 var golangTemplate string
 
-func compileGo(base *structure.Base) (string, error) {
-	// TODO
-}
-
-func golang(base *structure.Base) (map[Extension]string, error) {
-	s, err := compileGo(base)
+func golang(base *structure.Base, opts map[string]string) (map[Extension]string, error) {
+	s, err := processGoTemplate("golang", golangTemplate, base, opts)
 	if err != nil {
 		return nil, err
 	}
 	return map[Extension]string{"go": s}, nil
 }
 
-var _ = initLanguage("golang", golang)
+var _ = initLanguage("golang", golang, map[string]Option{
+	"package": {
+		Optional: false,
+		Default:  sPtr("rpc"),
+	},
+})

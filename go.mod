@@ -3,6 +3,7 @@ module remixdb.io
 go 1.20
 
 require (
+	github.com/iancoleman/strcase v0.3.0
 	github.com/jimeh/go-golden v0.1.0
 	github.com/juju/fslock v0.0.0-20160525022230-4d5c94c67b4b
 	github.com/stretchr/testify v1.8.1

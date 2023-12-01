@@ -23,6 +23,6 @@ func golang(base *structure.Base, opts map[string]string) (map[Extension]string,
 var _ = initLanguage("golang", golang, map[string]Option{
 	"package": {
 		Optional: false,
-		Default:  sPtr("rpc"),
+		Default:  ptr("rpc"),
 	},
 })

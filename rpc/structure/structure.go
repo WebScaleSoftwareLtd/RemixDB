@@ -31,6 +31,20 @@ type Struct struct {
 	Fields map[string]StructField `json:"fields"`
 }
 
+// OutputBehaviour is used to define the behaviour of the output.
+type OutputBehaviour string
+
+const (
+	// OutputBehaviourSingle is used to define that the output is a single value.
+	OutputBehaviourSingle OutputBehaviour = "single"
+
+	// OutputBehaviourArray is used to define that the output is an array of values.
+	OutputBehaviourArray OutputBehaviour = "array"
+
+	// OutputBehaviourCursor is used to define that the output is a cursor of values.
+	OutputBehaviourCursor OutputBehaviour = "cursor"
+)
+
 // Method is used to define a method within the RPC.
 type Method struct {
 	// Comment is used to define the comment. Can be blank.
@@ -57,6 +71,11 @@ type Method struct {
 
 	// OutputOptional is used to define if the output is optional.
 	OutputOptional bool `json:"output_optional"`
+
+	// OutputBehaviour is used to define the behaviour of the output. Defaults to
+	// OutputBehaviourSingle. Can be OutputBehaviourSingle, OutputBehaviourArray,
+	// or OutputBehaviourCursor.
+	OutputBehaviour OutputBehaviour `json:"output_behaviour"`
 }
 
 // Base is used to define the base RPC structure.

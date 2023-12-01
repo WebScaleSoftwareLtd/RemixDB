@@ -1,0 +1,5 @@
+// Cursor is used to define the handler for a database cursor. The cursor logic is automatically
+// injected if your schema includes a cursor within it.
+type Cursor[T any] struct {
+    // Hello world!
+}

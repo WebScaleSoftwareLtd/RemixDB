@@ -5,10 +5,12 @@ package languages
 
 import (
 	"embed"
+	"errors"
 	"reflect"
 	"strings"
 	"text/template"
 
+	"github.com/iancoleman/strcase"
 	"remixdb.io/rpc/structure"
 )
 
@@ -49,52 +51,115 @@ func initLanguage(name string, compiler LanguageCompiler, opts map[string]Option
 	return struct{}{}
 }
 
-func sPtr(s string) *string {
-	return &s
-}
+func ptr[T any](x T) *T { return &x }
 
 //go:embed templates/switches/*.txt
-var switches embed.FS
+var switchesFs embed.FS
 
-// Uses a switch file to get the correct case for the given language.
-func switchFile(name string, case_ string) string {
-	b, err := switches.ReadFile("templates/switches/" + name + ".txt")
+var switches = map[string]map[string]string{}
+
+func init() {
+	files, err := switchesFs.ReadDir("templates/switches")
 	if err != nil {
 		panic(err)
 	}
+	for _, v := range files {
+		name := v.Name()
 
-	for _, v := range strings.Split(string(b), "\n") {
-		if v == "" {
-			continue
+		b, err := switchesFs.ReadFile("templates/switches/" + name)
+		name = name[:len(name)-4]
+		if err != nil {
+			panic(err)
 		}
+		s := map[string]string{}
+		for _, v := range strings.Split(string(b), "\n") {
+			if v == "" {
+				continue
+			}
 
-		if strings.HasPrefix(v, "#") {
-			continue
-		}
+			if strings.HasPrefix(v, "#") {
+				continue
+			}
 
-		if strings.HasPrefix(v, case_+" ") {
-			reslice := v[len(case_)+1:]
-			return reslice
+			index := strings.Index(v, " ")
+			if index == -1 {
+				s[v] = v
+			} else {
+				s[v[:index]] = v[index+1:]
+			}
 		}
+		switches[name] = s
 	}
-
-	return case_
 }
 
 //go:embed templates/subtemplates/*.tmpl
 var subtemplatesFs embed.FS
 
+var subtemplates = map[string]string{}
+
+func init() {
+	files, err := subtemplatesFs.ReadDir("templates/subtemplates")
+	if err != nil {
+		panic(err)
+	}
+	for _, v := range files {
+		name := v.Name()
+
+		b, err := subtemplatesFs.ReadFile("templates/subtemplates/" + name)
+		name = name[:len(name)-5]
+		if err != nil {
+			panic(err)
+		}
+		subtemplates[name] = string(b)
+	}
+}
+
+//go:embed templates/static/*.txt
+var staticFs embed.FS
+
+var static = map[string]string{}
+
+func init() {
+	files, err := staticFs.ReadDir("templates/static")
+	if err != nil {
+		panic(err)
+	}
+	for _, v := range files {
+		name := v.Name()
+
+		b, err := staticFs.ReadFile("templates/static/" + name)
+		name = name[:len(name)-4]
+		if err != nil {
+			panic(err)
+		}
+		static[name] = string(b)
+	}
+}
+
 // Processes a Go template.
 func processGoTemplate(name, tmpl string, data any, variables map[string]string) (string, error) {
 	tpl, err := template.New(name).Funcs(template.FuncMap{
-		"Switchfile": switchFile,
+		"Switchfile": func(name string, case_ string) string {
+			cases, ok := switches[name]
+			if !ok {
+				return case_
+			}
+
+			res, ok := cases[case_]
+			if !ok {
+				return case_
+			}
+
+			return res
+		},
 		"Variable": func(name string) string {
 			return variables[name]
 		},
 		"PadToMax": func(items []string, s string) string {
 			max := 0
+			s = strcase.ToCamel(s)
 			for _, v := range items {
-				v = strings.ToTitle(v)
+				v = strcase.ToCamel(v)
 				if len(v) > max {
 					max = len(v)
 				}
@@ -103,7 +168,7 @@ func processGoTemplate(name, tmpl string, data any, variables map[string]string)
 			return strings.Repeat(" ", (max-len(s))+1)
 		},
 		"TitleCase": func(s string) string {
-			return strings.Title(s)
+			return strcase.ToCamel(s)
 		},
 		"SplitLines": func(s string) []string {
 			return strings.Split(s, "\n")
@@ -138,13 +203,24 @@ func processGoTemplate(name, tmpl string, data any, variables map[string]string)
 			}
 			return false
 		},
+		"HasCursor": func(base *structure.Base) bool {
+			for _, v := range base.Methods {
+				if v.OutputBehaviour == structure.OutputBehaviourCursor {
+					return true
+				}
+			}
+			return false
+		},
 		"Subtemplate": func(name string, data interface{}) (string, error) {
-			tmplData, err := subtemplatesFs.ReadFile("templates/subtemplates/" + name + ".tmpl")
-			if err != nil {
-				return "", err
+			tmpl, ok := subtemplates[name]
+			if !ok {
+				return "", errors.New("subtemplate not found")
 			}
 
-			return processGoTemplate(name, string(tmplData), data, variables)
+			return processGoTemplate(name, tmpl, data, variables)
+		},
+		"Static": func(name string) string {
+			return static[name]
 		},
 		"Keys": func(m any) []string {
 			r := reflect.ValueOf(m)

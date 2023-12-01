@@ -204,7 +204,7 @@ func (c *client) do(
 		return nil, err
 	}
 	req.Header.Set("X-RemixDB-Schema-Hash", schemaHash)
-	req.Header.Set("X-RemixDB-Socket-Reconnect", "false")
+	req.Header.Set("X-RemixDB-Websocket-Reconnect", "false")
 	req.Header.Set("Content-Type", "application/remixdb-rpc-mixed")
 
 	httpClient := c.http

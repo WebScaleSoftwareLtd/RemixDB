@@ -145,10 +145,7 @@ type serverError struct {
 	Message string `json:"message"`
 }
 
-func (c *client) do(
-	ctx context.Context, methodName, schemaHash string,
-	input []byte,
-) (io.Reader, error) {
+func (c *client) do(ctx context.Context, methodName, schemaHash string, input []byte) (io.Reader, error) {
 	u, err := url.Parse(c.url)
 	if err != nil {
 		return nil, err

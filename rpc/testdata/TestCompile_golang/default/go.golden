@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+
+	"nhooyr.io/websocket"
 )
 
 type readJoiner struct {
@@ -52,12 +54,6 @@ func (r *readJoiner) Read(p []byte) (n int, err error) {
 			return n, nil
 		}
 	}
-}
-
-// Cursor is used to define the handler for a database cursor. The cursor logic is automatically
-// injected if your schema includes a cursor within it.
-type Cursor[T any] struct {
-    // Hello world!
 }
 
 // ErrorWithAllFields used to test a error with all fields
@@ -154,9 +150,37 @@ func (c *client) SetHTTPClient(client *http.Client) {
 	c.http = client
 }
 
+func parseCustomException(key string, body io.Reader) error {
+	switch key {
+	case "ErrorWithAllFields":
+		var e ErrorWithAllFields
+		defer resp.Body.Close()
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, ServerError{
+				StatusCode: resp.StatusCode,
+				Code:       "invalid_response",
+				Message:    "The response could not be decoded.",
+			}
+		}
+		return nil, e
+	case "ErrorWithMessageField":
+		var e ErrorWithMessageField
+		defer resp.Body.Close()
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, ServerError{
+				StatusCode: resp.StatusCode,
+				Code:       "invalid_response",
+				Message:    "The response could not be decoded.",
+			}
+		}
+		return nil, e
+	}
+	return nil
+}
+
 // ServerError is used to represent a server error.
 type ServerError struct {
-	// StatusCode is the HTTP status code.
+	// StatusCode is the HTTP status code. This is not present for cursors.
 	StatusCode int `json:"status_code"`
 
 	// Code is the error code.
@@ -171,12 +195,138 @@ func (e ServerError) Error() string {
 	return e.Code + ": " + e.Message
 }
 
-type httpSwitching struct {
-	resp *http.Response
+// Cursor is used to define the handler for a database cursor. The cursor logic is automatically
+// injected if your schema includes a cursor within it.
+type Cursor[T any] struct {
+	transformer func([]byte) (T, error)
+	conn        *websocket.Conn
 }
 
-func (h httpSwitching) Read(p []byte) (n int, err error) {
-	return 0, io.EOF
+// Close is used to close the cursor.
+func (c Cursor[T]) Close() error {
+	if c.conn == nil {
+		return nil
+	}
+	return c.conn.CloseNow()
+}
+
+// Handles exceptions within cursor packets. Automatically injected if your structure has a cursor.
+func handleExceptionPacket(msg []byte, mLen int) error {
+	if 3 > mLen {
+		goto malformedErr
+	}
+	isCustom := msg[0] == 1
+
+	msg = msg[1:]
+	exceptionNameLen := int(binary.LittleEndian.Uint16(msg))
+	msg = msg[2:]
+	if exceptionNameLen > len(msg) {
+		goto malformedErr
+	}
+
+	code := string(msg[:exceptionNameLen])
+	msg = msg[exceptionNameLen:]
+
+	if isCustom {
+		if err := parseCustomException(code, bytes.NewReader(msg)); err != nil {
+			return err
+		}
+		return ServerError{
+			Code:    "exception_not_supported",
+			Message: "The server returned an exception, but this client does not support the exception specified.",
+		}
+	}
+
+	return ServerError{
+		Code:    code,
+		Message: string(msg),
+	}
+
+malformedErr:
+	return ServerError{
+		Code:    "malformed_packet",
+		Message: "The cursor response packet was malformed.",
+	}
+}
+
+var ob = []byte{1}
+
+// Next is used to get the next cursor item.
+func (c Cursor[T]) Next(ctx context.Context) (val T, err error) {
+	if err = c.conn.Write(ctx, websocket.MessageBinary, ob); err != nil {
+		return
+	}
+	var msg []byte
+	if _, msg, err = c.conn.Read(ctx); err != nil {
+		return
+	}
+
+	mLen := len(msg)
+	if mLen >= 1 {
+		switch status := msg[0] {
+		case 2:
+			return c.transformer(msg[1:])
+		case 3:
+			err = io.EOF
+			return
+		}
+	}
+
+	err = handleExceptionPacket(msg, mLen)
+}
+
+// Initializes the cursor. Automatically injected when a cursor is used.
+func initCursor[T any](
+	c *client, ctx context.Context, methodName, schemaHash string, input []byte,
+	transformer func([]byte) (T, error),
+) (Cursor[T], error) {
+	opts := &websocket.DialOptions{HTTPClient: c.http}
+
+	u, err := url.Parse(c.url)
+	if err != nil {
+		return nil, err
+	}
+	u.Path = path.Join(u.Path, "rpc")
+
+	ws, _, err := websocket.Dial(ctx, u.String(), opts)
+	if err != nil {
+		return Cursor[T]{}, err
+	}
+
+	methodLen := 2 + len(methodName)
+	schemaLen := 2 + len(schemaHash)
+	authLineLen := len(c.authLine)
+	b := make([]byte, methodLen + schemaLen + authLineLen + len(input))
+
+	binary.LittleEndian.PutUint16(b, uint16(len(methodName)))
+	copy(b[2:], methodName)
+
+	view := b[methodLen:]
+	binary.LittleEndian.PutUint16(view, uint16(len(schemaHash)))
+	copy(view[2:], schemaHash)
+
+	view = view[schemaLen:]
+	copy(view, c.authLine)
+	copy(view[authLineLen:], input)
+	view = nil
+
+	if err = ws.Write(ctx, websocket.MessageBinary, b); err != nil {
+		return Cursor[T]{}, err
+	}
+
+	if _, b, err = ws.Read(ctx); err != nil {
+		return Cursor[T]{}, err
+	}
+
+	bLen := len(b)
+	if bLen == 1 && b[0] == 2 {
+		return Cursor[T]{
+			transformer: transformer,
+			conn:        ws,
+		}, nil
+	}
+
+	return Cursor[T]{}, handleExceptionPacket(b, bLen)
 }
 
 type serverError struct {
@@ -201,8 +351,7 @@ func (c *client) do(ctx context.Context, methodName, schemaHash string, input []
 		return nil, err
 	}
 	req.Header.Set("X-RemixDB-Schema-Hash", schemaHash)
-	req.Header.Set("X-RemixDB-Websocket-Reconnect", "false")
-	req.Header.Set("Content-Type", "application/remixdb-rpc-mixed")
+	req.Header.Set("Content-Type", "application/x-remixdb-rpc-mixed")
 
 	httpClient := c.http
 	if httpClient == nil {
@@ -223,38 +372,17 @@ func (c *client) do(ctx context.Context, methodName, schemaHash string, input []
 	}
 
 	switch resp.StatusCode {
-	case http.StatusOK:
+	case http.StatusOK, http.StatusNoContent:
 		return resp.Body, nil
-	case http.StatusSwitchingProtocols:
-		return httpSwitching{resp: resp}, nil
 	}
 
-	switch resp.Header.Get("X-RemixDB-Exception") {
+	switch e := resp.Header.Get("X-RemixDB-Exception") {
 	case "":
 		// Do nothing.
-	case "ErrorWithAllFields":
-		var e ErrorWithAllFields
-		defer resp.Body.Close()
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return nil, ServerError{
-				StatusCode: resp.StatusCode,
-				Code:       "invalid_response",
-				Message:    "The response could not be decoded.",
-			}
-		}
-		return nil, e
-	case "ErrorWithMessageField":
-		var e ErrorWithMessageField
-		defer resp.Body.Close()
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return nil, ServerError{
-				StatusCode: resp.StatusCode,
-				Code:       "invalid_response",
-				Message:    "The response could not be decoded.",
-			}
-		}
-		return nil, e
 	default:
+		if err := parseCustomException(e, resp.Body); err != nil {
+			return nil, err
+		}
 		_ = resp.Body.Close()
 		return nil, ServerError{
 			StatusCode: resp.StatusCode,

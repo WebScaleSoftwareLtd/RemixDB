@@ -12,7 +12,9 @@ import (
 	"net/http"
 	"net/url"
 	"path"{{ if HasTime . }}
-	"time"{{ end }}
+	"time"{{ end }}{{ if HasCursor . }}
+
+	"nhooyr.io/websocket"{{ end }}
 )
 
 type readJoiner struct {
@@ -54,10 +56,8 @@ func (r *readJoiner) Read(p []byte) (n int, err error) {
 			return n, nil
 		}
 	}
-}{{ if HasCursor . }}
+}
 
-{{ Static "golang.cursor" }}{{ else }}
-{{ end }}
 {{ range $key, $value := .Structs }}{{ if ne $value.Comment "" }}{{ range $i, $line := SplitLines $value.Comment }}// {{ if eq $i 0 }}{{ TitleCase $key }} {{ end }}{{ $line }}
 {{ end }}{{ end }}type {{ TitleCase $key }} struct{{ if ne (len .Fields) 0 }} {{ end }}{{ `{` }}{{ Subtemplate "golang.struct_fields" $value }}}
 
@@ -115,9 +115,26 @@ func (c *client) SetHTTPClient(client *http.Client) {
 	c.http = client
 }
 
+func parseCustomException(key string, body io.Reader) error {
+	switch key {
+{{ range $key, $value := .Structs }}{{ if $value.Exception }}	case "{{ $key }}":
+		var e {{ TitleCase $key }}
+		defer resp.Body.Close()
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, ServerError{
+				StatusCode: resp.StatusCode,
+				Code:       "invalid_response",
+				Message:    "The response could not be decoded.",
+			}
+		}
+		return nil, e
+{{ end }}{{ end }}	}
+	return nil
+}
+
 // ServerError is used to represent a server error.
 type ServerError struct {
-	// StatusCode is the HTTP status code.
+	// StatusCode is the HTTP status code. This is not present for cursors.
 	StatusCode int `json:"status_code"`
 
 	// Code is the error code.
@@ -130,16 +147,10 @@ type ServerError struct {
 // Error is used to return the error message.
 func (e ServerError) Error() string {
 	return e.Code + ": " + e.Message
-}
+}{{ if HasCursor . }}
 
-type httpSwitching struct {
-	resp *http.Response
-}
-
-func (h httpSwitching) Read(p []byte) (n int, err error) {
-	return 0, io.EOF
-}
-
+{{ Static "golang.cursor" }}{{ else }}
+{{ end }}
 type serverError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
@@ -162,8 +173,7 @@ func (c *client) do(ctx context.Context, methodName, schemaHash string, input []
 		return nil, err
 	}
 	req.Header.Set("X-RemixDB-Schema-Hash", schemaHash)
-	req.Header.Set("X-RemixDB-Websocket-Reconnect", "false")
-	req.Header.Set("Content-Type", "application/remixdb-rpc-mixed")
+	req.Header.Set("Content-Type", "application/x-remixdb-rpc-mixed")
 
 	httpClient := c.http
 	if httpClient == nil {
@@ -184,27 +194,17 @@ func (c *client) do(ctx context.Context, methodName, schemaHash string, input []
 	}
 
 	switch resp.StatusCode {
-	case http.StatusOK:
+	case http.StatusOK, http.StatusNoContent:
 		return resp.Body, nil
-	case http.StatusSwitchingProtocols:
-		return httpSwitching{resp: resp}, nil
 	}
 
-	switch resp.Header.Get("X-RemixDB-Exception") {
+	switch e := resp.Header.Get("X-RemixDB-Exception") {
 	case "":
-		// Do nothing.{{ range $key, $value := .Structs }}{{ if $value.Exception }}
-	case "{{ $key }}":
-		var e {{ TitleCase $key }}
-		defer resp.Body.Close()
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return nil, ServerError{
-				StatusCode: resp.StatusCode,
-				Code:       "invalid_response",
-				Message:    "The response could not be decoded.",
-			}
-		}
-		return nil, e{{ end }}{{ end }}
+		// Do nothing.
 	default:
+		if err := parseCustomException(e, resp.Body); err != nil {
+			return nil, err
+		}
 		_ = resp.Body.Close()
 		return nil, ServerError{
 			StatusCode: resp.StatusCode,

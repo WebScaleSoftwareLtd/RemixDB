@@ -231,4 +231,4 @@ func (c *client) do(ctx context.Context, methodName, schemaHash string, input []
 }{{ range $key, $value := .Methods }}
 
 func (c *client) {{ TitleCase $key }}{{ Subtemplate "golang.method_sig" $value }} {
-{{ Subtemplate "golang.method" $value }}}{{ end }}
+{{ Subtemplate "golang.method" $value | Tabify 1 }}}{{ end }}

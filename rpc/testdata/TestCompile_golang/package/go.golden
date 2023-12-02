@@ -407,21 +407,21 @@ func (c *client) do(ctx context.Context, methodName, schemaHash string, input []
 }
 
 func (c *client) AllVoid(ctx context.Context) error {
-    // Hello World!
+	// Hello World!
 }
 
 func (c *client) Cursor(ctx context.Context) (Cursor[string], error) {
-    // Hello World!
+	// Hello World!
 }
 
 func (c *client) NoComment(ctx context.Context, NoCommentInput string) (string, error) {
-    // Hello World!
+	// Hello World!
 }
 
 func (c *client) VoidInput(ctx context.Context) (string, error) {
-    // Hello World!
+	// Hello World!
 }
 
 func (c *client) VoidOutput(ctx context.Context, VoidOutputInput string) error {
-    // Hello World!
+	// Hello World!
 }

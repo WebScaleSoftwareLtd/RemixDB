@@ -241,6 +241,16 @@ func processGoTemplate(name, tmpl string, data any, variables map[string]string)
 			}
 			return false
 		},
+		"Tabify": func(c int, s string) string {
+			split := strings.Split(s, "\n")
+			for i, v := range split {
+				if v == "" {
+					continue
+				}
+				split[i] = strings.Repeat("\t", c) + v
+			}
+			return strings.Join(split, "\n")
+		},
 	}).Parse(tmpl)
 	if err != nil {
 		return "", err

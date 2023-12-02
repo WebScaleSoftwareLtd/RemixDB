@@ -67,7 +67,7 @@ type ErrorWithAllFields struct {
 
 // Error is used to return the error message.
 func (e ErrorWithAllFields) Error() string {
-	return "ErrorWithAllFields: " + fmt.Sprint("{", "}")
+	return "ErrorWithAllFields: " + fmt.Sprint("{", "Field =", e.Field, "Field2 =", e.Field2, "}")
 }
 
 // ErrorWithMessageField used to test a error with a message field

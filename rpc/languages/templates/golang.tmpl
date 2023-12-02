@@ -58,6 +58,7 @@ func (r *readJoiner) Read(p []byte) (n int, err error) {
 	}
 }
 
+{{ Static "golang.byte_slice_maker" }}
 {{ range $key, $value := .Structs }}{{ if ne $value.Comment "" }}{{ range $i, $line := SplitLines $value.Comment }}// {{ if eq $i 0 }}{{ TitleCase $key }} {{ end }}{{ $line }}
 {{ end }}{{ end }}type {{ TitleCase $key }} struct{{ if ne (len .Fields) 0 }} {{ end }}{{ `{` }}{{ Subtemplate "golang.struct_fields" $value }}}
 

@@ -56,6 +56,100 @@ func (r *readJoiner) Read(p []byte) (n int, err error) {
 	}
 }
 
+type byteSliceAddition struct {
+	next *byteSliceAddition
+	b    *byte
+	sl   []byte
+	u16  *uint16
+	u32  *uint32
+	u64  *uint64
+	s    string
+}
+
+type byteSliceMaker struct {
+	len   int
+	start *byteSliceAddition
+	end   *byteSliceAddition
+}
+
+func (b *byteSliceMaker) newAddition() *byteSliceAddition {
+	a := &byteSliceAddition{}
+	if b.start == nil {
+		b.start = a
+		b.end = a
+	} else {
+		b.end.next = a
+		b.end = a
+	}
+	return a
+}
+
+func (b *byteSliceMaker) AddByte(x byte) {
+	a := b.newAddition()
+	a.b = &x
+	b.len++
+}
+
+func (b *byteSliceMaker) AddByteSlice(x []byte) {
+	a := b.newAddition()
+	a.sl = x
+	b.len += len(x)
+}
+
+func (b *byteSliceMaker) AddUint16(x uint16) {
+	a := b.newAddition()
+	a.u16 = &x
+	b.len += 2
+}
+
+func (b *byteSliceMaker) AddUint32(x uint32) {
+	a := b.newAddition()
+	a.u32 = &x
+	b.len += 4
+}
+
+func (b *byteSliceMaker) AddUint64(x uint64) {
+	a := b.newAddition()
+	a.u64 = &x
+	b.len += 8
+}
+
+func (b *byteSliceMaker) AddString(x string) {
+	a := b.newAddition()
+	a.s = x
+	b.len += len(x)
+}
+
+func (b *byteSliceMaker) Make() []byte {
+	sl := make([]byte, b.len)
+	view := sl
+
+	for x := b.start; x != nil; x = x.next {
+		switch {
+		case x.b != nil:
+			view[0] = *x.b
+			view = view[1:]
+		case x.sl != nil:
+			copy(view, x.sl)
+			view = view[len(x.sl):]
+		case x.u16 != nil:
+			binary.LittleEndian.PutUint16(view, *x.u16)
+			view = view[2:]
+		case x.u32 != nil:
+			binary.LittleEndian.PutUint32(view, *x.u32)
+			view = view[4:]
+		case x.u64 != nil:
+			binary.LittleEndian.PutUint64(view, *x.u64)
+			view = view[8:]
+		default:
+			copy(view, x.s)
+			view = view[len(x.s):]
+		}
+	}
+
+	return sl
+}
+
 // ErrorWithAllFields used to test a error with all fields
 type ErrorWithAllFields struct {
 	// Field used to test a field

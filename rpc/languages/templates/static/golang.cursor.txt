@@ -15,8 +15,15 @@ func (c Cursor[T]) Close() error {
 
 // Handles exceptions within cursor packets. Automatically injected if your structure has a cursor.
 func handleExceptionPacket(msg []byte, mLen int) error {
+	malformedErr := func() error {
+		return ServerError{
+			Code:    "malformed_packet",
+			Message: "The cursor response packet was malformed.",
+		}
+	}
+
 	if 3 > mLen {
-		goto malformedErr
+		return malformedErr()
 	}
 	isCustom := msg[0] == 1
 
@@ -24,14 +31,14 @@ func handleExceptionPacket(msg []byte, mLen int) error {
 	exceptionNameLen := int(binary.LittleEndian.Uint16(msg))
 	msg = msg[2:]
 	if exceptionNameLen > len(msg) {
-		goto malformedErr
+		return malformedErr()
 	}
 
 	code := string(msg[:exceptionNameLen])
 	msg = msg[exceptionNameLen:]
 
 	if isCustom {
-		if err := parseCustomException(code, bytes.NewReader(msg)); err != nil {
+		if err := parseCustomException(0, code, io.NopCloser(bytes.NewReader(msg))); err != nil {
 			return err
 		}
 		return ServerError{
@@ -43,12 +50,6 @@ func handleExceptionPacket(msg []byte, mLen int) error {
 	return ServerError{
 		Code:    code,
 		Message: string(msg),
-	}
-
-malformedErr:
-	return ServerError{
-		Code:    "malformed_packet",
-		Message: "The cursor response packet was malformed.",
 	}
 }
 
@@ -64,7 +65,8 @@ func (c Cursor[T]) Next(ctx context.Context) (val T, err error) {
 
 	mLen := len(msg)
 	if mLen >= 1 {
-		switch status := msg[0] {
+		status := msg[0]
+		switch status {
 		case 2:
 			return c.transformer(msg[1:])
 		case 3:
@@ -74,6 +76,7 @@ func (c Cursor[T]) Next(ctx context.Context) (val T, err error) {
 	}
 
 	err = handleExceptionPacket(msg, mLen)
+	return
 }
 
 // Initializes the cursor. Automatically injected when a cursor is used.
@@ -85,7 +88,7 @@ func initCursor[T any](
 
 	u, err := url.Parse(c.url)
 	if err != nil {
-		return nil, err
+		return Cursor[T]{}, err
 	}
 	u.Path = path.Join(u.Path, "rpc")
 

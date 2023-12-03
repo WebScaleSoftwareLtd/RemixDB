@@ -244,30 +244,30 @@ func (c *client) SetHTTPClient(client *http.Client) {
 	c.http = client
 }
 
-func parseCustomException(key string, body io.Reader) error {
+func parseCustomException(statusCode int, key string, body io.ReadCloser) error {
 	switch key {
 	case "ErrorWithAllFields":
 		var e ErrorWithAllFields
-		defer resp.Body.Close()
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return nil, ServerError{
-				StatusCode: resp.StatusCode,
+		defer body.Close()
+		if err := json.NewDecoder(body).Decode(&e); err != nil {
+			return ServerError{
+				StatusCode: statusCode,
 				Code:       "invalid_response",
 				Message:    "The response could not be decoded.",
 			}
 		}
-		return nil, e
+		return e
 	case "ErrorWithMessageField":
 		var e ErrorWithMessageField
-		defer resp.Body.Close()
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return nil, ServerError{
-				StatusCode: resp.StatusCode,
+		defer body.Close()
+		if err := json.NewDecoder(body).Decode(&e); err != nil {
+			return ServerError{
+				StatusCode: statusCode,
 				Code:       "invalid_response",
 				Message:    "The response could not be decoded.",
 			}
 		}
-		return nil, e
+		return e
 	}
 	return nil
 }
@@ -306,8 +306,15 @@ func (c Cursor[T]) Close() error {
 
 // Handles exceptions within cursor packets. Automatically injected if your structure has a cursor.
 func handleExceptionPacket(msg []byte, mLen int) error {
+	malformedErr := func() error {
+		return ServerError{
+			Code:    "malformed_packet",
+			Message: "The cursor response packet was malformed.",
+		}
+	}
+
 	if 3 > mLen {
-		goto malformedErr
+		return malformedErr()
 	}
 	isCustom := msg[0] == 1
 
@@ -315,14 +322,14 @@ func handleExceptionPacket(msg []byte, mLen int) error {
 	exceptionNameLen := int(binary.LittleEndian.Uint16(msg))
 	msg = msg[2:]
 	if exceptionNameLen > len(msg) {
-		goto malformedErr
+		return malformedErr()
 	}
 
 	code := string(msg[:exceptionNameLen])
 	msg = msg[exceptionNameLen:]
 
 	if isCustom {
-		if err := parseCustomException(code, bytes.NewReader(msg)); err != nil {
+		if err := parseCustomException(0, code, io.NopCloser(bytes.NewReader(msg))); err != nil {
 			return err
 		}
 		return ServerError{
@@ -334,12 +341,6 @@ func handleExceptionPacket(msg []byte, mLen int) error {
 	return ServerError{
 		Code:    code,
 		Message: string(msg),
-	}
-
-malformedErr:
-	return ServerError{
-		Code:    "malformed_packet",
-		Message: "The cursor response packet was malformed.",
 	}
 }
 
@@ -355,7 +356,8 @@ func (c Cursor[T]) Next(ctx context.Context) (val T, err error) {
 
 	mLen := len(msg)
 	if mLen >= 1 {
-		switch status := msg[0] {
+		status := msg[0]
+		switch status {
 		case 2:
 			return c.transformer(msg[1:])
 		case 3:
@@ -365,6 +367,7 @@ func (c Cursor[T]) Next(ctx context.Context) (val T, err error) {
 	}
 
 	err = handleExceptionPacket(msg, mLen)
+	return
 }
 
 // Initializes the cursor. Automatically injected when a cursor is used.
@@ -376,7 +379,7 @@ func initCursor[T any](
 
 	u, err := url.Parse(c.url)
 	if err != nil {
-		return nil, err
+		return Cursor[T]{}, err
 	}
 	u.Path = path.Join(u.Path, "rpc")
 
@@ -426,7 +429,7 @@ type serverError struct {
 	Message string `json:"message"`
 }
 
-func (c *client) do(ctx context.Context, methodName, schemaHash string, input []byte) (io.Reader, error) {
+func (c *client) do(ctx context.Context, methodName, schemaHash string, input []byte) (io.ReadCloser, error) {
 	u, err := url.Parse(c.url)
 	if err != nil {
 		return nil, err
@@ -468,11 +471,12 @@ func (c *client) do(ctx context.Context, methodName, schemaHash string, input []
 		return resp.Body, nil
 	}
 
-	switch e := resp.Header.Get("X-RemixDB-Exception") {
+	e := resp.Header.Get("X-RemixDB-Exception")
+	switch e {
 	case "":
 		// Do nothing.
 	default:
-		if err := parseCustomException(e, resp.Body); err != nil {
+		if err := parseCustomException(resp.StatusCode, e, resp.Body); err != nil {
 			return nil, err
 		}
 		_ = resp.Body.Close()
@@ -483,9 +487,9 @@ func (c *client) do(ctx context.Context, methodName, schemaHash string, input []
 		}
 	}
 
-	var e serverError
+	var sErr serverError
 	defer resp.Body.Close()
-	if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&sErr); err != nil {
 		return nil, ServerError{
 			StatusCode: resp.StatusCode,
 			Code:       "invalid_response",
@@ -495,8 +499,8 @@ func (c *client) do(ctx context.Context, methodName, schemaHash string, input []
 
 	return nil, ServerError{
 		StatusCode: resp.StatusCode,
-		Code:       e.Code,
-		Message:    e.Message,
+		Code:       sErr.Code,
+		Message:    sErr.Message,
 	}
 }
 

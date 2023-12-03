@@ -116,19 +116,19 @@ func (c *client) SetHTTPClient(client *http.Client) {
 	c.http = client
 }
 
-func parseCustomException(key string, body io.Reader) error {
+func parseCustomException(statusCode int, key string, body io.ReadCloser) error {
 	switch key {
 {{ range $key, $value := .Structs }}{{ if $value.Exception }}	case "{{ $key }}":
 		var e {{ TitleCase $key }}
-		defer resp.Body.Close()
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return nil, ServerError{
-				StatusCode: resp.StatusCode,
+		defer body.Close()
+		if err := json.NewDecoder(body).Decode(&e); err != nil {
+			return ServerError{
+				StatusCode: statusCode,
 				Code:       "invalid_response",
 				Message:    "The response could not be decoded.",
 			}
 		}
-		return nil, e
+		return e
 {{ end }}{{ end }}	}
 	return nil
 }
@@ -157,7 +157,7 @@ type serverError struct {
 	Message string `json:"message"`
 }
 
-func (c *client) do(ctx context.Context, methodName, schemaHash string, input []byte) (io.Reader, error) {
+func (c *client) do(ctx context.Context, methodName, schemaHash string, input []byte) (io.ReadCloser, error) {
 	u, err := url.Parse(c.url)
 	if err != nil {
 		return nil, err
@@ -199,11 +199,12 @@ func (c *client) do(ctx context.Context, methodName, schemaHash string, input []
 		return resp.Body, nil
 	}
 
-	switch e := resp.Header.Get("X-RemixDB-Exception") {
+	e := resp.Header.Get("X-RemixDB-Exception")
+	switch e {
 	case "":
 		// Do nothing.
 	default:
-		if err := parseCustomException(e, resp.Body); err != nil {
+		if err := parseCustomException(resp.StatusCode, e, resp.Body); err != nil {
 			return nil, err
 		}
 		_ = resp.Body.Close()
@@ -214,9 +215,9 @@ func (c *client) do(ctx context.Context, methodName, schemaHash string, input []
 		}
 	}
 
-	var e serverError
+	var sErr serverError
 	defer resp.Body.Close()
-	if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&sErr); err != nil {
 		return nil, ServerError{
 			StatusCode: resp.StatusCode,
 			Code:       "invalid_response",
@@ -226,8 +227,8 @@ func (c *client) do(ctx context.Context, methodName, schemaHash string, input []
 
 	return nil, ServerError{
 		StatusCode: resp.StatusCode,
-		Code:       e.Code,
-		Message:    e.Message,
+		Code:       sErr.Code,
+		Message:    sErr.Message,
 	}
 }{{ range $key, $value := .Methods }}
 

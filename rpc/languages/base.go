@@ -251,6 +251,13 @@ func processGoTemplate(name, tmpl string, data any, variables map[string]string)
 			}
 			return strings.Join(split, "\n")
 		},
+		"KeyAndValue": func(k, v any) map[string]any {
+			return map[string]any{"Key": k, "Value": v}
+		},
+		"HashSchema": func(method structure.Method) string {
+			// TODO
+			return ""
+		},
 	}).Parse(tmpl)
 	if err != nil {
 		return "", err

@@ -1,1 +1,17 @@
-// Hello World!
+remixdbInternalSliceMaker := byteSliceMaker{}{{ if ne .Value.Output "" }}
+remixdbInternalError := func(e error) (_ {{ if eq .Value.OutputBehaviour "array" }}[]{{ end }}{{ Switchfile "golang" .Value.Output }}, err error) {
+	err = e
+	return
+}{{ end }}
+{{ if ne .Value.Input "" }}
+{{ Subtemplate "golang.input_handler" .Value }}{{ end }}
+{{ if eq .Value.OutputBehaviour "cursor" }}return initCursor(c, ctx, "{{ TitleCase .Key }}", "{{ HashSchema .Value }}", remixdbInternalSliceMaker.Make(), func(b []byte) ({{ Switchfile "golang" .Value.Output }}, error) {
+{{ Subtemplate "golang.output_handler" .Value | Tabify 1 }}})
+{{ else }}r, err := c.do(ctx, "{{ TitleCase .Key }}", "{{ HashSchema .Value }}", remixdbInternalSliceMaker.Make())
+if err != nil {
+	return {{ if eq .Value.Output "" }}err{{ else }}remixdbInternalError(err){{ end }}
+}
+
+{{ if eq .Value.Output "" }}_ = r.Close()
+return nil
+{{ else }}{{ Subtemplate "golang.output_handler" .Value }}{{ end }}{{ end }}

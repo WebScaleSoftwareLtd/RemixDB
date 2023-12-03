@@ -501,21 +501,71 @@ func (c *client) do(ctx context.Context, methodName, schemaHash string, input []
 }
 
 func (c *client) AllVoid(ctx context.Context) error {
-	// Hello World!
+	remixdbInternalSliceMaker := byteSliceMaker{}
+
+	r, err := c.do(ctx, "AllVoid", "", remixdbInternalSliceMaker.Make())
+	if err != nil {
+		return err
+	}
+
+	_ = r.Close()
+	return nil
 }
 
 func (c *client) Cursor(ctx context.Context) (Cursor[string], error) {
-	// Hello World!
+	remixdbInternalSliceMaker := byteSliceMaker{}
+	remixdbInternalError := func(e error) (_ string, err error) {
+		err = e
+		return
+	}
+
+	return initCursor(c, ctx, "Cursor", "", remixdbInternalSliceMaker.Make(), func(b []byte) (string, error) {
+		// TODO: Handle outputs
+	})
 }
 
 func (c *client) NoComment(ctx context.Context, NoCommentInput string) (string, error) {
-	// Hello World!
+	remixdbInternalSliceMaker := byteSliceMaker{}
+	remixdbInternalError := func(e error) (_ string, err error) {
+		err = e
+		return
+	}
+
+	// TODO: Handle inputs
+
+	r, err := c.do(ctx, "NoComment", "", remixdbInternalSliceMaker.Make())
+	if err != nil {
+		return remixdbInternalError(err)
+	}
+
+	// TODO: Handle outputs
 }
 
 func (c *client) VoidInput(ctx context.Context) (string, error) {
-	// Hello World!
+	remixdbInternalSliceMaker := byteSliceMaker{}
+	remixdbInternalError := func(e error) (_ string, err error) {
+		err = e
+		return
+	}
+
+	r, err := c.do(ctx, "VoidInput", "", remixdbInternalSliceMaker.Make())
+	if err != nil {
+		return remixdbInternalError(err)
+	}
+
+	// TODO: Handle outputs
 }
 
 func (c *client) VoidOutput(ctx context.Context, VoidOutputInput string) error {
-	// Hello World!
+	remixdbInternalSliceMaker := byteSliceMaker{}
+
+	// TODO: Handle inputs
+
+	r, err := c.do(ctx, "VoidOutput", "", remixdbInternalSliceMaker.Make())
+	if err != nil {
+		return err
+	}
+
+	_ = r.Close()
+	return nil
 }

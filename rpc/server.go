@@ -52,6 +52,9 @@ type websocketRequest interface {
 
 	// ReturnRemixBytes is used to return a RemixDB RPC response.
 	ReturnRemixBytes(code int, data []byte)
+
+	// ReturnEOF is used to return an EOF error.
+	ReturnEOF()
 }
 
 // Server is used to define a RPC server.

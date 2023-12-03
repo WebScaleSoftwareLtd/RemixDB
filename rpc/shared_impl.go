@@ -113,6 +113,11 @@ func (r *websocketReqImpl) ReturnRemixBytes(code int, data []byte) {
 	_ = r.conn.WriteMessage(messageBinary, b)
 }
 
+func (r *websocketReqImpl) ReturnEOF() {
+	_ = r.conn.WriteMessage(messageBinary, []byte{3})
+	_ = r.conn.Close()
+}
+
 var _ websocketRequest = (*websocketReqImpl)(nil)
 
 func (s *Server) handleWebsocketConn(conn websocketConn) {

@@ -256,7 +256,7 @@ func processGoTemplate(name, tmpl string, data any, variables map[string]string)
 		},
 		"HashSchema": func(method structure.Method) string {
 			// TODO
-			return ""
+			return "method_hash_here"
 		},
 	}).Parse(tmpl)
 	if err != nil {

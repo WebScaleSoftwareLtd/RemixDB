@@ -72,6 +72,12 @@ var filledStructure = &structure.Base{
 			Output:          "string",
 			OutputBehaviour: structure.OutputBehaviourCursor,
 		},
+		"OptionalCursor": {
+			Comment:         "used to test a optional cursor",
+			Output:          "string",
+			OutputBehaviour: structure.OutputBehaviourCursor,
+			OutputOptional:  true,
+		},
 		"NoComment": {
 			Input:     "string",
 			InputName: "NoCommentInput",

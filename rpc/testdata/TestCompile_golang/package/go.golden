@@ -200,6 +200,9 @@ type Client interface {
 
 	NoComment(ctx context.Context, NoCommentInput string) (string, error)
 
+	// OptionalCursor used to test a optional cursor
+	OptionalCursor(ctx context.Context) (Cursor[*string], error)
+
 	// VoidInput used to test a void input
 	VoidInput(ctx context.Context) (string, error)
 
@@ -543,6 +546,18 @@ func (c *client) NoComment(ctx context.Context, NoCommentInput string) (string, 
 	}
 
 	// TODO: Handle outputs
+}
+
+func (c *client) OptionalCursor(ctx context.Context) (Cursor[*string], error) {
+	remixdbInternalSliceMaker := byteSliceMaker{}
+	remixdbInternalError := func(e error) (_ *string, err error) {
+		err = e
+		return
+	}
+
+	return initCursor(c, ctx, "OptionalCursor", "method_hash_here", remixdbInternalSliceMaker.Make(), func(b []byte) (*string, error) {
+		// TODO: Handle outputs
+	})
 }
 
 func (c *client) VoidInput(ctx context.Context) (string, error) {

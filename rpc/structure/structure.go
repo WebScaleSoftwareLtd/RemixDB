@@ -9,7 +9,7 @@ type StructField struct {
 	Comment string `json:"comment"`
 
 	// Type is used to define the type of the field. Built-in types are
-	// "string", "int", "float", "bigint", "timestamp", "bool", and "bytes".
+	// "string", "uint", "int", "float", "bigint", "timestamp", "bool", and "bytes".
 	// If the type is not built-in, it is a structure.
 	Type string `json:"type"`
 
@@ -51,7 +51,7 @@ type Method struct {
 	Comment string `json:"comment"`
 
 	// Input is used to define the input structure. Built-in types are
-	// "string", "int", "float", "bigint", "timestamp", "bool", and "bytes".
+	// "string", "uint", "int", "float", "bigint", "timestamp", "bool", and "bytes".
 	// If the type is not built-in, it is a structure. If it is blank, there is
 	// no input.
 	Input string `json:"input"`
@@ -64,7 +64,7 @@ type Method struct {
 	InputOptional bool `json:"input_optional"`
 
 	// Output is used to define the output structure. Built-in types are
-	// "string", "int", "float", "bigint", "timestamp", "bool", and "bytes".
+	// "string", "uint", "int", "float", "bigint", "timestamp", "bool", and "bytes".
 	// If the type is not built-in, it is a structure. If it is blank, there is
 	// no output.
 	Output string `json:"output"`

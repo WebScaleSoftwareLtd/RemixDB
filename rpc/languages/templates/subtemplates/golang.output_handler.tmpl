@@ -1,1 +1,13 @@
-// TODO: Handle outputs
+if len(b) == 0 {
+	return remixdbInternalError(ServerError{
+		Code:    "unexpected_void",
+		Message: "Unexpected void when a result was expected",
+	})
+}
+remixDbInternalPacketType := b[0]
+
+{{ if .OutputOptional }}if remixDbInternalPacketType == 0x00 {
+	return nil, nil
+}
+
+{{ end }}// TODO: Handle outputs

@@ -32,8 +32,17 @@ If you want to represent void, you should send no bytes here. For everything els
         - 2 bytes (uint16 little endian): Length of struct item key
         - N bytes: Struct item key (length specified above)
         - Consult the list to figure out how to parse the value
-
-TODO
+- `0x0a`: Int: 64-bit little endian integer (8 bytes after this)
+- `0x0b`: Float: 64-bit little endian float64 value (8 bytes after this)
+- `0x0c`: Timestamp: 64-bit little endian unsigned integer (8 bits after this) representing a unix timestamp in milliseconds
+- `0x0d`: Bigint: Sent the same as a string. See above for information on the layout.
+- `0x10` - `0x1f`: Used to define 0 to 16 as a integer. This allows us to avoid sending extra bytes for a lot of cases. To get the integer value, simply subtract `0x10`.
+- `0x20` - `0x2f`: Used to define -1 to -17 as a integer. This allows us to avoid sending extra bytes for a lot of negative cases. To get the integer value, subtract `0x20` from this byte and then subtract that from -1.
+- `0x30`-`0x3f`: Used to define 0 to 16 as a unsigned integer. This allows us to avoid sending extra bytes for a lot of cases. To get the integer value, simply subtract `0x30`.
+- `0x40`-`0x4f`: Used to define 0 to 16 as a bigint. This allows us to avoid sending extra bytes for a lot of cases. To get the bigint value, simply subtract `0x40`.
+- `0x50` - `0x5f`: Used to define -1 to -17 as a bigint. This allows us to avoid sending extra bytes for a lot of negative cases. To get the bigint value, subtract `0x50` from this byte and then subtract that from -1.
+- `0x60`-`0x6f`: Used to define 0 to 16 as a float. This allows us to avoid sending extra bytes for a lot of cases. To get the float value, simply subtract `0x60`.
+- `0x70` - `0x7f`: Used to define -1 to -17 as a float. This allows us to avoid sending extra bytes for a lot of negative cases. To get the float value, subtract `0x70` from this byte and then subtract that from -1.
 
 The length of the total packet is assumed to be known with this protocol.
 

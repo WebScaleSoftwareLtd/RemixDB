@@ -1,3 +1,4 @@
+uint uint64
 float float64
 bigint big.Int
 timestamp time.Time

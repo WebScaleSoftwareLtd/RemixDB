@@ -157,7 +157,7 @@ type serverError struct {
 	Message string `json:"message"`
 }
 
-func (c *client) do(ctx context.Context, methodName, schemaHash string, input []byte) (io.ReadCloser, error) {
+func (c *client) do(ctx context.Context, methodName, schemaHash string, input []byte) ([]byte, error) {
 	u, err := url.Parse(c.url)
 	if err != nil {
 		return nil, err
@@ -196,7 +196,7 @@ func (c *client) do(ctx context.Context, methodName, schemaHash string, input []
 
 	switch resp.StatusCode {
 	case http.StatusOK, http.StatusNoContent:
-		return resp.Body, nil
+		return io.ReadAll(resp.Body)
 	}
 
 	e := resp.Header.Get("X-RemixDB-Exception")

@@ -1,0 +1,16 @@
+if remixdbInternalPacketType != 0x0c {
+    return remixdbInternalError(remixdbInternalUnexpectedPacket("timestamp", remixdbInternalPacketType))
+}
+
+if len(b) < 8 {
+    return remixdbInternalError(ServerError{
+        Code:    "malformed_packet",
+        Message: "Packet too short to contain timestamp",
+    })
+}
+
+remixdbInternalTimeMillis := int64(binary.LittleEndian.Uint64(b[:8]))
+remixdbInternalValue := time.UnixMilli(remixdbInternalTimeMillis)
+b = b[8:]
+
+return remixdbInternalValue, nil

@@ -1,0 +1,24 @@
+switch remixdbInternalPacketType {
+case 0x0b:
+    // Continue through.
+case 0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69
+    0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f:
+    return float64(remixdbInternalPacketType - 0x60), nil
+case 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79,
+    0x7a, 0x7b, 0x7c, 0x7d, 0x7e, 0x7f:
+    return float64(-1) - float64(remixdbInternalPacketType - 0x70), nil
+default:
+    return remixdbInternalError(remixdbInternalUnexpectedPacket("float", remixdbInternalPacketType))
+}
+
+if len(b) < 8 {
+    return remixdbInternalError(ServerError{
+        Code:    "malformed_packet",
+        Message: "Packet too short to contain float",
+    })
+}
+
+remixdbInternalValue := math.Float64frombits(binary.LittleEndian.Uint64(b[:8]))
+b = b[8:]
+
+return remixdbInternalValue, nil

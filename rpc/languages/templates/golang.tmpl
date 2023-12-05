@@ -8,7 +8,8 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"io"{{ if HasBigInt . }}
+	"io"
+	"math"{{ if HasBigInt . }}
 	"math/big"{{ end }}
 	"net/http"
 	"net/url"
@@ -20,7 +21,10 @@ import (
 
 // Make sure this is always imported since it is used in a lot of places,
 // but we do not want to break code if this is a edgecase file.
-var _ = binary.LittleEndian
+var (
+	_ = binary.LittleEndian
+	_ = math.E
+)
 
 type readJoiner struct {
 	index   int
@@ -195,7 +199,7 @@ func remixdbInternalUnexpectedPacket(typeWanted string, packetByte byte) error {
 		packetByteS = "big integer"
 	case 0x0e, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
 		0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f:
-		packetByteS = "unsigned integer"
+		packetByteS = "uint"
 	default:
 		packetByteS = "unknown"
 	}

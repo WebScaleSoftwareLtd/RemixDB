@@ -4,7 +4,7 @@ case 0x04:
 case 0x06:
     // Continue through.
 default:
-    return remixdbInternalError(emixdbInternalUnexpectedPacket("string", remixdbInternalPacketType))
+    return remixdbInternalError(remixdbInternalUnexpectedPacket("string", remixdbInternalPacketType))
 }
 
 remixdbInternalRootLength := len(b)

@@ -1,0 +1,21 @@
+switch remixdbInternalPacketType {
+case 0x0e:
+    // Continue through.
+case 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39,
+    0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f:
+    return uint64(remixdbInternalPacketType - 0x30), nil
+default:
+    return remixdbInternalError(remixdbInternalUnexpectedPacket("uint", remixdbInternalPacketType))
+}
+
+if len(b) < 8 {
+    return remixdbInternalError(ServerError{
+        Code:    "malformed_packet",
+        Message: "Packet too short to contain integer",
+    })
+}
+
+remixdbInternalValue := binary.LittleEndian.Uint64(b[:8])
+b = b[8:]
+
+return remixdbInternalValue, nil

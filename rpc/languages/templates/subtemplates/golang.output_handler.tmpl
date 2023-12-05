@@ -10,7 +10,7 @@ remixDbInternalPacketType := b[0]
 	return nil, nil
 }
 
-remixDbInternalValueNonPtr, err := (func() ({{ if eq .Value.OutputBehaviour "array" }}[]{{ end }}{{ if and .Value.OutputOptional (ne .Value.OutputBehaviour "array") }}*{{ end }}{{ Switchfile "golang" .Value.Output }}, error) {
+remixDbInternalValueNonPtr, err := (func() ({{ if eq .OutputBehaviour "array" }}[]{{ end }}{{ Switchfile "golang" .Output }}, error) {
 {{ SwitchyTemplate "golang.output.${.root}" .Output . | Tabify 1 }}})()
 
 if err != nil {

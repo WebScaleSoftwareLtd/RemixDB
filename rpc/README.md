@@ -36,6 +36,7 @@ If you want to represent void, you should send no bytes here. For everything els
 - `0x0b`: Float: 64-bit little endian float64 value (8 bytes after this)
 - `0x0c`: Timestamp: 64-bit little endian unsigned integer (8 bits after this) representing a unix timestamp in milliseconds
 - `0x0d`: Bigint: Sent the same as a string. See above for information on the layout.
+- `0x0e`: Unsigned Integer: 64-bit little endian unsigned integer (8 bytes after this)
 - `0x10` - `0x1f`: Used to define 0 to 16 as a integer. This allows us to avoid sending extra bytes for a lot of cases. To get the integer value, simply subtract `0x10`.
 - `0x20` - `0x2f`: Used to define -1 to -17 as a integer. This allows us to avoid sending extra bytes for a lot of negative cases. To get the integer value, subtract `0x20` from this byte and then subtract that from -1.
 - `0x30`-`0x3f`: Used to define 0 to 16 as a unsigned integer. This allows us to avoid sending extra bytes for a lot of cases. To get the integer value, simply subtract `0x30`.

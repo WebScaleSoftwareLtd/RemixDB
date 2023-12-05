@@ -1,0 +1,46 @@
+switch remixdbInternalPacketType {
+case 0x0d:
+    // Continue through.
+case 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49
+    0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f:
+    v := big.NewInt(int64(remixdbInternalPacketType - 0x40))
+    return *v, nil
+case 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59,
+    0x5a, 0x5b, 0x5c, 0x5d, 0x5e, 0x5f:
+    v := big.NewInt(int64(-1) - int64(remixdbInternalPacketType - 0x50))
+    return *v, nil
+default:
+    return remixdbInternalError(remixdbInternalUnexpectedPacket("bigint", remixdbInternalPacketType))
+}
+
+if len(b) < 4 {
+    return remixdbInternalError(ServerError{
+        Code:    "malformed_packet",
+        Message: "Response contains no bigint length",
+    })
+}
+
+remixdbInternalBigintLength := binary.BigEndian.Uint32(b[:4])
+b = b[4:]
+
+if len(b) < int(remixdbInternalBigintLength) {
+    return remixdbInternalError(ServerError{
+        Code:    "malformed_packet",
+        Message: "Response contains no bigint value",
+    })
+}
+remixdbInternalBigintString := string(b[:remixdbInternalBigintLength])
+b = b[remixdbInternalBigintLength:]
+
+remixdbInternalBigintValue := big.NewInt(0)
+var remixdbInternalBigintParsed bool
+remixdbInternalBigintValue, remixdbInternalBigintParsed = remixdbInternalBigintValue.SetString(remixdbInternalBigintString, 0)
+
+if !remixdbInternalBigintParsed {
+    return remixdbInternalError(ServerError{
+        Code:    "malformed_packet",
+        Message: "Response contains invalid bigint value",
+    })
+}
+
+return *remixdbInternalBigintValue, nil

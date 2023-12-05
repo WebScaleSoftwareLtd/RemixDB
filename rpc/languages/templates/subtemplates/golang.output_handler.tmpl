@@ -4,17 +4,23 @@ if len(b) == 0 {
 		Message: "Unexpected void when a result was expected",
 	})
 }
-remixDbInternalPacketType := b[0]
+remixdbInternalPacketType := b[0]
+b = b[1:]
 
-{{ if .OutputOptional }}if remixDbInternalPacketType == 0x00 {
+{{ if eq .OutputBehaviour "array" }}{{ Subtemplate "golang.array_output" . }}{{ else if .OutputOptional }}if remixdbInternalPacketType == 0x00 {
 	return nil, nil
 }
 
 remixDbInternalValueNonPtr, err := (func() ({{ if eq .OutputBehaviour "array" }}[]{{ end }}{{ Switchfile "golang" .Output }}, error) {
+	remixdbInternalError := func(e error) (_ {{ if eq .OutputBehaviour "array" }}[]{{ end }}{{ Switchfile "golang" .Output }}, err error) {
+		err = e
+		return
+	}
+
 {{ SwitchyTemplate "golang.output.${.root}" .Output . | Tabify 1 }}})()
 
 if err != nil {
 	return nil, err
 }
-return &remixDbInternalValueNonPtr, nil
+return {{ if ne .OutputBehaviour "array" }}&{{ end }}remixDbInternalValueNonPtr, nil
 {{ else }}{{ SwitchyTemplate "golang.output.${.root}" .Output . }}{{ end }}

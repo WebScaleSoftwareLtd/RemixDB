@@ -83,6 +83,21 @@ var filledStructure = &structure.Base{
 			InputName: "NoCommentInput",
 			Output:    "string",
 		},
+		"StructOutput": {
+			Comment: "used to test a struct output",
+			Output:  "OneField",
+		},
+		"StructOptionalOutput": {
+			Comment:        "used to test a optional struct output",
+			Output:         "OneField",
+			OutputOptional: true,
+		},
+		"StructCursorOutput": {
+			Comment:         "used to test a struct cursor output",
+			Output:          "OneField",
+			OutputBehaviour: structure.OutputBehaviourCursor,
+			OutputOptional:  true,
+		},
 	},
 }
 

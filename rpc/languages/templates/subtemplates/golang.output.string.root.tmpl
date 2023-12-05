@@ -1,8 +1,8 @@
-switch remixDbInternalPacketType {
+switch remixdbInternalPacketType {
 case 0x04:
     return "", nil
 case 0x06:
-    return string(b[1:]), nil
+    return string(b), nil
 default:
-    return "", remixdbInternalUnexpectedPacket("string", remixDbInternalPacketType)
+    return remixdbInternalError(remixdbInternalUnexpectedPacket("string", remixdbInternalPacketType))
 }

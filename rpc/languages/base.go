@@ -140,7 +140,11 @@ func init() {
 var bracketRegex = regexp.MustCompile(`\{(.*?)\}`)
 
 // Processes a Go template.
-func processGoTemplate(name, tmpl string, data any, variables map[string]string) (string, error) {
+func processGoTemplate(root *structure.Base, name, tmpl string, data any, variables map[string]string) (string, error) {
+	if data == nil {
+		data = root
+	}
+
 	tpl, err := template.New(name).Funcs(template.FuncMap{
 		"Switchfile": func(name string, case_ string) string {
 			cases, ok := switches[name]
@@ -220,7 +224,7 @@ func processGoTemplate(name, tmpl string, data any, variables map[string]string)
 				return "", errors.New("subtemplate not found")
 			}
 
-			return processGoTemplate(name, tmpl, data, variables)
+			return processGoTemplate(root, name, tmpl, data, variables)
 		},
 		"SwitchyTemplate": func(nameTpl, nameVar string, data any) (string, error) {
 			var possibilities []string
@@ -250,7 +254,8 @@ func processGoTemplate(name, tmpl string, data any, variables map[string]string)
 			// Loop through the possibilities and check if they exist.
 			for _, v := range possibilities {
 				if tmpl, ok := subtemplates[v]; ok {
-					return processGoTemplate(v, tmpl, data, variables)
+					variables["__case_name"] = nameVar
+					return processGoTemplate(root, v, tmpl, data, variables)
 				}
 			}
 
@@ -294,6 +299,31 @@ func processGoTemplate(name, tmpl string, data any, variables map[string]string)
 		"HashSchema": func(method structure.Method) string {
 			// TODO
 			return "method_hash_here"
+		},
+		"OutputOptCheck": func(root any) bool {
+			switch x := root.(type) {
+			case structure.Method:
+				return x.OutputOptional
+			case structure.StructField:
+				return x.Optional
+			default:
+				// Just explode here!
+				panic("OutputOptCheck: unknown type")
+			}
+		},
+		"GetOutputType": func(root any) string {
+			switch x := root.(type) {
+			case structure.Method:
+				return x.Output
+			case structure.StructField:
+				return x.Type
+			default:
+				// Just explode here!
+				panic("GetOutputType: unknown type")
+			}
+		},
+		"Root": func() *structure.Base {
+			return root
 		},
 	}).Parse(tmpl)
 	if err != nil {

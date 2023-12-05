@@ -13,7 +13,7 @@ import (
 var golangTemplate string
 
 func golang(base *structure.Base, opts map[string]string) (map[Extension]string, error) {
-	s, err := processGoTemplate("golang", golangTemplate, base, opts)
+	s, err := processGoTemplate(base, "golang", golangTemplate, nil, opts)
 	if err != nil {
 		return nil, err
 	}

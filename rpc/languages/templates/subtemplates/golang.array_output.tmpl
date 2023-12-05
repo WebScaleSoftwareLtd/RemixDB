@@ -1,0 +1,40 @@
+switch remixdbInternalPacketType {
+{{ if OutputOptCheck . }}case 0x00:
+	return nil, nil
+{{ end }}case 0x07:
+	// Continue through.
+default:
+	return remixdbInternalError(remixdbInternalUnexpectedPacket("array", remixdbInternalPacketType))
+}
+
+if len(b) < 4 {
+	return nil, ServerError{
+		Code:    "malformed_packet",
+		Message: "The packet is too short to contain the array length",
+	}
+]
+
+remixdbInternalArrayLength := binary.BigEndian.Uint32(b[:4])
+b = b[4:]
+
+remixdbInternalArray := make([]{{ $type := Switchfile "golang" (GetOutputType .) }}{{ $type }}, remixdbInternalArrayLength)
+
+for remixdbInternalArrayIndex := uint32(0); remixdbInternalArrayIndex < remixdbInternalArrayLength; remixdbInternalArrayIndex++ {
+	if len(b) == 0 {
+		return nil, ServerError{
+			Code:    "malformed_packet",
+			Message: "The packet is too short to contain the array item",
+		}
+	}
+	remixdbInternalPacketType = b[0]
+	b = b[1:]
+
+	remixdbResultItem, err := (func() ({{ $type }}, error) {
+{{ SwitchyTemplate "golang.output.$" $type . | Tabify 2 }}})()
+	if err != nil {
+		return nil, err
+	}
+	remixdbInternalArray[remixdbInternalArrayIndex] = remixdbResultItem
+}
+
+return remixdbInternalArray, nil

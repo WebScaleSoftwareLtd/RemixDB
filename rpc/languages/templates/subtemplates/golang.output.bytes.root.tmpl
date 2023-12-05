@@ -1,0 +1,8 @@
+switch remixdbInternalPacketType {
+case 0x03:
+	return []byte{}, nil
+case 0x07:
+	return b, nil
+default:
+	return remixdbInternalError(remixdbInternalUnexpectedPacket("bytes", remixdbInternalPacketType))
+}

@@ -20,8 +20,8 @@ If you want to represent void, you should send no bytes here. For everything els
 - `0x02`: True (boolean)
 - `0x03`: Empty bytes
 - `0x04`: Empty string
-- `0x05`: Bytes: If this is the root value, the remainder of the message are the bytes. If not, the next 4 bytes should be a uint32 little endian containing the length, then the value should be the length of that integer.
-- `0x06`: String: If this is the root value, the remainder of the message is the string. If not, the next 4 bytes should be a uint32 little endian containing the length, then the value should be the length of that integer.
+- `0x05`: Bytes: If this is a root/struct value, the remainder of the message are the bytes. If not, the next 4 bytes should be a uint32 little endian containing the length, then the value should be the length of that integer.
+- `0x06`: String: If this is a root/struct value, the remainder of the message is the string. If not, the next 4 bytes should be a uint32 little endian containing the length, then the value should be the length of that integer.
 - `0x07`: Array: The next 4 bytes should be a uint32 little endian value containing the length. For each item in this array, you should refer back to this list to figure out what it is.
 - `0x08`: Map: The next 4 bytes should be a uint32 little endian value containing the length. For each item in this map, the key will be first, then the value will be after. You should refer to this list for both for information on how each should be parsed.
 - `0x09`: Struct: The data following this should be in the following order:
@@ -31,7 +31,8 @@ If you want to represent void, you should send no bytes here. For everything els
     - For each key in the struct:
         - 2 bytes (uint16 little endian): Length of struct item key
         - N bytes: Struct item key (length specified above)
-        - Consult the list to figure out how to parse the value
+        - 4 bytes (uint32 little endian): Length of struct item value
+        - N bytes (see above): Consult the list to figure out how to parse the value
 - `0x0a`: Int: 64-bit little endian integer (8 bytes after this)
 - `0x0b`: Float: 64-bit little endian float64 value (8 bytes after this)
 - `0x0c`: Timestamp: 64-bit little endian unsigned integer (8 bits after this) representing a unix timestamp in milliseconds

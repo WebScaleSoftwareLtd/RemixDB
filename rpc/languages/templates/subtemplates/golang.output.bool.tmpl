@@ -1,0 +1,8 @@
+switch remixdbInternalPacketType {
+case 0x01:
+	return false, nil
+case 0x02:
+	return true, nil
+default:
+	return remixdbInternalError(remixdbInternalUnexpectedPacket("bool", remixdbInternalPacketType))
+}

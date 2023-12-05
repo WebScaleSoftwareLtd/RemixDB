@@ -1,0 +1,118 @@
+{{ $caseName := Variable "__case_name" }}{{ $struct := index (Root).Structs $caseName }}if remixdbInternalPacketType != 0x09 {
+	return remixdbInternalError(remixdbInternalUnexpectedPacket("struct", remixdbInternalPacketType))
+}
+
+if len(b) < 3 {
+	return remixdbInternalError(ServerError{
+		Code:    "malformed_packet",
+		Message: "Not enough room in the packet to hold all struct data.",
+	})
+}
+
+remixdbInternalStructNameLen := int(b[0])
+b = b[1:]
+
+if len(b) < remixdbInternalStructNameLen {
+	return remixdbInternalError(ServerError{
+		Code:    "malformed_packet",
+		Message: "Not enough room in the packet to hold all struct data.",
+	})
+}
+
+remixdbInternalStructName := string(b[:remixdbInternalStructNameLen])
+b = b[remixdbInternalStructNameLen:]
+
+if remixdbInternalStructName != "{{ $caseName }}" {
+	return remixdbInternalError(ServerError{
+		Code:    "malformed_packet",
+		Message: "Unexpected struct name.",
+	})
+}
+
+if len(b) < 2 {
+	return remixdbInternalError(ServerError{
+		Code:    "malformed_packet",
+		Message: "Not enough room in the packet to hold all struct data.",
+	})
+}
+
+remixdbInternalStructFieldCount := int(binary.LittleEndian.Uint16(b))
+remixdbInternalStruct := {{ TitleCase $caseName }}{}
+
+for remixdbInternalStructFieldIndex := 0; remixdbInternalStructFieldIndex < remixdbInternalStructFieldCount; remixdbInternalStructFieldIndex++ {
+	if len(b) < 7 {
+		return remixdbInternalError(ServerError{
+			Code:    "malformed_packet",
+			Message: "Not enough room in the packet to hold all struct data.",
+		})
+	}
+
+	remixdbInternalStructFieldNameLen := binary.LittleEndian.Uint16(b)
+	b = b[2:]
+
+	if len(b) < int(remixdbInternalStructFieldNameLen) {
+		return remixdbInternalError(ServerError{
+			Code:    "malformed_packet",
+			Message: "Not enough room in the packet to hold all struct data.",
+		})
+	}
+
+	remixdbInternalStructFieldName := string(b[:remixdbInternalStructFieldNameLen])
+	b = b[remixdbInternalStructFieldNameLen:]
+
+	if len(b) < 4 {
+		return remixdbInternalError(ServerError{
+			Code:    "malformed_packet",
+			Message: "Not enough room in the packet to hold all struct data.",
+		})
+	}
+
+	remixdbInternalStructFieldDataLen := binary.LittleEndian.Uint32(b)
+	b = b[4:]
+
+	if len(b) < int(remixdbInternalStructFieldDataLen) {
+		return remixdbInternalError(ServerError{
+			Code:    "malformed_packet",
+			Message: "Not enough room in the packet to hold all struct data.",
+		})
+	}
+
+	remixdbInternalStructFieldData := b[:remixdbInternalStructFieldDataLen]
+	b = b[remixdbInternalStructFieldDataLen:]
+
+	if len(remixdbInternalStructFieldData) == 0 {
+		return remixdbInternalError(ServerError{
+			Code:    "malformed_packet",
+			Message: "Not enough room in the packet to hold all struct data.",
+		})
+	}
+	remixdbInternalPacketType = remixdbInternalStructFieldData[0]
+
+	switch remixdbInternalStructFieldName {
+{{ $root := . }}{{ range $fieldName, $field := $struct.Fields }}	case "{{ $fieldName }}":
+		remixdbFieldValue, err := (func(b []byte) ({{ if $field.Array }}[]{{ end }}{{ if and $field.Optional (not $field.Array) }}*{{ end }}{{ Switchfile "golang" $field.Type }}, error) {
+			remixdbInternalError := func(e error) (_ {{ if $field.Array }}[]{{ end }}{{ if and $field.Optional (not $field.Array) }}*{{ end }}{{ Switchfile "golang" $field.Type }}, err error) {
+				err = e
+				return
+			}
+
+{{ if $field.Optional }}			if remixdbInternalPacketType == 0x00 {
+				return nil, nil
+			}
+
+			remixDbInternalValueNonPtr, err := (func() ({{ if $field.Array }}[]{{ end }}{{ Switchfile "golang" $field.Type }}, error) {
+{{ SwitchyTemplate "golang.output.${.root}" $field.Type . | Tabify 4 }}	})()
+			if err != nil {
+				return remixdbInternalError(err)
+			}
+
+			return {{ if not $field.Array }}&{{ end }}remixDbInternalValueNonPtr
+{{ else }}{{ SwitchyTemplate "golang.output.${.root}" $field.Type . | Tabify 3 }}{{ end }}		})(remixdbInternalStructFieldData[1:])
+		if err != nil {
+			return remixdbInternalError(err)
+		}
+		remixdbInternalStruct.{{ TitleCase $fieldName }} = remixdbFieldValue
+{{ end }}	}
+}
+
+return remixdbInternalStruct, nil

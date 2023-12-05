@@ -13,6 +13,9 @@ type StructField struct {
 	// If the type is not built-in, it is a structure.
 	Type string `json:"type"`
 
+	// Array is used to define if the field is an array.
+	Array bool `json:"array"`
+
 	// Optional is used to define if the field is optional.
 	Optional bool `json:"optional"`
 }

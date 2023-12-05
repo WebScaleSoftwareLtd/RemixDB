@@ -1,0 +1,32 @@
+switch remixdbInternalPacketType {
+case 0x04:
+    return "", nil
+case 0x06:
+    // Continue through.
+default:
+    return remixdbInternalError(emixdbInternalUnexpectedPacket("string", remixdbInternalPacketType))
+}
+
+remixdbInternalRootLength := len(b)
+if remixdbInternalRootLength < 4 {
+	return remixdbInternalError(ServerError{
+		Code:    "malformed_packet",
+		Message: "Less than 4 bytes after string header out of root",
+    })
+}
+
+remixdbInternalStringLength := binary.BigEndian.Uint32(b[:4])
+b = b[4:]
+remixdbInternalRootLength -= 4
+
+if remixdbInternalStringLength > uint32(remixdbInternalRootLength) {
+	return remixdbInternalError(ServerError{
+		Code:    "malformed_packet",
+		Message: "Not enough bytes after string header for the length specified",
+	})
+}
+
+remixdbInternalValue := b[:remixdbInternalStringLength]
+b = b[remixdbInternalStringLength:]
+
+return string(remixdbInternalValue), nil

@@ -5,6 +5,7 @@ package {{ Variable "package" }}
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"io"{{ if HasBigInt . }}
@@ -16,6 +17,10 @@ import (
 
 	"nhooyr.io/websocket"{{ end }}
 )
+
+// Make sure this is always imported since it is used in a lot of places,
+// but we do not want to break code if this is a edgecase file.
+var _ = binary.LittleEndian
 
 type readJoiner struct {
 	index   int
@@ -158,9 +163,9 @@ func remixdbInternalUnexpectedPacket(typeWanted string, packetByte byte) error {
 	case 0x00:
 		packetByteS = "null"
 	case 0x01:
-		packetByteS = "false (boolean)"
+		packetByteS = "false (bool)"
 	case 0x02:
-		packetByteS = "true (boolean)"
+		packetByteS = "true (bool)"
 	case 0x03, 0x05:
 		packetByteS = "bytes"
 	case 0x04, 0x06:

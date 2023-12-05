@@ -7,6 +7,7 @@ import (
 	"embed"
 	"errors"
 	"reflect"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -136,6 +137,8 @@ func init() {
 	}
 }
 
+var bracketRegex = regexp.MustCompile(`\{(.*?)\}`)
+
 // Processes a Go template.
 func processGoTemplate(name, tmpl string, data any, variables map[string]string) (string, error) {
 	tpl, err := template.New(name).Funcs(template.FuncMap{
@@ -211,13 +214,47 @@ func processGoTemplate(name, tmpl string, data any, variables map[string]string)
 			}
 			return false
 		},
-		"Subtemplate": func(name string, data interface{}) (string, error) {
+		"Subtemplate": func(name string, data any) (string, error) {
 			tmpl, ok := subtemplates[name]
 			if !ok {
 				return "", errors.New("subtemplate not found")
 			}
 
 			return processGoTemplate(name, tmpl, data, variables)
+		},
+		"SwitchyTemplate": func(nameTpl, nameVar string, data any) (string, error) {
+			var possibilities []string
+
+			// Check if there's any curly brackets (optionals).
+			if bracketRegex.MatchString(nameTpl) {
+				// Create 2 templates. One with them removed from their curly brackets and just
+				// in the string, and one with them removed from the string.
+				t0 := bracketRegex.ReplaceAllString(nameTpl, "$1")
+				t1 := bracketRegex.ReplaceAllString(nameTpl, "")
+
+				// Define the possibilities with the optional taking priority.
+				possibilities = []string{
+					strings.Replace(t0, "$", nameVar, 1),
+					strings.Replace(t0, "$", "default", 1),
+					strings.Replace(t1, "$", nameVar, 1),
+					strings.Replace(t1, "$", "default", 1),
+				}
+			} else {
+				// Only 2 possibilities.
+				possibilities = []string{
+					strings.Replace(nameTpl, "$", nameVar, 1),
+					strings.Replace(nameTpl, "$", "default", 1),
+				}
+			}
+
+			// Loop through the possibilities and check if they exist.
+			for _, v := range possibilities {
+				if tmpl, ok := subtemplates[v]; ok {
+					return processGoTemplate(v, tmpl, data, variables)
+				}
+			}
+
+			return "", errors.New("subtemplate not found - tried: " + strings.Join(possibilities, ", "))
 		},
 		"Static": func(name string) string {
 			return static[name]

@@ -56,7 +56,7 @@ func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 	// Load the plugin if it exists.
 	pluginBinPath := filepath.Join(g.path, "plugins", pluginName+".so")
 	if _, err := os.Stat(pluginBinPath); err == nil {
-		plugin.Open(pluginBinPath)
+		return plugin.Open(pluginBinPath)
 	}
 
 	// Create a temporary directory.

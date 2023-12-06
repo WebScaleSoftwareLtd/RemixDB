@@ -13,6 +13,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -32,6 +33,17 @@ type GoPluginCompiler struct {
 	logger     logger.Logger
 	path       string
 	projectZip []byte
+}
+
+// ExecutionError is used to define an error that occurred during execution.
+type ExecutionError struct {
+	exitCode int
+	data     []byte
+}
+
+// Error is used to return the error as a string.
+func (e ExecutionError) Error() string {
+	return fmt.Sprintf("execution error: status %d: %s", e.exitCode, string(e.data))
 }
 
 // Compile is used to compile the Go plugin or return a cached version. It is compiled
@@ -104,7 +116,16 @@ func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 	cmd := exec.Command(bin, args...)
 	cmd.Dir = tempDir
 	cmd.Env = envStrings
+	buf := &bytes.Buffer{}
+	cmd.Stdout = buf
+	cmd.Stderr = buf
 	if err := cmd.Run(); err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			return nil, ExecutionError{
+				exitCode: exitErr.ExitCode(),
+				data:     buf.Bytes(),
+			}
+		}
 		return nil, err
 	}
 
@@ -215,13 +236,13 @@ func extractTarGzInto(f *os.File, path string) error {
 		switch header.Typeflag {
 		case tar.TypeDir:
 			// Create directories
-			err := os.MkdirAll(filePath, os.ModePerm)
+			err := os.MkdirAll(filePath, header.FileInfo().Mode())
 			if err != nil {
 				return err
 			}
 		case tar.TypeReg:
 			// Create the file
-			newFile, err := os.Create(filePath)
+			newFile, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, header.FileInfo().Mode())
 			if err != nil {
 				return err
 			}
@@ -317,6 +338,9 @@ func extractCache(path string, cacheZip []byte) {
 
 // NewGoPluginCompiler is used to create a new Go plugin compiler.
 func NewGoPluginCompiler(logger logger.Logger, cacheZip, projectZip []byte) GoPluginCompiler {
+	// Add the label to the logger.
+	logger = logger.Tag("goplugin")
+
 	// Get the path for everything.
 	path := os.Getenv("REMIXDB_GOPLUGIN_PATH")
 	if path == "" {

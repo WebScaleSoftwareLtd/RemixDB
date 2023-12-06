@@ -1,16 +1,12 @@
 // RemixDB. Copyright (C) 2023 Web Scale Software Ltd.
 // Author: Astrid Gealer <astrid@gealer.email>
 
-package main
+package zipgen
 
 import (
 	"archive/zip"
 	"bytes"
 	"fmt"
-	"runtime"
-
-	"remixdb.io/goplugin"
-	"remixdb.io/logger"
 )
 
 func processMap(prefix string, m map[string]any, w *zip.Writer) {
@@ -70,28 +66,16 @@ func processMap(prefix string, m map[string]any, w *zip.Writer) {
 	}
 }
 
-func createZip(files map[string]any) []byte {
+// CreateZip creates a zip file from a map. The files can be of type
+// map[string]any (directory), or []byte/string (file).
+func CreateZip(files map[string]any) []byte {
 	buf := &bytes.Buffer{}
 	w := zip.NewWriter(buf)
 	defer w.Close()
 
-	processMap("", files, w)
+	if files != nil {
+		processMap("", files, w)
+	}
 	_ = w.Close()
 	return buf.Bytes()
-}
-
-func nonWindowsSetup(logger logger.Logger) {
-	goplugin.NewGoPluginCompiler(logger, createZip(map[string]any{
-		"lol": "hi",
-	}), createZip(map[string]any{
-		"go.mod": "module remixdb.io/x\n",
-	}))
-}
-
-func main() {
-	logger := logger.NewStdLogger()
-
-	if runtime.GOOS != "windows" {
-		nonWindowsSetup(logger)
-	}
 }

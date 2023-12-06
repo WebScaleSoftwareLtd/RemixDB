@@ -156,7 +156,7 @@ func handleZipReader(path string, zipReader *zip.Reader) error {
 
 		if file.FileInfo().IsDir() {
 			// Create directories
-			err := os.MkdirAll(filePath, os.ModePerm)
+			err := os.MkdirAll(filePath, file.Mode())
 			if err != nil {
 				return err
 			}

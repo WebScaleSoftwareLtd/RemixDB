@@ -82,7 +82,7 @@ func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 	}
 
 	// Write the code to the file.
-	goFile := filepath.Join(pluginGenDir, "plugin.go")
+	goFile := filepath.Join(pluginGenDir, pluginName+".go")
 	if err := os.WriteFile(goFile, []byte(code), 0644); err != nil {
 		return nil, err
 	}

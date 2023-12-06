@@ -13,6 +13,10 @@ import (
 )
 
 func TestGoPluginCompiler_Compile(t *testing.T) {
+	// Run this test in parallel.
+	t.Parallel()
+
+	// Define the sub-tests.
 	tests := []struct {
 		name string
 
@@ -53,7 +57,11 @@ func HelloWorld() string {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			// Run this test in parallel.
+			t.Parallel()
+
 			// Create the Go plugin compiler.
 			cacheZip := zipgen.CreateZip(tt.cacheFiles)
 			projectZip := zipgen.CreateZip(tt.projectFiles)

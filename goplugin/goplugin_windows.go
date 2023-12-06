@@ -22,6 +22,6 @@ func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 }
 
 // NewGoPluginCompiler is used to create a new Go plugin compiler.
-func NewGoPluginCompiler(logger logger.Logger, cacheZip, projectZip []byte) *GoPluginCompiler {
+func NewGoPluginCompiler(logger logger.Logger, path string, cacheZip, projectZip []byte) *GoPluginCompiler {
 	panic("not implemented on windows")
 }

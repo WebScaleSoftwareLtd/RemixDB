@@ -336,21 +336,24 @@ func extractCache(path string, cacheZip []byte) {
 	}
 }
 
-// NewGoPluginCompiler is used to create a new Go plugin compiler.
-func NewGoPluginCompiler(logger logger.Logger, cacheZip, projectZip []byte) GoPluginCompiler {
+// NewGoPluginCompiler is used to create a new Go plugin compiler. If path is empty, then it will try and use the
+// environment or ~/.remixdb/goplugin. No other argument can be empty.
+func NewGoPluginCompiler(logger logger.Logger, path string, cacheZip, projectZip []byte) GoPluginCompiler {
 	// Add the label to the logger.
 	logger = logger.Tag("goplugin")
 
 	// Get the path for everything.
-	path := os.Getenv("REMIXDB_GOPLUGIN_PATH")
 	if path == "" {
-		// Use the default path.
-		path = defaultPath()
-	} else {
-		// Make sure the path is valid.
-		if err := os.MkdirAll(path, 0755); err != nil {
-			// Must be able to create the directory.
-			panic(err)
+		path = os.Getenv("REMIXDB_GOPLUGIN_PATH")
+		if path == "" {
+			// Use the default path.
+			path = defaultPath()
+		} else {
+			// Make sure the path is valid.
+			if err := os.MkdirAll(path, 0755); err != nil {
+				// Must be able to create the directory.
+				panic(err)
+			}
 		}
 	}
 

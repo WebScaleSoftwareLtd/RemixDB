@@ -21,16 +21,11 @@ func SetupGoCompilerForTesting(t *testing.T, cacheZip, projectZip []byte) GoPlug
 		t.Skip("skipping test on windows")
 	}
 
-	// Setup the Go plugin path.
-	oldEnv := os.Getenv("REMIXDB_GOPLUGIN_PATH")
+	// Setup the temporary directory used for the tests.
 	tempDir := t.TempDir()
-	os.Setenv("REMIXDB_GOPLUGIN_PATH", tempDir)
-	t.Cleanup(func() {
-		os.Setenv("REMIXDB_GOPLUGIN_PATH", oldEnv)
-	})
 
-	// Get the path.
-	path := oldEnv
+	// Get the plugin path that the application uses.
+	path := os.Getenv("REMIXDB_GOPLUGIN_PATH")
 	if path == "" {
 		// Go ahead and set the path to the user RemixDB directory.
 		homedir, err := os.UserHomeDir()
@@ -57,5 +52,5 @@ func SetupGoCompilerForTesting(t *testing.T, cacheZip, projectZip []byte) GoPlug
 	}
 
 	// Create the compiler.
-	return NewGoPluginCompiler(logger.NewTestingLogger(t), cacheZip, projectZip)
+	return NewGoPluginCompiler(logger.NewTestingLogger(t), tempDir, cacheZip, projectZip)
 }

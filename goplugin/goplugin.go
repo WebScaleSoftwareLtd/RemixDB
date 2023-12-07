@@ -94,6 +94,11 @@ func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 	envStrings := os.Environ()
 	env := map[string]string{}
 	for _, v := range envStrings {
+		// Remove any variables that start with "GO".
+		if strings.HasPrefix(v, "GO") {
+			continue
+		}
+
 		split := strings.SplitN(v, "=", 2)
 		env[split[0]] = split[1]
 	}

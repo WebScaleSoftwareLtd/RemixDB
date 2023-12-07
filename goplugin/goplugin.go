@@ -23,6 +23,7 @@ import (
 	"runtime"
 	"strings"
 
+	"remixdb.io/goplugin/cgocheck"
 	_ "remixdb.io/internal/httpproxypatch"
 	"remixdb.io/logger"
 )
@@ -106,6 +107,11 @@ func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 	env["GOARCH"] = runtime.GOARCH
 	env["GOMODCACHE"] = filepath.Join(g.path, "cache")
 	env["GOPATH"] = filepath.Join(g.path, "go")
+	cgoEnabled := "0"
+	if cgocheck.CGO {
+		cgoEnabled = "1"
+	}
+	env["CGO_ENABLED"] = cgoEnabled
 	bin := filepath.Join(g.path, "go", "bin", "go")
 	if runtime.GOOS == "windows" {
 		bin += ".exe"

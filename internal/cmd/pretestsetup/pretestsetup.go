@@ -7,12 +7,13 @@ import (
 	"runtime"
 
 	"remixdb.io/goplugin"
+	"remixdb.io/internal/singleinstance"
 	"remixdb.io/internal/zipgen"
 	"remixdb.io/logger"
 )
 
 func nonWindowsSetup(logger logger.Logger) {
-	goplugin.NewGoPluginCompiler(logger, zipgen.CreateZip(map[string]any{
+	goplugin.NewGoPluginCompiler(logger, "", zipgen.CreateZip(map[string]any{
 		"lol": "hi",
 	}), zipgen.CreateZip(map[string]any{
 		"go.mod": "module remixdb.io\n",
@@ -20,8 +21,11 @@ func nonWindowsSetup(logger logger.Logger) {
 }
 
 func main() {
-	logger := logger.NewStdLogger()
+	// Make sure there is only one of us or RemixDB running.
+	singleinstance.EnsureSingleInstance()
 
+	// Handle Go plugin setup.
+	logger := logger.NewStdLogger()
 	if runtime.GOOS != "windows" {
 		nonWindowsSetup(logger)
 	}

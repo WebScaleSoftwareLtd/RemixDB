@@ -15,7 +15,7 @@ import (
 )
 
 // SetupGoCompilerForTesting sets up a Go compiler for testing.
-func SetupGoCompilerForTesting(t *testing.T, cacheZip, projectZip []byte) GoPluginCompiler {
+func SetupGoCompilerForTesting(t *testing.T, projectZip []byte) GoPluginCompiler {
 	// Disallow Windows.
 	if runtime.GOOS == "windows" {
 		t.Skip("skipping test on windows")
@@ -52,5 +52,5 @@ func SetupGoCompilerForTesting(t *testing.T, cacheZip, projectZip []byte) GoPlug
 	}
 
 	// Create the compiler.
-	return NewGoPluginCompiler(logger.NewTestingLogger(t), tempDir, cacheZip, projectZip)
+	return NewGoPluginCompiler(logger.NewTestingLogger(t), tempDir, projectZip)
 }

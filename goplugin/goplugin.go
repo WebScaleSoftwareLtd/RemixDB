@@ -11,7 +11,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -23,7 +22,6 @@ import (
 	"runtime"
 	"strings"
 
-	"remixdb.io/goplugin/cgocheck"
 	_ "remixdb.io/internal/httpproxypatch"
 	"remixdb.io/logger"
 )
@@ -52,7 +50,7 @@ func (e ExecutionError) Error() string {
 func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 	// Get the filename of the plugin.
 	shaB := sha256.Sum256([]byte(code))
-	pluginName := base64.URLEncoding.EncodeToString(shaB[:])
+	pluginName := hex.EncodeToString(shaB[:])
 
 	// Load the plugin if it exists.
 	pluginBinPath := filepath.Join(g.path, "plugins", pluginName+".so")
@@ -90,7 +88,7 @@ func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 
 	// Define the arguments for the compiler.
 	args := []string{
-		"build", "-buildmode=plugin", "-o", pluginBinPath, goFile,
+		"build", "-buildmode=plugin", "-o", pluginBinPath, "./plugingen",
 	}
 	envStrings := os.Environ()
 	env := map[string]string{}
@@ -107,11 +105,7 @@ func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 	env["GOARCH"] = runtime.GOARCH
 	env["GOMODCACHE"] = filepath.Join(g.path, "cache")
 	env["GOPATH"] = filepath.Join(g.path, "go")
-	cgoEnabled := "0"
-	if cgocheck.CGO {
-		cgoEnabled = "1"
-	}
-	env["CGO_ENABLED"] = cgoEnabled
+	env["CGO_ENABLED"] = "1"
 	bin := filepath.Join(g.path, "go", "bin", "go")
 	if runtime.GOOS == "windows" {
 		bin += ".exe"
@@ -323,33 +317,9 @@ func downloadGo(path, goVersionFileExpected string, logger logger.Logger) {
 	ch <- "done!"
 }
 
-// Extracts the cache.
-func extractCache(path string, cacheZip []byte) {
-	// Clean <path>/cache.
-	if err := os.RemoveAll(filepath.Join(path, "cache")); err != nil {
-		if !os.IsNotExist(err) {
-			// Must be able to remove the directory.
-			panic(err)
-		}
-	}
-	if err := os.MkdirAll(filepath.Join(path, "cache"), 0755); err != nil {
-		// Must be able to create the directory.
-		panic(err)
-	}
-
-	// Extract the cache.
-	r, err := zip.NewReader(bytes.NewReader(cacheZip), int64(len(cacheZip)))
-	if err != nil {
-		panic(err)
-	}
-	if err := handleZipReader(filepath.Join(path, "cache"), r); err != nil {
-		panic(err)
-	}
-}
-
 // NewGoPluginCompiler is used to create a new Go plugin compiler. If path is empty, then it will try and use the
 // environment or ~/.remixdb/goplugin. No other argument can be empty.
-func NewGoPluginCompiler(logger logger.Logger, path string, cacheZip, projectZip []byte) GoPluginCompiler {
+func NewGoPluginCompiler(logger logger.Logger, path string, projectZip []byte) GoPluginCompiler {
 	// Add the label to the logger.
 	logger = logger.Tag("goplugin")
 
@@ -374,49 +344,30 @@ func NewGoPluginCompiler(logger logger.Logger, path string, cacheZip, projectZip
 		b = []byte{}
 	}
 	goVersionFileExpected := runtime.Version() + " / " + runtime.GOOS + " / " + runtime.GOARCH
-	cleanPlugins := false
 	if string(b) == goVersionFileExpected {
 		// Log that we have done this already.
 		logger.Info("Downloading "+goVersionFileExpected+"... cached!", nil)
-	} else {
-		// Download Go.
-		downloadGo(path, goVersionFileExpected, logger)
 
-		// Write the Go version file.
-		if err := os.WriteFile(filepath.Join(path, ".go_version"), []byte(goVersionFileExpected), 0644); err != nil {
-			panic(err)
+		// Return here.
+		return GoPluginCompiler{
+			logger:     logger,
+			path:       path,
+			projectZip: projectZip,
 		}
-
-		// Set clean plugins to true.
-		cleanPlugins = true
 	}
 
-	replaceCache := false
-	var hashS string
-	if !cleanPlugins {
-		// Hash the cache zip.
-		hasher := sha256.New()
-		_, _ = hasher.Write(cacheZip)
-		hash := hasher.Sum(nil)
-		hashS = hex.EncodeToString(hash)
+	// Download Go.
+	downloadGo(path, goVersionFileExpected, logger)
 
-		// Check if the hash changed since the last time we ran.
-		b, _ = os.ReadFile(filepath.Join(path, ".hash"))
-		if b == nil {
-			b = []byte{}
-		}
-		if string(b) == hashS {
-			// Since they are the same, we don't need to clean the plugins.
-			// Return the compiler.
-			return GoPluginCompiler{
-				logger:     logger,
-				path:       path,
-				projectZip: projectZip,
-			}
-		} else {
-			// The cache changed, so we need to replace it. We will also clean the plugins.
-			replaceCache = true
-		}
+	// Write the Go version file.
+	if err := os.WriteFile(filepath.Join(path, ".go_version"), []byte(goVersionFileExpected), 0644); err != nil {
+		panic(err)
+	}
+
+	// Make sure <path>/cache exists.
+	if err := os.MkdirAll(filepath.Join(path, "cache"), 0755); err != nil {
+		// Must be able to create the directory.
+		panic(err)
 	}
 
 	// Clean the plugins.
@@ -428,23 +379,6 @@ func NewGoPluginCompiler(logger logger.Logger, path string, cacheZip, projectZip
 	}
 	if err := os.MkdirAll(filepath.Join(path, "plugins"), 0755); err != nil {
 		// Must be able to create the directory.
-		panic(err)
-	}
-
-	// Return here if we don't need to replace the cache.
-	if !replaceCache {
-		return GoPluginCompiler{
-			logger:     logger,
-			path:       path,
-			projectZip: projectZip,
-		}
-	}
-
-	// Extract the cache.
-	extractCache(path, cacheZip)
-
-	// Write the hash file.
-	if err := os.WriteFile(filepath.Join(path, ".hash"), []byte(hashS), 0644); err != nil {
 		panic(err)
 	}
 

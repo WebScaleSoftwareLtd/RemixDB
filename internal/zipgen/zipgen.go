@@ -66,12 +66,11 @@ func processMap(prefix string, m map[string]any, w *zip.Writer) {
 	}
 }
 
-// CreateZip creates a zip file from a map. The files can be of type
+// CreateZipFromMap creates a zip file from a map. The files can be of type
 // map[string]any (directory), or []byte/string (file).
-func CreateZip(files map[string]any) []byte {
+func CreateZipFromMap(files map[string]any) []byte {
 	buf := &bytes.Buffer{}
 	w := zip.NewWriter(buf)
-	defer w.Close()
 
 	if files != nil {
 		processMap("", files, w)

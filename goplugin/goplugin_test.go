@@ -5,7 +5,9 @@ package goplugin
 
 import (
 	"bytes"
+	_ "embed"
 	"plugin"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,6 +23,14 @@ func TestExecutionError_Error(t *testing.T) {
 	assert.Equal(t, "execution error: status 6969: hello world! This is a test!", err.Error())
 }
 
+type fuse struct {
+	blown bool
+}
+
+func (f *fuse) BlowFuse() {
+	f.blown = true
+}
+
 func TestGoPluginCompiler_Compile(t *testing.T) {
 	// Run this test in parallel.
 	t.Parallel()
@@ -29,44 +39,45 @@ func TestGoPluginCompiler_Compile(t *testing.T) {
 	tests := []struct {
 		name string
 
-		cacheFiles   map[string]any
-		projectFiles map[string]any
+		projectFiles []byte
 
 		goCode        string
 		resultHandler func(t *testing.T, p *plugin.Plugin, err error)
 	}{
 		{
-			name: "no cache no error",
-			projectFiles: map[string]any{
+			name: "no error",
+			projectFiles: zipgen.CreateZipFromMap(map[string]any{
 				"go.mod": "module remixdb.io",
-				"helloworld": map[string]any{
-					"helloworld.go": `package helloworld
-
-func HelloWorld() string {
-	return "Hello World!"
-}`,
-				},
-			},
+			}),
 			goCode: `package main
 
-import "remixdb.io/helloworld"
+type privateInterface interface {
+	BlowFuse()
+}
 
-func HelloWorld() string {
-	return helloworld.HelloWorld()
+type FuseBlower interface {
+	privateInterface
+}
+
+func BlowFuse(b FuseBlower) {
+	b.BlowFuse()
 }`,
 			resultHandler: func(t *testing.T, p *plugin.Plugin, err error) {
 				require.NoError(t, err)
 				require.NotNil(t, p)
 
-				f, err := p.Lookup("HelloWorld")
+				f, err := p.Lookup("BlowFuse")
 				require.NoError(t, err)
 				require.NotNil(t, f)
-				assert.Equal(t, "Hello World!", f.(func() string)())
+
+				fuseInstance := &fuse{}
+				reflect.ValueOf(f).Call([]reflect.Value{reflect.ValueOf(fuseInstance)})
+				assert.True(t, fuseInstance.blown)
 			},
 		},
 		{
-			name: "no cache error",
-			projectFiles: map[string]any{
+			name: "error",
+			projectFiles: zipgen.CreateZipFromMap(map[string]any{
 				"go.mod": "module remixdb.io",
 				"helloworld": map[string]any{
 					"helloworld.go": `package helloworld
@@ -75,7 +86,7 @@ func HelloWorld() string {
 	return "Hello World!"
 }`,
 				},
-			},
+			}),
 			goCode: `package main
 
 import "remixdb.io/helloworld"
@@ -107,9 +118,11 @@ func HelloWorld() string {
 			t.Parallel()
 
 			// Create the Go plugin compiler.
-			cacheZip := zipgen.CreateZip(tt.cacheFiles)
-			projectZip := zipgen.CreateZip(tt.projectFiles)
-			compiler := SetupGoCompilerForTesting(t, cacheZip, projectZip)
+			projectZip := tt.projectFiles
+			if projectZip == nil {
+				projectZip = zipgen.CreateZipFromMap(nil)
+			}
+			compiler := SetupGoCompilerForTesting(t, projectZip)
 
 			// Attempt to compile the code.
 			p, err := compiler.Compile(tt.goCode)

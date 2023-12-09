@@ -41,8 +41,8 @@ type ContractSessionMethods interface {
 
 // Session is used to define a session. You must call Close on the session.
 type Session interface {
-	// Close is used to close the session. This will commit any changes if it is a write session,
-	// and for both session cases it will release any locks.
+	// Close is used to close the session. If this is a write session, it will be rolled back if
+	// it has not been committed.
 	Close() error
 
 	// Rollback is used to rollback any changes made in the session. This is only valid for write

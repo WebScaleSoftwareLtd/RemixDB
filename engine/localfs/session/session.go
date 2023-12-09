@@ -39,4 +39,27 @@ type Session struct {
 	Unlocker func()
 }
 
+func (s *Session) Rollback() error {
+	return s.Transaction.Rollback()
+}
+
+func (s *Session) Commit() error {
+	return s.Transaction.Commit()
+}
+
+func (s *Session) Close() error {
+	// Rollback the transaction.
+	if err := s.Transaction.Rollback(); err != nil {
+		if err != acid.ErrAlreadyCommitted {
+			return err
+		}
+	}
+
+	// Unlock the partition.
+	s.Unlocker()
+
+	// No errors!
+	return nil
+}
+
 var _ engine.Session = (*Session)(nil)

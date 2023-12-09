@@ -32,9 +32,12 @@ type Transaction struct {
 	done                bool
 }
 
+// ErrAlreadyCommitted is used to define the error when the transaction has already been committed.
+var ErrAlreadyCommitted = errors.New("transaction already committed")
+
 func (t *Transaction) handleDone() error {
 	if t.done {
-		return errors.New("engine/localfs/acid: transaction already committed or rolled back")
+		return ErrAlreadyCommitted
 	}
 	return nil
 }
@@ -60,6 +63,7 @@ func (t *Transaction) getTransactionFolder() string {
 }
 
 // Rollback is used to rollback the transaction. This will undo all the changes made in the transaction.
+// Returns ErrAlreadyCommitted if the transaction has already been committed.
 func (t *Transaction) Rollback() error {
 	if err := t.handleDone(); err != nil {
 		return err
@@ -77,6 +81,7 @@ func (t *Transaction) Rollback() error {
 }
 
 // Commit is used to commit the transaction. This will commit all the changes made in the transaction.
+// Returns ErrAlreadyCommitted if the transaction has already been committed.
 func (t *Transaction) Commit() error {
 	// Handle the done state.
 	if err := t.handleDone(); err != nil {

@@ -20,6 +20,15 @@ type Session struct {
 	// Cache is the cache object that can be used to cache data across many sessions.
 	Cache *Cache
 
+	// PartitionName is the name of the partition.
+	PartitionName string
+
+	// DataFolder is the data folder for the database.
+	DataFolder string
+
+	// RelativePath is the relative path to the partition.
+	RelativePath string
+
 	// Path is the path to the partition.
 	Path string
 

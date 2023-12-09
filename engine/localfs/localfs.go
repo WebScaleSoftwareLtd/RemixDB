@@ -4,7 +4,6 @@
 package localfs
 
 import (
-	"encoding/base64"
 	"os"
 	"path/filepath"
 
@@ -26,24 +25,27 @@ type Engine struct {
 
 func (e *Engine) CreateSession(partition string) (engine.Session, error) {
 	// Ensure the partition stays alive until the end of the session.
-	unlock, _, err := e.usePartition(partition, false)
+	unlock, partitionPath, err := e.usePartition(partition, false)
 	if err != nil {
 		return nil, err
 	}
 
 	// Return the session.
 	return &session.Session{
-		Logger:      e.logger,
-		Transaction: acid.New(e.path),
-		Cache:       &e.s,
-		Path:        filepath.Join("partitions", base64.URLEncoding.EncodeToString([]byte(partition))),
-		Unlocker:    unlock,
+		Logger:        e.logger,
+		Transaction:   acid.New(e.path),
+		PartitionName: partition,
+		Cache:         &e.s,
+		DataFolder:    e.path,
+		RelativePath:  e.getPartitionPath(partition, true),
+		Path:          partitionPath,
+		Unlocker:      unlock,
 	}, nil
 }
 
 func (e *Engine) CreateSchemaWriteSession(partition string) (engine.Session, error) {
 	// Ensure the partition stays alive until the end of the session.
-	unlock, _, err := e.usePartition(partition, true)
+	unlock, partitionPath, err := e.usePartition(partition, true)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +55,10 @@ func (e *Engine) CreateSchemaWriteSession(partition string) (engine.Session, err
 		Logger:          e.logger,
 		Cache:           &e.s,
 		Transaction:     acid.New(e.path),
-		Path:            filepath.Join("partitions", base64.URLEncoding.EncodeToString([]byte(partition))),
+		PartitionName:   partition,
+		DataFolder:      e.path,
+		RelativePath:    e.getPartitionPath(partition, true),
+		Path:            partitionPath,
 		SchemaWriteLock: true,
 		Unlocker:        unlock,
 	}, nil

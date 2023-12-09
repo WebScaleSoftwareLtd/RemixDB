@@ -71,6 +71,7 @@ func (e *Engine) DeletePartition(partition string) error {
 		return err
 	}
 	e.c.removePartition(partition)
+	e.s.CleanPartition(partition)
 
 	return nil
 }

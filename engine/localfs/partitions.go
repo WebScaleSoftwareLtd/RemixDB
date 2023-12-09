@@ -32,8 +32,12 @@ func (e *Engine) getPartitionLock(partition string) *sync.RWMutex {
 	return e.l.m[partition]
 }
 
-func (e *Engine) getPartitionPath(partition string) string {
-	return filepath.Join(e.path, "partitions", base64.URLEncoding.EncodeToString([]byte(partition)))
+func (e *Engine) getPartitionPath(partition string, rel bool) string {
+	enc := base64.URLEncoding.EncodeToString([]byte(partition))
+	if rel {
+		return filepath.Join("partitions", enc)
+	}
+	return filepath.Join(e.path, "partitions", enc)
 }
 
 func (e *Engine) CreatePartition(partition string) error {
@@ -41,7 +45,7 @@ func (e *Engine) CreatePartition(partition string) error {
 	mu.Lock()
 	defer mu.Unlock()
 
-	err := os.Mkdir(e.getPartitionPath(partition), 0755)
+	err := os.Mkdir(e.getPartitionPath(partition, false), 0755)
 	if err != nil {
 		if os.IsExist(err) {
 			return engine.ErrPartitionAlreadyExists
@@ -58,7 +62,7 @@ func (e *Engine) DeletePartition(partition string) error {
 	mu.Lock()
 	defer mu.Unlock()
 
-	err := os.RemoveAll(e.getPartitionPath(partition))
+	err := os.RemoveAll(e.getPartitionPath(partition, false))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return engine.ErrPartitionDoesNotExist
@@ -79,7 +83,7 @@ func (e *Engine) usePartition(partition string, write bool) (unlocker func(), pa
 		mu.RLock()
 	}
 
-	path = e.getPartitionPath(partition)
+	path = e.getPartitionPath(partition, false)
 	_, err = os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {

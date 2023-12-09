@@ -127,14 +127,14 @@ func (e *Engine) Usernames(partition string) ([]string, error) {
 
 func (e *Engine) SetAuthenticationPermissions(partition, username string, permissions []string) error {
 	// Ensure the partition stays alive until the end of the function.
-	unlock, path, err := e.usePartition(partition, true)
+	unlock, partitionPath, err := e.usePartition(partition, true)
 	if err != nil {
 		return err
 	}
 	defer unlock()
 
 	// Get the partition credentials.
-	partitionCreds, err := e.c.getOrCachePartition(path, partition)
+	partitionCreds, err := e.c.getOrCachePartition(partitionPath, partition)
 	if err != nil {
 		return err
 	}
@@ -154,8 +154,12 @@ func (e *Engine) SetAuthenticationPermissions(partition, username string, permis
 	if err != nil {
 		return err
 	}
-	err = acid.WriteSafely(filepath.Join(path, "credentials"), b, 0644)
-	if err != nil {
+	tx := acid.New(e.path)
+	tx.WriteFile(
+		filepath.Join(e.getPartitionPath(partition, true), "credentials"),
+		b,
+	)
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 
@@ -168,14 +172,14 @@ func (e *Engine) SetAuthenticationPermissions(partition, username string, permis
 
 func (e *Engine) CreateAPIKeyForUsername(partition, username, apiKey string) error {
 	// Ensure the partition stays alive until the end of the function.
-	unlock, path, err := e.usePartition(partition, true)
+	unlock, partitionPath, err := e.usePartition(partition, true)
 	if err != nil {
 		return err
 	}
 	defer unlock()
 
 	// Get the partition credentials.
-	partitionCreds, err := e.c.getOrCachePartition(path, partition)
+	partitionCreds, err := e.c.getOrCachePartition(partitionPath, partition)
 	if err != nil {
 		return err
 	}
@@ -201,8 +205,12 @@ func (e *Engine) CreateAPIKeyForUsername(partition, username, apiKey string) err
 	if err != nil {
 		return err
 	}
-	err = acid.WriteSafely(filepath.Join(path, "credentials"), b, 0644)
-	if err != nil {
+	tx := acid.New(e.path)
+	tx.WriteFile(
+		filepath.Join(e.getPartitionPath(partition, true), "credentials"),
+		b,
+	)
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 
@@ -215,14 +223,14 @@ func (e *Engine) CreateAPIKeyForUsername(partition, username, apiKey string) err
 
 func (e *Engine) DeleteAPIKey(partition, apiKey string) error {
 	// Ensure the partition stays alive until the end of the function.
-	unlock, path, err := e.usePartition(partition, true)
+	unlock, partitionPath, err := e.usePartition(partition, true)
 	if err != nil {
 		return err
 	}
 	defer unlock()
 
 	// Get the partition credentials.
-	partitionCreds, err := e.c.getOrCachePartition(path, partition)
+	partitionCreds, err := e.c.getOrCachePartition(partitionPath, partition)
 	if err != nil {
 		return err
 	}
@@ -259,8 +267,12 @@ func (e *Engine) DeleteAPIKey(partition, apiKey string) error {
 	if err != nil {
 		return err
 	}
-	err = acid.WriteSafely(filepath.Join(path, "credentials"), b, 0644)
-	if err != nil {
+	tx := acid.New(e.path)
+	tx.WriteFile(
+		filepath.Join(e.getPartitionPath(partition, true), "credentials"),
+		b,
+	)
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 
@@ -273,14 +285,14 @@ func (e *Engine) DeleteAPIKey(partition, apiKey string) error {
 
 func (e *Engine) DeleteUsername(partition, username string) error {
 	// Ensure the partition stays alive until the end of the function.
-	unlock, path, err := e.usePartition(partition, true)
+	unlock, partitionPath, err := e.usePartition(partition, true)
 	if err != nil {
 		return err
 	}
 	defer unlock()
 
 	// Get the partition credentials.
-	partitionCreds, err := e.c.getOrCachePartition(path, partition)
+	partitionCreds, err := e.c.getOrCachePartition(partitionPath, partition)
 	if err != nil {
 		return err
 	}
@@ -316,8 +328,12 @@ func (e *Engine) DeleteUsername(partition, username string) error {
 	if err != nil {
 		return err
 	}
-	err = acid.WriteSafely(filepath.Join(path, "credentials"), b, 0644)
-	if err != nil {
+	tx := acid.New(e.path)
+	tx.WriteFile(
+		filepath.Join(e.getPartitionPath(partition, true), "credentials"),
+		b,
+	)
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 

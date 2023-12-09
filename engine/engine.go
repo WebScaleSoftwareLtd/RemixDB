@@ -70,14 +70,14 @@ var ErrReadOnlySession = errors.New("read only session")
 type Engine interface {
 	// CreateReadSession is used to create a read session. You must call Close on the read session
 	// when you are done with it. If the partition does not exist, the error ErrPartitionDoesNotExist
-	// is returned. Read sessions cannot be used to write to the database, any attempt to do so will
+	// is returned. Read sessions cannot be used to write to the schema, any attempt to do so will
 	// return a ErrReadOnlySession error.
-	CreateReadSession(partition string) (Session, error)
+	CreateSession(partition string) (Session, error)
 
 	// CreateWriteSession is used to create a write session. You must call Close on the write session when
 	// you are done with it. If the partition does not exist, the error ErrPartitionDoesNotExist
 	// is returned.
-	CreateWriteSession(partition string) (Session, error)
+	CreateSchemaWriteSession(partition string) (Session, error)
 
 	// CreatePartition is used to create a partition. Returns ErrPartitionAlreadyExists if the partition
 	// already exists.

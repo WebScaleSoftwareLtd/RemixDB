@@ -24,6 +24,7 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
+	github.com/google/uuid v1.4.0
 	github.com/klauspost/compress v1.17.3 // indirect
 	github.com/mattn/go-ieproxy v0.0.11
 	github.com/otiai10/copy v1.14.0

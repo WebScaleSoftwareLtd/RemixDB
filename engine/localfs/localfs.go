@@ -4,11 +4,13 @@
 package localfs
 
 import (
+	"encoding/base64"
 	"os"
 	"path/filepath"
 
 	"github.com/juju/fslock"
 	"remixdb.io/engine"
+	"remixdb.io/engine/localfs/acid"
 	"remixdb.io/engine/localfs/session"
 	"remixdb.io/logger"
 )
@@ -16,39 +18,44 @@ import (
 type Engine struct {
 	c credentialsCache
 	l partitionLocks
+	s session.Cache
 
 	path   string
 	logger logger.Logger
 }
 
-func (e *Engine) CreateReadSession(partition string) (engine.Session, error) {
+func (e *Engine) CreateSession(partition string) (engine.Session, error) {
 	// Ensure the partition stays alive until the end of the session.
-	unlock, path, err := e.usePartition(partition, false)
+	unlock, _, err := e.usePartition(partition, false)
 	if err != nil {
 		return nil, err
 	}
 
 	// Return the session.
 	return &session.Session{
-		Logger:   e.logger,
-		Path:     path,
-		Unlocker: unlock,
+		Logger:      e.logger,
+		Transaction: acid.New(e.path),
+		Cache:       &e.s,
+		Path:        filepath.Join("partitions", base64.URLEncoding.EncodeToString([]byte(partition))),
+		Unlocker:    unlock,
 	}, nil
 }
 
-func (e *Engine) CreateWriteSession(partition string) (engine.Session, error) {
+func (e *Engine) CreateSchemaWriteSession(partition string) (engine.Session, error) {
 	// Ensure the partition stays alive until the end of the session.
-	unlock, path, err := e.usePartition(partition, true)
+	unlock, _, err := e.usePartition(partition, true)
 	if err != nil {
 		return nil, err
 	}
 
 	// Return the session.
 	return &session.Session{
-		Logger:    e.logger,
-		Path:      path,
-		WriteLock: true,
-		Unlocker:  unlock,
+		Logger:          e.logger,
+		Cache:           &e.s,
+		Transaction:     acid.New(e.path),
+		Path:            filepath.Join("partitions", base64.URLEncoding.EncodeToString([]byte(partition))),
+		SchemaWriteLock: true,
+		Unlocker:        unlock,
 	}, nil
 }
 
@@ -58,7 +65,7 @@ var _ engine.Engine = (*Engine)(nil)
 // ~/.remixdb/data if it is not set.
 func New(logger logger.Logger, path string) engine.Engine {
 	// Tag the logger.
-	logger = logger.Tag("engine")
+	logger = logger.Tag("engine.localfs")
 
 	// Handles the default path.
 	if path == "" {

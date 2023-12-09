@@ -6,113 +6,32 @@ package localfs
 import (
 	"os"
 	"path/filepath"
-	"strings"
-	"sync"
+
+	"remixdb.io/engine/localfs/acid"
 )
 
-func handleFileWriteInterrupted(path string) {
-	// Swap the .$ suffix for a .R suffix and see if the file exists.
-	originFile := path[:len(path)-2]
-	rPath := originFile + ".R"
-	_, err := os.Stat(rPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// The power cut happened before everything was marked as ready to be
-			// written. Therefore, the system was not expecting this to have been
-			// written to disk. Delete the file.
-			err = os.RemoveAll(path)
-			if err != nil {
-				panic(err)
-			}
-			return
-		}
-
-		// Another error occurred.
-		panic(err)
-	}
-
-	// The power cut happened after everything was marked as ready to be written. Therefore,
-	// do the rename after we deleted the file it is replacing.
-	err = os.RemoveAll(originFile)
-	if err != nil && !os.IsNotExist(err) {
-		panic(err)
-	}
-	err = os.Rename(path, originFile)
-	if err != nil {
-		panic(err)
-	}
-
-	// Delete the .R file.
-	err = os.Remove(rPath)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func handleFileDeleteInterrupted(path string) {
-	// Get the original file path.
-	originFile := path[:len(path)-3]
-
-	// Check if the original file exists.
-	_, err := os.Stat(originFile)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// The power cut happened before the file was deleted. Therefore, the system
-			// was not expecting this to have been deleted. Delete the file.
-			err = os.Remove(path)
-			if err != nil {
-				panic(err)
-			}
-			return
-		}
-
-		// Another error occurred.
-		panic(err)
-	}
-
-	// Remove the original file.
-	err = os.RemoveAll(originFile)
-	if err != nil {
-		panic(err)
-	}
-
-	// Remove the .RM file.
-	err = os.Remove(path)
-	if err != nil {
-		panic(err)
-	}
-}
-
 func integrityCheck(path string) {
-	dir, err := os.ReadDir(path)
+	// Get the transactions folder.
+	files, err := os.ReadDir(filepath.Join(path, "transactions"))
 	if err != nil {
+		if os.IsNotExist(err) {
+			// No transactions folder, so nothing to do.
+			return
+		}
 		panic(err)
 	}
 
-	otherDirs := make([]string, 0, len(dir))
-	for _, d := range dir {
-		if d.IsDir() {
-			// Handle directories later.
-			otherDirs = append(otherDirs, d.Name())
-			continue
-		}
-
-		name := d.Name()
-		switch {
-		case strings.HasSuffix(name, ".$"):
-			handleFileWriteInterrupted(filepath.Join(path, name))
-		case strings.HasSuffix(name, ".RM"):
-			handleFileDeleteInterrupted(filepath.Join(path, name))
+	// Go through each transaction.
+	for _, dir := range files {
+		if dir.IsDir() {
+			// Attempt a recovery.
+			tx := acid.RecoverFailedTransaction(path, dir.Name())
+			if tx != nil {
+				// Commit this transaction.
+				if err := tx.Commit(); err != nil {
+					panic(err)
+				}
+			}
 		}
 	}
-
-	wg := sync.WaitGroup{}
-	wg.Add(len(otherDirs))
-	for _, d := range otherDirs {
-		go func(d string) {
-			defer wg.Done()
-			integrityCheck(filepath.Join(path, d))
-		}(d)
-	}
-	wg.Wait()
 }

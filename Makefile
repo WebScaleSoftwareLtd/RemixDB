@@ -1,7 +1,7 @@
 .PHONY: test golden-update
 
 FILE_NAME := remixdb-$(shell go env GOOS)-$(shell go env GOARCH)
-ifeq ($(go env GOOS),windows)
+ifeq ($(shell go env GOOS),windows)
 FILE_NAME := $(FILE_NAME).exe
 endif
 

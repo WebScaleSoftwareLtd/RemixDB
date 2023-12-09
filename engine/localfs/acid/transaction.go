@@ -88,6 +88,12 @@ func (t *Transaction) Commit() error {
 		return err
 	}
 
+	if !t.folderMade {
+		// Nothing to do.
+		t.done = true
+		return nil
+	}
+
 	// Write the special 'C' file to indicate that the transaction has been committed.
 	txFp := t.getTransactionFolder()
 	commitFp := filepath.Join(txFp, "C")

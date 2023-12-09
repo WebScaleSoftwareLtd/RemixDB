@@ -68,7 +68,7 @@ func mapFrontendStaticFiles(r *httprouter.Router, dist fs.FS) {
 
 			// Map the file to the route.
 			r.GET(routePrefix+name, func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-				w.Header().Set("Content-Type", mimeS+"; charset=utf-8")
+				w.Header().Set("Content-Type", mimeS)
 				w.Header().Set("Cache-Control", "public, max-age=31536000")
 				_, _ = w.Write(b)
 			})

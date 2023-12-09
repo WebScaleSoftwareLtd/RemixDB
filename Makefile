@@ -7,6 +7,7 @@ endif
 
 build:
 	go generate ./...
+	cd frontend && npm ci && npm run build:prod
 	mkdir -p ./bin
 	go build -o ./bin/$(FILE_NAME) ./cmd/remixdb
 

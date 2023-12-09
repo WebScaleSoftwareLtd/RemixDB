@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	cp "github.com/otiai10/copy"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
@@ -99,6 +100,14 @@ func (t *Transaction) WriteFile(path string, data []byte) {
 // DeleteAll is used to delete the file or folder specified and all its contents. The path should be relative to
 // the data folder.
 func (t *Transaction) DeleteAll(path string) {
+	// Delete the folder from the commit data folder if it exists.
+	if err := os.RemoveAll(filepath.Join(t.getTransactionFolder(), "d", path)); err != nil {
+		if !os.IsNotExist(err) {
+			panic(err)
+		}
+	}
+
+	// Write the journal action.
 	t.writeJournalAction(journalAction{
 		T:  actionTypeDeleteAll,
 		P1: path,
@@ -107,6 +116,14 @@ func (t *Transaction) DeleteAll(path string) {
 
 // Delete is used to delete the file specified. The path should be relative to the data folder.
 func (t *Transaction) Delete(path string) {
+	// Delete the file from the commit data folder if it exists.
+	if err := os.Remove(filepath.Join(t.getTransactionFolder(), "d", path)); err != nil {
+		if !os.IsNotExist(err) {
+			panic(err)
+		}
+	}
+
+	// Write the journal action.
 	t.writeJournalAction(journalAction{
 		T:  actionTypeDelete,
 		P1: path,
@@ -115,6 +132,28 @@ func (t *Transaction) Delete(path string) {
 
 // Rename is used to rename a file. The path should be relative to the data folder.
 func (t *Transaction) Rename(path, newPath string) {
+	// Rename the file in the commit data folder if it exists.
+	txFolder := t.getTransactionFolder()
+	p1 := filepath.Join(txFolder, "d", path)
+	p2 := filepath.Join(txFolder, "d", newPath)
+	if err := os.Rename(p1, p2); err != nil {
+		// If the error is not that the file doesn't exist, panic.
+		if !os.IsNotExist(err) {
+			panic(err)
+		}
+
+		// Attempt a copy to the transaction folder.
+		s := filepath.SplitList(p2)
+		if s[len(s)-1] == "" {
+			s = s[:len(s)-1]
+		}
+		if err := os.MkdirAll(filepath.Join(s[:len(s)-1]...), 0755); err != nil {
+			panic(err)
+		}
+		_ = cp.Copy(filepath.Join(t.dataPath, path), p2)
+	}
+
+	// Write the journal action.
 	t.writeJournalAction(journalAction{
 		T:  actionTypeRename,
 		P1: path,
@@ -139,7 +178,6 @@ func (t *Transaction) MkdirAll(path string) {
 }
 
 // ReadFile is used to read a file from the data folder. The path should be relative to the data folder.
-// Deletions are not reflected in this function.
 func (t *Transaction) ReadFile(path string) ([]byte, error) {
 	fp := filepath.Join(t.getTransactionFolder(), "d", path)
 	b, err := os.ReadFile(fp)

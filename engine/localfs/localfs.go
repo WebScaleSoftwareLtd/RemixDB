@@ -25,7 +25,7 @@ type Engine struct {
 
 func (e *Engine) CreateSession(partition string) (engine.Session, error) {
 	// Ensure the partition stays alive until the end of the session.
-	unlock, partitionPath, err := e.usePartition(partition, false)
+	unlock, _, err := e.usePartition(partition, false)
 	if err != nil {
 		return nil, err
 	}
@@ -38,14 +38,13 @@ func (e *Engine) CreateSession(partition string) (engine.Session, error) {
 		Cache:         &e.s,
 		DataFolder:    e.path,
 		RelativePath:  e.getPartitionPath(partition, true),
-		Path:          partitionPath,
 		Unlocker:      unlock,
 	}, nil
 }
 
 func (e *Engine) CreateSchemaWriteSession(partition string) (engine.Session, error) {
 	// Ensure the partition stays alive until the end of the session.
-	unlock, partitionPath, err := e.usePartition(partition, true)
+	unlock, _, err := e.usePartition(partition, true)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +57,6 @@ func (e *Engine) CreateSchemaWriteSession(partition string) (engine.Session, err
 		PartitionName:   partition,
 		DataFolder:      e.path,
 		RelativePath:    e.getPartitionPath(partition, true),
-		Path:            partitionPath,
 		SchemaWriteLock: true,
 		Unlocker:        unlock,
 	}, nil

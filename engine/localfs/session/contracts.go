@@ -16,7 +16,7 @@ func (s *Session) loadContracts() (map[string]*ast.ContractToken, error) {
 	contracts, ok := s.Cache.contracts.Get(s.PartitionName)
 	if !ok {
 		// Load the contracts file from disk.
-		b, err := os.ReadFile(filepath.Join(s.Path, "contracts"))
+		b, err := s.Transaction.ReadFile(filepath.Join(s.RelativePath, "contracts"))
 		if err != nil {
 			if os.IsNotExist(err) {
 				// Return ErrNotExists.
@@ -55,7 +55,7 @@ func (s *Session) GetContractByKey(key string) (contract *ast.ContractToken, err
 func (s *Session) writeContractTombstone(contract *ast.ContractToken) error {
 	// Read the tombstones file.
 	sl := []*ast.ContractToken{}
-	b, err := os.ReadFile(filepath.Join(s.Path, "contract_tombstones"))
+	b, err := s.Transaction.ReadFile(filepath.Join(s.RelativePath, "contract_tombstones"))
 	if err == nil {
 		// Unmarshal the tombstones file.
 		err = msgpack.Unmarshal(b, &sl)
@@ -84,15 +84,18 @@ func (s *Session) writeContractTombstone(contract *ast.ContractToken) error {
 }
 
 func (s *Session) DeleteContractByKey(key string) error {
+	// Ensure the session has a write lock.
 	if err := s.ensureWriteLock(); err != nil {
 		return err
 	}
 
+	// Load the contracts.
 	contracts, err := s.loadContracts()
 	if err != nil {
 		return err
 	}
 
+	// Make sure the contract is present. If it is, remove it.
 	c, ok := contracts[key]
 	if !ok {
 		return engine.ErrNotExists
@@ -100,6 +103,7 @@ func (s *Session) DeleteContractByKey(key string) error {
 	s.Cache.contracts.Delete(s.PartitionName)
 	delete(contracts, key)
 
+	// Journal the action.
 	b, err := msgpack.Marshal(contracts)
 	if err != nil {
 		return err
@@ -110,10 +114,12 @@ func (s *Session) DeleteContractByKey(key string) error {
 }
 
 func (s *Session) WriteContract(contract *ast.ContractToken) error {
+	// Ensure the session has a write lock.
 	if err := s.ensureWriteLock(); err != nil {
 		return err
 	}
 
+	// Load the contracts and then drop them from the cache if they exist.
 	contracts, err := s.loadContracts()
 	if err != nil {
 		if err == engine.ErrNotExists {
@@ -126,13 +132,34 @@ func (s *Session) WriteContract(contract *ast.ContractToken) error {
 	s.Cache.contracts.Delete(s.PartitionName)
 
 postCacheHandling:
+	// Journal the contracts edit.
 	contracts[contract.Name] = contract
 	b, err := msgpack.Marshal(contracts)
 	if err != nil {
 		return err
 	}
-
 	s.Transaction.WriteFile(filepath.Join(s.RelativePath, "contracts"), b)
+
+	// Load the contract tombstones and remove the contract from it if it exists.
+	tombstones, err := s.ContractTombstones()
+	if err != nil {
+		return err
+	}
+	newTombstones := make([]*ast.ContractToken, 0, len(tombstones))
+	for _, v := range tombstones {
+		if v.Name != contract.Name {
+			newTombstones = append(newTombstones, v)
+		}
+	}
+
+	// Write the new tombstones.
+	b, err = msgpack.Marshal(newTombstones)
+	if err != nil {
+		return err
+	}
+	s.Transaction.WriteFile(filepath.Join(s.RelativePath, "contract_tombstones"), b)
+
+	// No errors!
 	return nil
 }
 
@@ -159,7 +186,7 @@ postError:
 
 func (s *Session) ContractTombstones() (contracts []*ast.ContractToken, err error) {
 	sl := []*ast.ContractToken{}
-	b, err := os.ReadFile(filepath.Join(s.Path, "contract_tombstones"))
+	b, err := s.Transaction.ReadFile(filepath.Join(s.RelativePath, "contract_tombstones"))
 	if err == nil {
 		// Unmarshal the tombstones file.
 		err = msgpack.Unmarshal(b, &sl)

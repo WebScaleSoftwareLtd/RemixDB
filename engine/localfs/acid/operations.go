@@ -138,6 +138,22 @@ func (t *Transaction) MkdirAll(path string) {
 	})
 }
 
+// ReadFile is used to read a file from the data folder. The path should be relative to the data folder.
+// Deletions are not reflected in this function.
+func (t *Transaction) ReadFile(path string) ([]byte, error) {
+	fp := filepath.Join(t.getTransactionFolder(), "d", path)
+	b, err := os.ReadFile(fp)
+	if err == nil {
+		return b, nil
+	} else {
+		if !os.IsNotExist(err) {
+			return nil, err
+		}
+	}
+
+	return os.ReadFile(filepath.Join(t.dataPath, path))
+}
+
 // Handles the transaction commit. The data to prepare a commit has already been written.
 func (t *Transaction) handleCommit(txFp string) error {
 	// Go through all the journal actions.

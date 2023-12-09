@@ -29,9 +29,6 @@ type Session struct {
 	// RelativePath is the relative path to the partition.
 	RelativePath string
 
-	// Path is the path to the partition.
-	Path string
-
 	// SchemaWriteLock is used to define if the session is a write session for schemas.
 	SchemaWriteLock bool
 

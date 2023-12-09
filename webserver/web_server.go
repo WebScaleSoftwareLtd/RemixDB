@@ -7,12 +7,15 @@ import (
 	"net"
 	"sync"
 
+	"remixdb.io/engine"
 	"remixdb.io/rpc"
 )
 
 // WebServer is used to define a web server. Use NewWebServer to create a new instance.
 type WebServer struct {
 	conf Config
+
+	engine engine.Engine
 
 	rpcServer     rpc.Server
 	rpcServerLock sync.RWMutex
@@ -51,9 +54,10 @@ func (w *WebServer) Serve() error {
 }
 
 // NewWebServer is used to create a new web server.
-func NewWebServer(conf Config, rpcServer rpc.Server) *WebServer {
+func NewWebServer(conf Config, engine engine.Engine, rpcServer rpc.Server) *WebServer {
 	return &WebServer{
 		conf:      conf,
+		engine:    engine,
 		rpcServer: rpcServer,
 	}
 }

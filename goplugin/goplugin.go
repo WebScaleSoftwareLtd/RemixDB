@@ -22,6 +22,7 @@ import (
 	"runtime"
 	"strings"
 
+	"remixdb.io/goplugin/racedetector"
 	_ "remixdb.io/internal/httpproxypatch"
 	"remixdb.io/logger"
 )
@@ -49,8 +50,12 @@ func (e ExecutionError) Error() string {
 // within the project zip specified. This is thread safe.
 func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 	// Get the filename of the plugin.
+	var raceDetectorB byte = 'N'
+	if racedetector.Enabled {
+		raceDetectorB = 'Y'
+	}
 	shaB := sha256.Sum256([]byte(code))
-	pluginName := hex.EncodeToString(shaB[:])
+	pluginName := hex.EncodeToString(append(shaB[:], raceDetectorB))
 
 	// Load the plugin if it exists.
 	pluginBinPath := filepath.Join(g.path, "plugins", pluginName+".so")
@@ -88,8 +93,12 @@ func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 
 	// Define the arguments for the compiler.
 	args := []string{
-		"build", "-buildmode=plugin", "-o", pluginBinPath, "./plugingen",
+		"build", "-buildmode=plugin", "-o", pluginBinPath,
 	}
+	if racedetector.Enabled {
+		args = append(args, "-race")
+	}
+	args = append(args, "./plugingen")
 	envStrings := os.Environ()
 	env := map[string]string{}
 	for _, v := range envStrings {

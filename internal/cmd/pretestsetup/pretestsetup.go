@@ -15,8 +15,6 @@ import (
 func nonWindowsSetup(logger logger.Logger) {
 	goplugin.NewGoPluginCompiler(logger, "", zipgen.CreateZipFromMap(map[string]any{
 		"lol": "hi",
-	}), zipgen.CreateZipFromMap(map[string]any{
-		"go.mod": "module remixdb.io\n",
 	}))
 }
 

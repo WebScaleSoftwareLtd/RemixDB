@@ -19,8 +19,8 @@ func (s *Session) loadContracts() (map[string]*ast.ContractToken, error) {
 		b, err := os.ReadFile(filepath.Join(s.Path, "contracts"))
 		if err != nil {
 			if os.IsNotExist(err) {
-				// Return an empty map.
-				return map[string]*ast.ContractToken{}, nil
+				// Return ErrNotExists.
+				return nil, engine.ErrNotExists
 			}
 
 			// This is another type of error, so return it.
@@ -50,13 +50,6 @@ func (s *Session) GetContractByKey(key string) (contract *ast.ContractToken, err
 		err = engine.ErrNotExists
 	}
 	return
-}
-
-func (s *Session) ensureWriteLock() error {
-	if !s.SchemaWriteLock {
-		return engine.ErrReadOnlySession
-	}
-	return nil
 }
 
 func (s *Session) writeContractTombstone(contract *ast.ContractToken) error {
@@ -146,16 +139,22 @@ postCacheHandling:
 func (s *Session) Contracts() (contracts []*ast.ContractToken, err error) {
 	contractsMap, err := s.loadContracts()
 	if err != nil {
+		if err == engine.ErrNotExists {
+			// Set the map and jump.
+			contractsMap = map[string]*ast.ContractToken{}
+			goto postError
+		}
 		return nil, err
 	}
 
+postError:
 	contracts = make([]*ast.ContractToken, len(contractsMap))
 	i := 0
 	for _, v := range contractsMap {
 		contracts[i] = v
 		i++
 	}
-	return
+	return contracts, nil
 }
 
 func (s *Session) ContractTombstones() (contracts []*ast.ContractToken, err error) {

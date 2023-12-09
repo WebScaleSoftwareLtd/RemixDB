@@ -39,6 +39,13 @@ type Session struct {
 	Unlocker func()
 }
 
+func (s *Session) ensureWriteLock() error {
+	if !s.SchemaWriteLock {
+		return engine.ErrReadOnlySession
+	}
+	return nil
+}
+
 func (s *Session) Rollback() error {
 	return s.Transaction.Rollback()
 }

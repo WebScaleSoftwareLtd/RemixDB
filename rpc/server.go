@@ -52,7 +52,7 @@ type websocketRequest interface {
 // PartitionHandler is used to handle a partition. Note that errors should not be used for user facing errors.
 type PartitionHandler func(ctx *RequestCtx) (*Response, error)
 
-// Server is used to define a RPC server.
+// Server is used to define a RPC server. This server is built to be very low level.
 type Server struct {
 	// Engine is used to define the engine.
 	Engine engine.Engine

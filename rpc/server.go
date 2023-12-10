@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"remixdb.io/engine"
 	"remixdb.io/errhandler"
 )
 
@@ -54,9 +53,6 @@ type PartitionHandler func(ctx *RequestCtx) (*Response, error)
 
 // Server is used to define a RPC server. This server is built to be very low level.
 type Server struct {
-	// Engine is used to define the engine.
-	Engine engine.Engine
-
 	// ErrorHandler is used to handle any errors.
 	ErrorHandler errhandler.Handler
 
@@ -141,12 +137,12 @@ func (s *Server) handleRpc(r sharedRequest) {
 
 	// Handle the request context creation.
 	resp, err := partition(&RequestCtx{
-		Engine:     s.Engine,
-		Context:    r.Context(),
-		AuthData:   authData,
-		Body:       body,
-		SchemaHash: r.SchemaHash(),
+		Partition:  partitionName,
 		Method:     r.Method(),
+		AuthData:   authData,
+		Context:    r.Context(),
+		SchemaHash: r.SchemaHash(),
+		Body:       body,
 	})
 	if err != nil {
 		_ = r.ReturnRemixDBException(500, "internal_server_error", "Internal server error.")

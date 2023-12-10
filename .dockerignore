@@ -1,0 +1,6 @@
+.DS_Store
+coverage.out
+bin
+.idea
+frontend/node_modules
+frontend/dist

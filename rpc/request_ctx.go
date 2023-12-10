@@ -47,7 +47,7 @@ type Response struct {
 func Cursor(hn func() ([]byte, error)) *Response { return &Response{cursorHn: hn} }
 
 // RemixDBBytes is used to return a RemixDB RPC response.
-func RemixDBBytes(code int, data []byte) *Response { return &Response{data: data} }
+func RemixDBBytes(data []byte) *Response { return &Response{data: data} }
 
 // RemixDBException is used to return a RemixDB exception.
 func RemixDBException(httpCode int, code, message string) *Response {

@@ -5,7 +5,6 @@ package webserver
 
 import (
 	"net"
-	"sync"
 
 	"remixdb.io/engine"
 	"remixdb.io/rpc"
@@ -15,18 +14,8 @@ import (
 type WebServer struct {
 	conf Config
 
-	engine engine.Engine
-
-	rpcServer     rpc.Server
-	rpcServerLock sync.RWMutex
-}
-
-// SwapRPCServer is used to swap the RPC server. This is thread safe.
-func (w *WebServer) SwapRPCServer(s rpc.Server) {
-	w.rpcServerLock.Lock()
-	defer w.rpcServerLock.Unlock()
-
-	w.rpcServer = s
+	engine    engine.Engine
+	rpcServer *rpc.Server
 }
 
 // Serve is used to serve the web server.
@@ -54,7 +43,7 @@ func (w *WebServer) Serve() error {
 }
 
 // NewWebServer is used to create a new web server.
-func NewWebServer(conf Config, engine engine.Engine, rpcServer rpc.Server) *WebServer {
+func NewWebServer(conf Config, engine engine.Engine, rpcServer *rpc.Server) *WebServer {
 	return &WebServer{
 		conf:      conf,
 		engine:    engine,

@@ -4,6 +4,7 @@
 package rpc
 
 import (
+	"context"
 	"encoding/binary"
 	"encoding/json"
 
@@ -23,12 +24,17 @@ type websocketReqImpl struct {
 	method     string
 	schemaHash string
 	body       []byte
+	hostname   string
 }
 
 const (
 	messageBinary       = int(websocket.MessageBinary)
 	maxSetupMessageSize = 1024 * 1024
 )
+
+func (r *websocketReqImpl) Hostname() string {
+	return r.hostname
+}
 
 func (r *websocketReqImpl) Next() bool {
 	if !r.sent {
@@ -118,9 +124,13 @@ func (r *websocketReqImpl) ReturnEOF() {
 	_ = r.conn.Close()
 }
 
+func (r *websocketReqImpl) Context() context.Context {
+	return context.Background()
+}
+
 var _ websocketRequest = (*websocketReqImpl)(nil)
 
-func (s *Server) handleWebsocketConn(conn websocketConn) {
+func (s *Server) handleWebsocketConn(conn websocketConn, hostname string) {
 	// We always close the connection at the end.
 	defer conn.Close()
 
@@ -171,10 +181,11 @@ func (s *Server) handleWebsocketConn(conn websocketConn) {
 	conn.SetReadLimit(1)
 
 	// Pass the wrapper through to the handler.
-	s.handleWebsocketRpc(&websocketReqImpl{
+	s.handleRpc(&websocketReqImpl{
 		conn:       conn,
 		method:     method,
 		schemaHash: schemaHash,
 		body:       msg,
+		hostname:   hostname,
 	})
 }

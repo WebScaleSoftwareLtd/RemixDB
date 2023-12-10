@@ -29,15 +29,8 @@ func (w *WebServer) fasthttpServe(ln net.Listener) error {
 	r := fasthttpadaptor.NewFastHTTPHandler(w.generateHttpRoutes(false))
 
 	rpcRouter := router.New()
-	fasthttpRpc := func(ctx *fasthttp.RequestCtx) {
-		w.rpcServerLock.RLock()
-		s := w.rpcServer
-		w.rpcServerLock.RUnlock()
-
-		s.FastHTTPHandler(ctx)
-	}
-	rpcRouter.POST("/rpc/{method}", fasthttpRpc)
-	rpcRouter.GET("/rpc", fasthttpRpc)
+	rpcRouter.POST("/rpc/{method}", w.rpcServer.FastHTTPHandler)
+	rpcRouter.GET("/rpc", w.rpcServer.FastHTTPHandler)
 
 	return fasthttp.Serve(ln, func(ctx *fasthttp.RequestCtx) {
 		// Check if it starts with /rpc.

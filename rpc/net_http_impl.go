@@ -4,6 +4,7 @@
 package rpc
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -13,10 +14,26 @@ import (
 )
 
 type netHttpHandler struct {
-	req    *http.Request
-	resp   http.ResponseWriter
-	method string
-	sent   bool
+	req                    *http.Request
+	resp                   http.ResponseWriter
+	method                 string
+	sent                   bool
+	listenToXForwardedHost bool
+}
+
+func (h *netHttpHandler) Context() context.Context {
+	return h.req.Context()
+}
+
+func (h *netHttpHandler) Hostname() string {
+	if h.listenToXForwardedHost {
+		s := h.req.Header.Get("X-Forwarded-Host")
+		if s != "" {
+			return s
+		}
+	}
+
+	return h.req.Host
 }
 
 func (h *netHttpHandler) Method() string {
@@ -27,8 +44,12 @@ func (h *netHttpHandler) SchemaHash() string {
 	return h.req.Header.Get("X-RemixDB-Schema-Hash")
 }
 
-func (h *netHttpHandler) Body() io.ReadCloser {
-	return h.req.Body
+func (h *netHttpHandler) Body() []byte {
+	b, _ := io.ReadAll(h.req.Body)
+	if b == nil {
+		return []byte{}
+	}
+	return b
 }
 
 func (h *netHttpHandler) ReturnCustomException(code int, exceptionName string, body any) error {
@@ -67,7 +88,7 @@ func (h *netHttpHandler) ReturnRemixBytes(code int, data []byte) {
 	_, _ = h.resp.Write(data)
 }
 
-var _ httpRequest = &netHttpHandler{}
+var _ sharedRequest = &netHttpHandler{}
 
 type nhooyrWebSocketCompat struct {
 	*websocket.Conn
@@ -112,7 +133,7 @@ func (s *Server) NetHTTPHandler(w http.ResponseWriter, r *http.Request, ps httpr
 
 		// Handle the request.
 		hn := &netHttpHandler{req: r, resp: w, method: m}
-		s.handleHttpRpc(hn)
+		s.handleRpc(hn)
 		if !hn.sent {
 			w.WriteHeader(http.StatusNoContent)
 		}
@@ -133,6 +154,16 @@ func (s *Server) NetHTTPHandler(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 
+	// Get the hostname.
+	var hostname string
+	if s.ListenToXForwardedHost {
+		hostname = r.Header.Get("X-Forwarded-Host")
+		if hostname != "" {
+			goto postHostResolve
+		}
+	}
+
+postHostResolve:
 	// Handle the websocket upgrade.
 	conn, err := websocket.Accept(w, r, nil)
 	if err != nil {
@@ -142,7 +173,7 @@ func (s *Server) NetHTTPHandler(w http.ResponseWriter, r *http.Request, ps httpr
 	s.handleWebsocketConn(nhooyrWebSocketCompat{
 		Conn: conn,
 		req:  r,
-	})
+	}, hostname)
 }
 
 var _ httprouter.Handle = (*Server)(nil).NetHTTPHandler

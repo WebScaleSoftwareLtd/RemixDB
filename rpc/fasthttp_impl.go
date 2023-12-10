@@ -5,8 +5,8 @@ package rpc
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
-	"io"
 
 	"github.com/fasthttp/websocket"
 	"github.com/valyala/fasthttp"
@@ -15,9 +15,14 @@ import (
 var fasthttpWsUpgrader = websocket.FastHTTPUpgrader{}
 
 type fasthttpHandler struct {
-	ctx    *fasthttp.RequestCtx
-	method string
-	sent   bool
+	ctx                    *fasthttp.RequestCtx
+	method                 string
+	sent                   bool
+	listenToXForwardedHost bool
+}
+
+func (h *fasthttpHandler) Context() context.Context {
+	return h.ctx
 }
 
 func (h *fasthttpHandler) Method() string {
@@ -28,19 +33,19 @@ func (h *fasthttpHandler) SchemaHash() string {
 	return string(h.ctx.Request.Header.Peek("X-RemixDB-Schema-Hash"))
 }
 
-type fasthttpReader struct {
-	io.Reader
+func (h *fasthttpHandler) Hostname() string {
+	if h.listenToXForwardedHost {
+		s := string(h.ctx.Request.Header.Peek("X-Forwarded-Host"))
+		if s != "" {
+			return s
+		}
+	}
 
-	ctx *fasthttp.RequestCtx
+	return string(h.ctx.Request.Header.Host())
 }
 
-func (r fasthttpReader) Close() error { return r.ctx.Request.CloseBodyStream() }
-
-func (h *fasthttpHandler) Body() io.ReadCloser {
-	return fasthttpReader{
-		Reader: h.ctx.Request.BodyStream(),
-		ctx:    h.ctx,
-	}
+func (h *fasthttpHandler) Body() []byte {
+	return h.ctx.Request.Body()
 }
 
 func (h *fasthttpHandler) ReturnCustomException(code int, exceptionName string, body any) error {
@@ -77,7 +82,7 @@ func (h *fasthttpHandler) ReturnRemixBytes(code int, data []byte) {
 	h.ctx.Write(data)
 }
 
-var _ httpRequest = &fasthttpHandler{}
+var _ sharedRequest = &fasthttpHandler{}
 
 var (
 	contentTypeB = []byte("application/x-remixdb-rpc-mixed")
@@ -108,10 +113,11 @@ func (s *Server) FastHTTPHandler(ctx *fasthttp.RequestCtx) {
 
 		// Handle the request.
 		h := &fasthttpHandler{
-			ctx:    ctx,
-			method: m,
+			ctx:                    ctx,
+			method:                 m,
+			listenToXForwardedHost: s.ListenToXForwardedHost,
 		}
-		s.handleHttpRpc(h)
+		s.handleRpc(h)
 		if !h.sent {
 			ctx.SetStatusCode(fasthttp.StatusNoContent)
 		}
@@ -132,9 +138,20 @@ func (s *Server) FastHTTPHandler(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	// Get the host.
+	var host string
+	if s.ListenToXForwardedHost {
+		host = string(ctx.Request.Header.Peek("X-Forwarded-Host"))
+		if host != "" {
+			goto postHostResolve
+		}
+	}
+	host = string(ctx.Request.Header.Host())
+
+postHostResolve:
 	// Handle the websocket upgrade.
 	_ = fasthttpWsUpgrader.Upgrade(ctx, func(ws *websocket.Conn) {
-		s.handleWebsocketConn(ws)
+		s.handleWebsocketConn(ws, host)
 	})
 }
 

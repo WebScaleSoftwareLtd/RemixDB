@@ -99,7 +99,7 @@ func (s *Server) handleRpc(r sharedRequest) {
 			s.ErrorHandler.HandleError(err)
 
 			// Close the connection.
-			r.ReturnRemixDBException(500, "internal_server_error", "Internal server error.")
+			_ = r.ReturnRemixDBException(500, "internal_server_error", "Internal server error.")
 		}
 	}()
 
@@ -107,7 +107,7 @@ func (s *Server) handleRpc(r sharedRequest) {
 	body := r.Body()
 	sp := bytes.SplitN(body, nl, 2)
 	if len(sp) != 2 {
-		r.ReturnRemixDBException(400, "invalid_request_body", "Invalid request body.")
+		_ = r.ReturnRemixDBException(400, "invalid_request_body", "Invalid request body.")
 		return
 	}
 	jsonLine := sp[0]
@@ -116,7 +116,7 @@ func (s *Server) handleRpc(r sharedRequest) {
 	// Parse the JSON line.
 	var authData map[string]string
 	if err := json.Unmarshal(jsonLine, &authData); err != nil {
-		r.ReturnRemixDBException(400, "invalid_request_body", "Invalid request body.")
+		_ = r.ReturnRemixDBException(400, "invalid_request_body", "Invalid request body.")
 		return
 	}
 
@@ -129,13 +129,13 @@ func (s *Server) handleRpc(r sharedRequest) {
 	if err != nil {
 		// Handle any exceptions.
 		s.ErrorHandler.HandleError(err)
-		r.ReturnRemixDBException(500, "internal_server_error", "Internal server error.")
+		_ = r.ReturnRemixDBException(500, "internal_server_error", "Internal server error.")
 		return
 	}
 
 	// Handle if the partition does not exist.
 	if partition == nil {
-		r.ReturnRemixDBException(404, "partition_does_not_exist", "The hostname does not exist as a partition.")
+		_ = r.ReturnRemixDBException(404, "partition_does_not_exist", "The hostname does not exist as a partition.")
 		return
 	}
 
@@ -149,7 +149,7 @@ func (s *Server) handleRpc(r sharedRequest) {
 		Method:     r.Method(),
 	})
 	if err != nil {
-		r.ReturnRemixDBException(500, "internal_server_error", "Internal server error.")
+		_ = r.ReturnRemixDBException(500, "internal_server_error", "Internal server error.")
 		s.ErrorHandler.HandleError(err)
 		return
 	}
@@ -174,7 +174,7 @@ func (s *Server) handleRpc(r sharedRequest) {
 		ws, ok := r.(websocketRequest)
 		if !ok {
 			// Someone tried to use a cursor on a non-websocket request. Return a 400.
-			r.ReturnRemixDBException(400, "non_cursor_request", "This request type does not support cursors.")
+			_ = r.ReturnRemixDBException(400, "non_cursor_request", "This request type does not support cursors.")
 			return
 		}
 
@@ -183,7 +183,7 @@ func (s *Server) handleRpc(r sharedRequest) {
 			b, err := resp.cursorHn()
 			if err != nil {
 				// Return a error.
-				r.ReturnRemixDBException(500, "internal_server_error", "Internal server error.")
+				_ = r.ReturnRemixDBException(500, "internal_server_error", "Internal server error.")
 				s.ErrorHandler.HandleError(err)
 				return
 			}
@@ -208,10 +208,10 @@ func (s *Server) handleRpc(r sharedRequest) {
 	if resp.err != nil {
 		if resp.err.isCustom {
 			// Return a custom exception.
-			r.ReturnCustomException(resp.err.httpCode, resp.err.codeOrType, resp.err.data)
+			_ = r.ReturnCustomException(resp.err.httpCode, resp.err.codeOrType, resp.err.data)
 		} else {
 			// Return a RemixDB exception.
-			r.ReturnRemixDBException(resp.err.httpCode, resp.err.codeOrType, resp.err.data.(string))
+			_ = r.ReturnRemixDBException(resp.err.httpCode, resp.err.codeOrType, resp.err.data.(string))
 		}
 		return
 	}
@@ -219,7 +219,7 @@ func (s *Server) handleRpc(r sharedRequest) {
 	// Handle if this is a websocket.
 	if _, ok := r.(websocketRequest); ok {
 		// Someone tried to use a cursor on a non-websocket request. Return a 400.
-		r.ReturnRemixDBException(400, "non_cursor_request", "This request type does not support non-cursors.")
+		_ = r.ReturnRemixDBException(400, "non_cursor_request", "This request type does not support non-cursors.")
 		return
 	}
 

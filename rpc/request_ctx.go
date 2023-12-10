@@ -3,11 +3,18 @@
 
 package rpc
 
-import "context"
+import (
+	"context"
+
+	"remixdb.io/engine"
+)
 
 // RequestCtx is the context for a request.
 type RequestCtx struct {
 	context.Context
+
+	// Engine is used to define the engine.
+	Engine engine.Engine
 
 	// Method is the method that was sent with the request. This should not be modified.
 	Method string

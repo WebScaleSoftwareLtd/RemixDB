@@ -141,6 +141,7 @@ func (s *Server) handleRpc(r sharedRequest) {
 
 	// Handle the request context creation.
 	resp, err := partition(&RequestCtx{
+		Engine:     s.Engine,
 		Context:    r.Context(),
 		AuthData:   authData,
 		Body:       body,

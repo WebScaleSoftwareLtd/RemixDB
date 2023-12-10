@@ -11,14 +11,12 @@ import (
 )
 
 type pluginFriendlyRpc struct {
-	sess  engine.Session
-	req   *rpc.RequestCtx
-	resp  *rpc.Response
-	perms []string
-}
+	engine.Session
 
-// CloseSession is used to close the session. This should be deferred by the plugin method.
-func (r pluginFriendlyRpc) CloseSession() error { return r.sess.Close() }
+	req   *rpc.RequestCtx
+	perms []string
+	resp  *rpc.Response
+}
 
 // Permissions is used to return the permissions fetched during authentication.
 func (r pluginFriendlyRpc) Permissions() []string { return r.perms }

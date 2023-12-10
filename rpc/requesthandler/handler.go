@@ -4,6 +4,9 @@
 package requesthandler
 
 import (
+	"reflect"
+
+	"remixdb.io/compiler"
 	"remixdb.io/engine"
 	"remixdb.io/rpc"
 )
@@ -12,6 +15,9 @@ import (
 type Handler struct {
 	// Engine is used to define the engine which is powering this request.
 	Engine engine.Engine
+
+	// Compiler is used to define the compiler which is used to compile contracts.
+	Compiler *compiler.Compiler
 }
 
 // Handle is used to define the request handler.
@@ -28,14 +34,16 @@ func (h Handler) Handle(partition string) (rpc.PartitionHandler, error) {
 	}
 
 	// Return the handler.
-	hn := partitionHn{Engine: h.Engine, s: s}
+	hn := partitionHn{Engine: h.Engine, s: s, c: h.Compiler, partition: partition}
 	return hn.do, nil
 }
 
 type partitionHn struct {
 	engine.Engine
 
-	s engine.Session
+	s         engine.Session
+	c         *compiler.Compiler
+	partition string
 }
 
 func (e partitionHn) do(ctx *rpc.RequestCtx) (*rpc.Response, error) {
@@ -58,6 +66,38 @@ func (e partitionHn) do(ctx *rpc.RequestCtx) (*rpc.Response, error) {
 		return rpc.RemixDBException(400, "invalid_api_key", "The API key is invalid."), nil
 	}
 
-	// TODO: Call the compiler!
-	return nil, nil
+	// Get the contract.
+	contract, err := e.s.GetContractByKey(ctx.Method)
+	if err != nil {
+		_ = e.s.Close()
+		if err == engine.ErrNotExists {
+			return rpc.RemixDBException(
+				404, "contract_does_not_exist", "The contract does not exist.",
+			), nil
+		}
+		return nil, err
+	}
+
+	// Call the compiler.
+	reflectValue, err := e.c.Compile(contract, e.s, e.partition)
+	if err != nil {
+		_ = e.s.Close()
+		return nil, err
+	}
+
+	// Call the contract.
+	pluginRpcStructure := &pluginFriendlyRpc{
+		Session: e.s,
+		req:     ctx,
+		perms:   permissions,
+	}
+	resValues := reflectValue.Call([]reflect.Value{reflect.ValueOf(pluginRpcStructure)})
+	err, _ = resValues[0].Interface().(error)
+	if err != nil {
+		_ = e.s.Close()
+		return nil, err
+	}
+
+	// Return the response.
+	return pluginRpcStructure.resp, nil
 }

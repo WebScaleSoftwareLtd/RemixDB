@@ -128,6 +128,7 @@ func (v *iamValidator) injectEntrypoint(
 	// Add the label for the for post-IAM.
 	*s = append(*s, &ast.LabeledStmt{
 		Label: ast.NewIdent("postIam"),
+		Stmt:  &ast.EmptyStmt{},
 	})
 }
 

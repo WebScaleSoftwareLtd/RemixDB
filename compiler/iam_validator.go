@@ -8,13 +8,13 @@ import (
 	"go/token"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 type iamValidator struct {
 	perms map[string]struct{}
 
 	switchStmt *[]ast.Stmt
-	binaryExpr *ast.BinaryExpr
 }
 
 func (v *iamValidator) addValidator(name string) {
@@ -30,7 +30,7 @@ func (v *iamValidator) injectEntrypoint(
 	// Add a uint64 variable to count the user permissions.
 	*s = append(*s, &ast.DeclStmt{
 		Decl: &ast.GenDecl{
-			Tok: token.DEFINE,
+			Tok: token.VAR,
 			Specs: []ast.Spec{
 				&ast.ValueSpec{
 					Names: []*ast.Ident{
@@ -78,9 +78,21 @@ func (v *iamValidator) injectEntrypoint(
 	})
 
 	// Handle the no permission errors.
-	var ifStmts []ast.Stmt
+	if isCursor {
+		// Create the call for closing the underlying database session.
+		*s = append(*s, &ast.ExprStmt{
+			X: &ast.CallExpr{
+				Fun: &ast.SelectorExpr{
+					X:   ast.NewIdent("r"),
+					Sel: ast.NewIdent("Close"),
+				},
+			},
+		})
+	}
+
+	// Send the no permission error since we didn't jump.
 	addToInterface("RespondWithRemixDBException", remixDbExceptionSig())
-	noPermsResponse := &ast.ExprStmt{
+	*s = append(*s, &ast.ExprStmt{
 		X: &ast.CallExpr{
 			Fun: &ast.SelectorExpr{
 				X:   ast.NewIdent("r"),
@@ -88,40 +100,16 @@ func (v *iamValidator) injectEntrypoint(
 			},
 			Args: []ast.Expr{
 				ast.NewIdent("403"),
-				ast.NewIdent("no_permission"),
-				ast.NewIdent("You do not have permission to use this function."),
+				ast.NewIdent(`"no_permission"`),
+				ast.NewIdent(`"You do not have permission to use this contract."`),
 			},
 		},
-	}
-	nilReturn := &ast.ReturnStmt{
+	})
+
+	// Return nil since we are done.
+	*s = append(*s, &ast.ReturnStmt{
 		Results: []ast.Expr{
 			ast.NewIdent("nil"),
-		},
-	}
-	if isCursor {
-		// Create the call for closing the underlying database session.
-		closer := &ast.ExprStmt{
-			X: &ast.CallExpr{
-				Fun: &ast.SelectorExpr{
-					X:   ast.NewIdent("r"),
-					Sel: ast.NewIdent("Close"),
-				},
-			},
-		}
-
-		// Make the body of the if statement include the above.
-		ifStmts = []ast.Stmt{closer, noPermsResponse, nilReturn}
-	} else {
-		// Make the body of the if statement just the error and return.
-		ifStmts = []ast.Stmt{noPermsResponse, nilReturn}
-	}
-
-	// Add the if statement to check if the user has the permission. At this stage it is just a placeholder.
-	v.binaryExpr = &ast.BinaryExpr{}
-	*s = append(*s, &ast.IfStmt{
-		Cond: v.binaryExpr,
-		Body: &ast.BlockStmt{
-			List: ifStmts,
 		},
 	})
 
@@ -135,6 +123,21 @@ func (v *iamValidator) injectEntrypoint(
 type stringStack struct {
 	prev *stringStack
 	val  string
+}
+
+func iamPossibilitiesGenerator(s string, hn func(string)) {
+	// Split the string into two parts to handle any single word cases.
+	sp := strings.SplitN(s, ":", 2)
+	if len(sp) == 1 {
+		hn(s)
+		return
+	}
+
+	// Call with the standard string.
+	hn(s)
+
+	// Call with a wildcard.
+	hn(sp[0] + ":*")
 }
 
 func (v *iamValidator) compile() {
@@ -153,7 +156,7 @@ func (v *iamValidator) compile() {
 	// Create the special * case.
 	switchReplace = append(switchReplace, &ast.CaseClause{
 		List: []ast.Expr{
-			ast.NewIdent("*"),
+			ast.NewIdent(`"*"`),
 		},
 		Body: []ast.Stmt{
 			&ast.BranchStmt{
@@ -170,7 +173,7 @@ func (v *iamValidator) compile() {
 		bit := uint64(1 << i)
 
 		// Do binary OR with the mapping.
-		bitMapping[name] = bitMapping[name] | bit
+		iamPossibilitiesGenerator(name, func(name string) { bitMapping[name] = bitMapping[name] | bit })
 	}
 
 	// Now flip it around to find cases that can be combined.
@@ -183,6 +186,7 @@ func (v *iamValidator) compile() {
 		}
 		bored = bored | bit
 	}
+	boredS := strconv.FormatUint(bored, 10)
 
 	// Get all of the keys and sort them.
 	keys := make([]uint64, len(bitMappingReverse))
@@ -229,19 +233,26 @@ func (v *iamValidator) compile() {
 						},
 					},
 				},
+				&ast.IfStmt{
+					Cond: &ast.BinaryExpr{
+						X:  ast.NewIdent("userPerms"),
+						Op: token.EQL,
+						Y:  ast.NewIdent(boredS),
+					},
+					Body: &ast.BlockStmt{
+						List: []ast.Stmt{
+							&ast.BranchStmt{
+								Tok:   token.GOTO,
+								Label: ast.NewIdent("postIam"),
+							},
+						},
+					},
+				},
 			},
 		}
 
 		// Add the case.
 		switchReplace = append(switchReplace, caseClause)
-
-		// Handle checking if we got all the permissions we expect.
-		binaryExpr := ast.BinaryExpr{
-			X:  ast.NewIdent("userPerms"),
-			Op: token.EQL,
-			Y:  ast.NewIdent(strconv.FormatUint(bored, 10)),
-		}
-		*v.binaryExpr = binaryExpr
 	}
 
 	// Replace the inside of the switch.

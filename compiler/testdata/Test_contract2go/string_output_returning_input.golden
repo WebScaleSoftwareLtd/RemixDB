@@ -2,10 +2,28 @@ package main
 
 func Execute_hash_here(r interface {
 	Close() error
+	Permissions() []string
+	RespondWithRemixDBException(httpCode int, code string, message string)
 	Body() []byte
 	Commit() error
 }) error {
 	defer r.Close()
+	var userPerms uint64
+	for _, perm := range r.Permissions() {
+		switch perm {
+		case "*":
+			goto postIam
+		case "contract:*", "contract:execute":
+			userPerms = userPerms | 1
+			if userPerms == 1 {
+				goto postIam
+			}
+		}
+	}
+	r.RespondWithRemixDBException(403, "no_permission", "You do not have permission to use this contract.")
+	return nil
+postIam:
+	;
 	body := r.Body()
 	println(body)
 	return r.Commit()

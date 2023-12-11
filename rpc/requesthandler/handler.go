@@ -33,6 +33,14 @@ func (h Handler) Handle(partition string) (rpc.PartitionHandler, error) {
 		return nil, err
 	}
 
+	// For panics, close the session then re-panic.
+	defer func() {
+		if r := recover(); r != nil {
+			_ = s.Close()
+			panic(r)
+		}
+	}()
+
 	// Return the handler.
 	hn := partitionHn{Engine: h.Engine, s: s, c: h.Compiler, p: partition}
 	return hn.do, nil

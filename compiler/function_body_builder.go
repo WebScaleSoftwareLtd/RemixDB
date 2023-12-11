@@ -107,10 +107,16 @@ func buildFunctionBody(
 		})
 	}
 
-	// In all cases, return nil for the error at the end.
+	// At the end, we want to do a commit since getting to the end means we have succeeded.
+	addToInterface(used, iface, "Commit", noParamsJustError())
 	body = append(body, &goAst.ReturnStmt{
 		Results: []goAst.Expr{
-			goAst.NewIdent("nil"),
+			&goAst.CallExpr{
+				Fun: &goAst.SelectorExpr{
+					X:   goAst.NewIdent("r"),
+					Sel: goAst.NewIdent("Commit"),
+				},
+			},
 		},
 	})
 

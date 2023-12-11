@@ -110,4 +110,7 @@ type Engine interface {
 
 	// DeleteUsername is used to delete a username. If the username does not exist, it will return nil.
 	DeleteUsername(partition, username string) error
+
+	// Partitions is used to get all of the partitions.
+	Partitions() []string
 }

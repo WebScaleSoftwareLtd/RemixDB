@@ -34,16 +34,16 @@ func (h Handler) Handle(partition string) (rpc.PartitionHandler, error) {
 	}
 
 	// Return the handler.
-	hn := partitionHn{Engine: h.Engine, s: s, c: h.Compiler, partition: partition}
+	hn := partitionHn{Engine: h.Engine, s: s, c: h.Compiler, p: partition}
 	return hn.do, nil
 }
 
 type partitionHn struct {
 	engine.Engine
 
-	s         engine.Session
-	c         *compiler.Compiler
-	partition string
+	s engine.Session
+	c *compiler.Compiler
+	p string
 }
 
 func (e partitionHn) do(ctx *rpc.RequestCtx) (*rpc.Response, error) {
@@ -79,7 +79,7 @@ func (e partitionHn) do(ctx *rpc.RequestCtx) (*rpc.Response, error) {
 	}
 
 	// Call the compiler.
-	reflectValue, err := e.c.Compile(contract, e.s, e.partition)
+	reflectValue, err := e.c.Compile(contract, e.s, e.p)
 	if err != nil {
 		_ = e.s.Close()
 		return nil, err

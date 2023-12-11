@@ -105,3 +105,32 @@ func (e *Engine) usePartition(partition string, write bool) (unlocker func(), pa
 	}
 	return
 }
+
+func (e *Engine) Partitions() []string {
+	// List the partitions folder.
+	fp := filepath.Join(e.path, "partitions")
+	dir, err := os.ReadDir(fp)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []string{}
+		}
+
+		panic(err)
+	}
+
+	// Go through each partition.
+	partitions := make([]string, 0, len(dir))
+	for _, d := range dir {
+		if d.IsDir() {
+			// Decode the partition name.
+			dec, err := base64.URLEncoding.DecodeString(d.Name())
+			if err != nil {
+				panic(err)
+			}
+
+			// Add the partition name.
+			partitions = append(partitions, string(dec))
+		}
+	}
+	return partitions
+}

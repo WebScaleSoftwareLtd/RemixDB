@@ -33,14 +33,6 @@ func (h Handler) Handle(partition string) (rpc.PartitionHandler, error) {
 		return nil, err
 	}
 
-	// For panics, close the session then re-panic.
-	defer func() {
-		if r := recover(); r != nil {
-			_ = s.Close()
-			panic(r)
-		}
-	}()
-
 	// Return the handler.
 	hn := partitionHn{Engine: h.Engine, s: s, c: h.Compiler, p: partition}
 	return hn.do, nil
@@ -55,6 +47,14 @@ type partitionHn struct {
 }
 
 func (e partitionHn) do(ctx *rpc.RequestCtx) (*rpc.Response, error) {
+	// For panics, close the session then re-panic.
+	defer func() {
+		if r := recover(); r != nil {
+			_ = e.s.Close()
+			panic(r)
+		}
+	}()
+
 	// Get the API key from the map.
 	apiKey, ok := ctx.AuthData["api_key"]
 	if !ok {

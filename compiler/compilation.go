@@ -13,6 +13,6 @@ import (
 
 // Do the compilation.
 func (c *Compiler) doCompilation(contract *ast.ContractToken, s engine.Session) (reflect.Value, error) {
-	// TODO
+	// TODO: do compilation - remember to close the session inside the compiled contract!
 	return reflect.Value{}, errors.New("TODO")
 }

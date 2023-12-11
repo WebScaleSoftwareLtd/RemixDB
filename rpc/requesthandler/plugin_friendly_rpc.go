@@ -28,7 +28,9 @@ func (r pluginFriendlyRpc) Context() context.Context { return r.req.Context }
 func (r pluginFriendlyRpc) Body() []byte { return r.req.Body }
 
 // RespondWithCursor is used to respond with a cursor. If this isn't the first usage, it will replace the previous response.
-func (r *pluginFriendlyRpc) RespondWithCursor(hn func() ([]byte, error)) { r.resp = rpc.Cursor(hn) }
+func (r *pluginFriendlyRpc) RespondWithCursor(hn func() ([]byte, error)) {
+	r.resp = rpc.Cursor(hn, func() { _ = r.Close() })
+}
 
 // RespondWithRemixDBBytes is used to respond with RemixDB bytes. If this isn't the first usage, it will replace the previous response.
 func (r *pluginFriendlyRpc) RespondWithRemixDBBytes(data []byte) { r.resp = rpc.RemixDBBytes(data) }

@@ -32,18 +32,30 @@ type errResponse struct {
 	isCustom   bool
 }
 
+type cursorHandler struct {
+	hn      func() ([]byte, error)
+	cleanup func()
+}
+
 // Response is used to send a response.
 type Response struct {
-	cursorHn func() ([]byte, error)
+	cursorHn *cursorHandler
 	err      *errResponse
 	data     []byte
 }
 
-// Cursor is used to return a cursor method. A cursor when both values are set to nil will return EOF.
-func Cursor(hn func() ([]byte, error)) *Response { return &Response{cursorHn: hn} }
-
 // RemixDBBytes is used to return a RemixDB RPC response.
 func RemixDBBytes(data []byte) *Response { return &Response{data: data} }
+
+// Cursor is used to return a cursor method. A cursor when both values are set to nil will return EOF.
+func Cursor(hn func() ([]byte, error), cleanup func()) *Response {
+	return &Response{
+		cursorHn: &cursorHandler{
+			hn:      hn,
+			cleanup: cleanup,
+		},
+	}
+}
 
 // RemixDBException is used to return a RemixDB exception.
 func RemixDBException(httpCode int, code, message string) *Response {

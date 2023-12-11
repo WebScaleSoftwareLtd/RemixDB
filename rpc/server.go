@@ -174,19 +174,22 @@ func (s *Server) handleRpc(r sharedRequest) {
 			return
 		}
 
+		h := *resp.cursorHn
 		for ws.Next() {
 			// Handle the cursor.
-			b, err := resp.cursorHn()
+			b, err := h.hn()
 			if err != nil {
 				// Return a error.
 				_ = r.ReturnRemixDBException(500, "internal_server_error", "Internal server error.")
 				s.ErrorHandler.HandleError(err)
+				h.cleanup()
 				return
 			}
 
 			if b == nil {
 				// Return EOF.
 				ws.ReturnEOF()
+				h.cleanup()
 				return
 			}
 
@@ -197,6 +200,9 @@ func (s *Server) handleRpc(r sharedRequest) {
 			}
 			ws.ReturnRemixBytes(s, b)
 		}
+
+		// Run the cleanup and return.
+		h.cleanup()
 		return
 	}
 

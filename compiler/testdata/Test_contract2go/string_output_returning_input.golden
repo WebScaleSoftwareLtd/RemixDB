@@ -1,0 +1,12 @@
+package main
+
+func Execute_hash_here(r interface {
+	Close() error
+	Body() []byte
+	Commit() error
+}) error {
+	defer r.Close()
+	body := r.Body()
+	println(body)
+	return r.Commit()
+}

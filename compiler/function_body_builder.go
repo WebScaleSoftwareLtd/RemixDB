@@ -105,6 +105,16 @@ func buildFunctionBody(
 				},
 			},
 		})
+
+		// For now, just print it to stop the compiler from complaining.
+		body = append(body, &goAst.ExprStmt{
+			X: &goAst.CallExpr{
+				Fun: goAst.NewIdent("println"),
+				Args: []goAst.Expr{
+					goAst.NewIdent("body"),
+				},
+			},
+		})
 	}
 
 	// At the end, we want to do a commit since getting to the end means we have succeeded.

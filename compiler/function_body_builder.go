@@ -47,6 +47,34 @@ func noParamsJustError() *goAst.FuncType {
 	}
 }
 
+// Defines the signature of a RemixDB exception.
+func remixDbExceptionSig() *goAst.FuncType {
+	return &goAst.FuncType{
+		Params: &goAst.FieldList{
+			List: []*goAst.Field{
+				{
+					Names: []*goAst.Ident{
+						goAst.NewIdent("httpCode"),
+					},
+					Type: goAst.NewIdent("int"),
+				},
+				{
+					Names: []*goAst.Ident{
+						goAst.NewIdent("code"),
+					},
+					Type: goAst.NewIdent("string"),
+				},
+				{
+					Names: []*goAst.Ident{
+						goAst.NewIdent("message"),
+					},
+					Type: goAst.NewIdent("string"),
+				},
+			},
+		},
+	}
+}
+
 // Checks if the output is Cursor<T>. This is a special case where we return a cursor.
 var cursorBuiltin = regexp.MustCompile(`^Cursor<(.+)>$`)
 
@@ -66,12 +94,11 @@ func buildFunctionBody(
 	// Defines all already used things in the interface.
 	used := map[string]struct{}{}
 
+	// Add Close to the interface.
+	addToInterface(used, iface, "Close", noParamsJustError())
+
 	// If the contract is not of a cursor type, add a defer to close the cursor.
 	if !isCursor {
-		// Add Close to the interface.
-		addToInterface(used, iface, "Close", noParamsJustError())
-
-		// Add the defer into the body.
 		body = append(body, &goAst.DeferStmt{
 			Call: &goAst.CallExpr{
 				Fun: &goAst.SelectorExpr{
@@ -81,6 +108,14 @@ func buildFunctionBody(
 			},
 		})
 	}
+
+	// Setup the IAM hook.
+	iam := &iamValidator{}
+	iam.injectEntrypoint(&body, func(name string, fn *goAst.FuncType) {
+		addToInterface(used, iface, name, fn)
+	}, isCursor)
+	iam.addValidator("contract:execute")
+	defer iam.compile()
 
 	if contract.Argument != nil {
 		// Capture the body into a variable.

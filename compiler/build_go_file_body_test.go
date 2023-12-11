@@ -6,8 +6,10 @@ package compiler
 import (
 	"testing"
 
-	"github.com/jimeh/go-golden"
+	// This import is required to ensure the moq library is accessible by the go generate command.
 	_ "github.com/matryer/moq/pkg/moq"
+
+	"github.com/jimeh/go-golden"
 	"github.com/stretchr/testify/assert"
 	"remixdb.io/ast"
 	"remixdb.io/compiler/mocksession"

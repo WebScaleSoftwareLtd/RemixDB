@@ -80,6 +80,7 @@ func (v *iamValidator) injectEntrypoint(
 	// Handle the no permission errors.
 	if isCursor {
 		// Create the call for closing the underlying database session.
+		addToInterface("Close", noParamsJustError())
 		*s = append(*s, &ast.ExprStmt{
 			X: &ast.CallExpr{
 				Fun: &ast.SelectorExpr{

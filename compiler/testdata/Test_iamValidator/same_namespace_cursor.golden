@@ -1,0 +1,57 @@
+package test
+
+func testing(r interface {
+	Permissions() []string
+	Close() error
+	RespondWithRemixDBException(httpCode int, code string, message string)
+}) error {
+	println("hello world")
+	var userPerms uint64
+	for _, perm := range r.Permissions() {
+		switch perm {
+		case "*":
+			goto postIam
+		case "a:*", "a:b":
+			userPerms = userPerms | 1
+			if userPerms == 63 {
+				goto postIam
+			}
+		case "hello:cat":
+			userPerms = userPerms | 2
+			if userPerms == 63 {
+				goto postIam
+			}
+		case "hello:dog":
+			userPerms = userPerms | 4
+			if userPerms == 63 {
+				goto postIam
+			}
+		case "hello:mouse":
+			userPerms = userPerms | 8
+			if userPerms == 63 {
+				goto postIam
+			}
+		case "hello:world":
+			userPerms = userPerms | 16
+			if userPerms == 63 {
+				goto postIam
+			}
+		case "hello:*":
+			userPerms = userPerms | 30
+			if userPerms == 63 {
+				goto postIam
+			}
+		case "x:*", "x:y":
+			userPerms = userPerms | 32
+			if userPerms == 63 {
+				goto postIam
+			}
+		}
+	}
+	r.Close()
+	r.RespondWithRemixDBException(403, "no_permission", "You do not have permission to use this contract.")
+	return nil
+postIam:
+	;
+	panic("AAAAAAAAAAAA")
+}

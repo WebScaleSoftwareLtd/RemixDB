@@ -11,7 +11,7 @@ func testing(r interface {
 		case "*":
 			goto postIam
 		case "hello:*", "hello:world":
-			userPerms = userPerms | 1
+			userPerms |= 1
 			if userPerms == 1 {
 				goto postIam
 			}

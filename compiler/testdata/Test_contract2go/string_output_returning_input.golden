@@ -14,7 +14,7 @@ func Execute_hash_here(r interface {
 		case "*":
 			goto postIam
 		case "contract:*", "contract:execute":
-			userPerms = userPerms | 1
+			userPerms |= 1
 			if userPerms == 1 {
 				goto postIam
 			}

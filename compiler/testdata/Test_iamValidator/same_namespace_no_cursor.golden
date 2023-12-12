@@ -11,37 +11,37 @@ func testing(r interface {
 		case "*":
 			goto postIam
 		case "a:*", "a:b":
-			userPerms = userPerms | 1
+			userPerms |= 1
 			if userPerms == 63 {
 				goto postIam
 			}
 		case "hello:cat":
-			userPerms = userPerms | 2
+			userPerms |= 2
 			if userPerms == 63 {
 				goto postIam
 			}
 		case "hello:dog":
-			userPerms = userPerms | 4
+			userPerms |= 4
 			if userPerms == 63 {
 				goto postIam
 			}
 		case "hello:mouse":
-			userPerms = userPerms | 8
+			userPerms |= 8
 			if userPerms == 63 {
 				goto postIam
 			}
 		case "hello:world":
-			userPerms = userPerms | 16
+			userPerms |= 16
 			if userPerms == 63 {
 				goto postIam
 			}
 		case "hello:*":
-			userPerms = userPerms | 30
+			userPerms |= 30
 			if userPerms == 63 {
 				goto postIam
 			}
 		case "x:*", "x:y":
-			userPerms = userPerms | 32
+			userPerms |= 32
 			if userPerms == 63 {
 				goto postIam
 			}

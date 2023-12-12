@@ -12,12 +12,12 @@ func testing(r interface {
 		case "*":
 			goto postIam
 		case "cat:*", "cat:dog":
-			userPerms = userPerms | 1
+			userPerms |= 1
 			if userPerms == 3 {
 				goto postIam
 			}
 		case "hello:*", "hello:world":
-			userPerms = userPerms | 2
+			userPerms |= 2
 			if userPerms == 3 {
 				goto postIam
 			}

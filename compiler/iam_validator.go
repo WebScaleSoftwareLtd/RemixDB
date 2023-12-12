@@ -185,7 +185,7 @@ func (v *iamValidator) compile() {
 			prev: bitMappingReverse[bit],
 			val:  name,
 		}
-		bored = bored | bit
+		bored |= bit
 	}
 	boredS := strconv.FormatUint(bored, 10)
 
@@ -225,13 +225,9 @@ func (v *iamValidator) compile() {
 					Lhs: []ast.Expr{
 						ast.NewIdent("userPerms"),
 					},
-					Tok: token.ASSIGN,
+					Tok: token.OR_ASSIGN,
 					Rhs: []ast.Expr{
-						&ast.BinaryExpr{
-							X:  ast.NewIdent("userPerms"),
-							Op: token.OR,
-							Y:  ast.NewIdent(strconv.FormatUint(key, 10)),
-						},
+						ast.NewIdent(strconv.FormatUint(key, 10)),
 					},
 				},
 				&ast.IfStmt{

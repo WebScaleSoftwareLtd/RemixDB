@@ -137,7 +137,7 @@ func (c *Compiler) compilePartition(s engine.Session, partition string) error {
 // CompileAll is used to compile all contracts in the database.
 func (c *Compiler) CompileAll(e engine.Engine) error {
 	partitions := e.Partitions()
-	sg := semgroup.NewGroup(context.Background(), 10*runtime.NumCPU())
+	sg := semgroup.NewGroup(context.Background(), int64(10*runtime.NumCPU()))
 	for _, partition := range partitions {
 		partition := partition
 		sg.Go(func() error {

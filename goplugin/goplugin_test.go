@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"remixdb.io/internal/zipgen"
+	"remixdb.io/utils"
 )
 
 func TestExecutionError_Error(t *testing.T) {
@@ -46,7 +46,7 @@ func TestGoPluginCompiler_Compile(t *testing.T) {
 	}{
 		{
 			name: "no error",
-			projectFiles: zipgen.CreateZipFromMap(map[string]any{
+			projectFiles: utils.CreateZipFromMap(map[string]any{
 				"go.mod": "module remixdb.io",
 			}),
 			goCode: `package main
@@ -77,7 +77,7 @@ func BlowFuse(b FuseBlower) {
 		},
 		{
 			name: "error",
-			projectFiles: zipgen.CreateZipFromMap(map[string]any{
+			projectFiles: utils.CreateZipFromMap(map[string]any{
 				"go.mod": "module remixdb.io",
 				"helloworld": map[string]any{
 					"helloworld.go": `package helloworld
@@ -120,7 +120,7 @@ func HelloWorld() string {
 			// Create the Go plugin compiler.
 			projectZip := tt.projectFiles
 			if projectZip == nil {
-				projectZip = zipgen.CreateZipFromMap(nil)
+				projectZip = utils.CreateZipFromMap(nil)
 			}
 			compiler := SetupGoCompilerForTesting(t, projectZip)
 

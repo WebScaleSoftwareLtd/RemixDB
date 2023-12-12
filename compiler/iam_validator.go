@@ -170,7 +170,7 @@ func (v *iamValidator) compile() {
 	// Create a mapping to handle duplication.
 	bitMapping := map[string]uint64{}
 	for i, name := range permNames {
-		// Get the bit reperesentation of the permission index.
+		// Get the bit representation of the permission index.
 		bit := uint64(1 << i)
 
 		// Do binary OR with the mapping.
@@ -189,7 +189,7 @@ func (v *iamValidator) compile() {
 	}
 	boredS := strconv.FormatUint(bored, 10)
 
-	// Get all of the keys and sort them.
+	// Get all the keys and sort them.
 	keys := make([]uint64, len(bitMappingReverse))
 	i = 0
 	for key := range bitMappingReverse {
@@ -202,14 +202,10 @@ func (v *iamValidator) compile() {
 
 	// Create the cases.
 	for _, key := range keys {
-		// Get the string stack.
-		stack := bitMappingReverse[key]
-
 		// Defines the case keys.
 		caseKeys := []ast.Expr{}
-		for stack != nil {
+		for stack := bitMappingReverse[key]; stack != nil; stack = stack.prev {
 			caseKeys = append(caseKeys, ast.NewIdent(`"`+stack.val+`"`))
-			stack = stack.prev
 		}
 
 		// Sort the case keys.

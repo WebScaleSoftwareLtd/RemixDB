@@ -6,6 +6,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/fasthttp/router v1.4.22
 	github.com/fasthttp/websocket v1.5.7
+	github.com/fatih/semgroup v1.2.0
 	github.com/gabriel-vasile/mimetype v1.4.3
 	github.com/google/uuid v1.4.0
 	github.com/iancoleman/strcase v0.3.0
@@ -19,7 +20,6 @@ require (
 	github.com/valyala/fasthttp v1.51.0
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 	golang.org/x/net v0.19.0
-	golang.org/x/sync v0.3.0
 	nhooyr.io/websocket v1.8.10
 )
 
@@ -31,6 +31,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect

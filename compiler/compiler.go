@@ -4,16 +4,20 @@
 package compiler
 
 import (
+	"context"
 	"reflect"
+	"runtime"
 	"sync"
 
-	"golang.org/x/sync/errgroup"
+	"github.com/fatih/semgroup"
 	"remixdb.io/ast"
 	"remixdb.io/engine"
 	"remixdb.io/goplugin"
 )
 
-// Compiler is used to compile a contract into a Go plugin or cache it.
+// Compiler is used to compile a contract into a Go plugin or cache it. Note the job of
+// the compiler is not to validate the contract. You should invoke the planner before doing
+// any compilation from a user input.
 type Compiler struct {
 	compilationCache   map[string]map[string]reflect.Value
 	compilationCacheMu sync.RWMutex
@@ -133,10 +137,10 @@ func (c *Compiler) compilePartition(s engine.Session, partition string) error {
 // CompileAll is used to compile all contracts in the database.
 func (c *Compiler) CompileAll(e engine.Engine) error {
 	partitions := e.Partitions()
-	eg := errgroup.Group{}
+	sg := semgroup.NewGroup(context.Background(), 10*runtime.NumCPU())
 	for _, partition := range partitions {
 		partition := partition
-		eg.Go(func() error {
+		sg.Go(func() error {
 			// Create the session.
 			s, err := e.CreateSession(partition)
 			if err != nil {
@@ -154,5 +158,5 @@ func (c *Compiler) CompileAll(e engine.Engine) error {
 			return c.compilePartition(s, partition)
 		})
 	}
-	return eg.Wait()
+	return sg.Wait()
 }

@@ -32,10 +32,10 @@ If you want to represent void, you should send no bytes here. For everything els
   - N bytes: Struct name (length specified above)
   - 2 bytes (uint16 little endian): Length of struct items
   - For each key in the struct:
-        - 2 bytes (uint16 little endian): Length of struct item key
-        - N bytes: Struct item key (length specified above)
-        - 4 bytes (uint32 little endian): Length of struct item value
-        - N bytes (see above): Consult the list to figure out how to parse the value
+    - 2 bytes (uint16 little endian): Length of struct item key
+    - N bytes: Struct item key (length specified above)
+    - 4 bytes (uint32 little endian): Length of struct item value
+    - N bytes (see above): Consult the list to figure out how to parse the value
 - `0x0a`: Int: 64-bit little endian integer (8 bytes after this)
 - `0x0b`: Float: 64-bit little endian float64 value (8 bytes after this)
 - `0x0c`: Timestamp: 64-bit little endian unsigned integer (8 bits after this) representing a unix timestamp in milliseconds

@@ -2,7 +2,10 @@
 
 The goal of this package is to implement client generation and the server to implement logic on top of the RemixDB RPC protocol. The server-side supports both net/http and fasthttp since they both have different benefits for different configurations within the context of this application.
 
+The RPC server within this package is relatively low level. The `requesthandler` package inside this one contains all of the glue required to authenticate/route users. You can attach that handler to the low-level RPC server.
+
 The reasons for implementing a custom RPC protocol are as follows:
+
 - **We get more flexibility to customize the clients:** The clients that some RPC libraries generate are known to be fairly machine-like for a human to use. With this approach, we can generate clients that feel more like a user generated client library. For example, in the Go client libraries, we can generate cursors that use generics rather than generating many cursor types. Much cleaner!
 - **We don't need to rely on any third party libraries for data types:** Since we know everything we'll need right off the bat, for data types, we do not need third party libraries.
 - **We can make it only contain what we need:** This is useful because it means we can get the data type down to 1 byte.
@@ -25,10 +28,10 @@ If you want to represent void, you should send no bytes here. For everything els
 - `0x07`: Array: The next 4 bytes should be a uint32 little endian value containing the length. For each item in this array, you should refer back to this list to figure out what it is.
 - `0x08`: Map: The next 4 bytes should be a uint32 little endian value containing the length. For each item in this map, the key will be first, then the value will be after. You should refer to this list for both for information on how each should be parsed.
 - `0x09`: Struct: The data following this should be in the following order:
-    - 1 byte: Length of struct name
-    - N bytes: Struct name (length specified above)
-    - 2 bytes (uint16 little endian): Length of struct items
-    - For each key in the struct:
+  - 1 byte: Length of struct name
+  - N bytes: Struct name (length specified above)
+  - 2 bytes (uint16 little endian): Length of struct items
+  - For each key in the struct:
         - 2 bytes (uint16 little endian): Length of struct item key
         - N bytes: Struct item key (length specified above)
         - 4 bytes (uint32 little endian): Length of struct item value
@@ -49,6 +52,42 @@ If you want to represent void, you should send no bytes here. For everything els
 The length of the total packet is assumed to be known with this protocol.
 
 ## Schema Method Hash
+
+The schema hash should be a base64 URL encoded version of the below:
+
+- Argument: See the [type hash](#type-hash) documentation below for how to decode.
+- Expected Output: See the [type hash](#type-hash) documentation below for how to decode.
+
+### Type Hash
+
+All type hashes start with a int32 in little endian form (4 bytes). If it is negative, it is a built-in type which can be one of the following:
+
+- `-1`: Void
+- `-2`: Nullable Boolean
+- `-3`: Boolean
+- `-4`: Nullable Bytes
+- `-5`: Bytes
+- `-6`: Nullable String
+- `-7`: String
+- `-8`: Nullable Array (in this case, the next 4 bytes will be another type hash for the underlying type)
+- `-9`: Array (in this case, the next 4 bytes will be another type hash for the underlying type)
+- `-10`: Nullable Map (in this case, 2 type hashes will follow for the key and then value)
+- `-11`: Nullable Integer
+- `-12`: Integer
+- `-13`: Nullable Float
+- `-14`: Float
+- `-15`: Nullable Timestamp
+- `-16`: Timestamp
+- `-17`: Nullable Bigint
+- `-18`: Bigint
+- `-19`: Nullable Uint
+- `-20`: Uint
+
+If it is positive, it is a revision of a structure. Follow the [struct representation](#struct-representation) documentation below with the bytes after this.
+
+#### Struct Representation
+
+The next 2 bytes are a uint16 little endian repersentation of the struct name length. From there, for the length specified, the sturct name will be present.
 
 TODO
 

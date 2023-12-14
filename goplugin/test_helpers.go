@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	cp "github.com/otiai10/copy"
@@ -17,6 +18,11 @@ import (
 func SetupGoCompilerForTesting(t *testing.T) GoPluginCompiler {
 	// Setup the temporary directory used for the tests.
 	tempDir := t.TempDir()
+
+	// If this is Windows, just return the compiler.
+	if runtime.GOOS == "windows" {
+		return NewGoPluginCompiler(logger.NewTestingLogger(t), tempDir)
+	}
 
 	// Get the plugin path that the application uses.
 	path := os.Getenv("REMIXDB_GOPLUGIN_PATH")

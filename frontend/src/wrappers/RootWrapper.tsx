@@ -8,6 +8,6 @@ type Props = {
     element: React.FunctionComponent;
 };
 
-export default ({ element: Element }: Props)  => <AuthenticationWrapper>
+export default ({ element: Element }: Props) => <AuthenticationWrapper>
     <Element />
 </AuthenticationWrapper>;

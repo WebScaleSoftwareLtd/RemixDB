@@ -8,9 +8,6 @@ type Props = {
     element: React.FunctionComponent;
 };
 
-export default ({ element }: Props)  => {
-    const C = element;
-    return <AuthenticationWrapper>
-        <C />
-    </AuthenticationWrapper>;
-};
+export default ({ element: Element }: Props)  => <AuthenticationWrapper>
+    <Element />
+</AuthenticationWrapper>;

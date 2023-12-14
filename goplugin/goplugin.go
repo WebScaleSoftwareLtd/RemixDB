@@ -45,29 +45,9 @@ func (e ExecutionError) Error() string {
 	return fmt.Sprintf("execution error: status %d: %s", e.exitCode, string(e.data))
 }
 
-type pluginWrapper struct {
-	*plugin.Plugin
-}
-
-func (p pluginWrapper) Lookup(name string) (any, error) {
-	sym, err := p.Plugin.Lookup(name)
-	if err != nil {
-		return nil, err
-	}
-	return sym, nil
-}
-
-func wrapPlugin(path string) (Plugin, error) {
-	p, err := plugin.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	return pluginWrapper{p}, nil
-}
-
 // Compile is used to compile the Go plugin or return a cached version. It is compiled
 // within the project zip specified. This is thread safe.
-func (g GoPluginCompiler) Compile(code string) (Plugin, error) {
+func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 	// Get the filename of the plugin.
 	var raceDetectorB byte = 'N'
 	if racedetector.Enabled {
@@ -79,7 +59,7 @@ func (g GoPluginCompiler) Compile(code string) (Plugin, error) {
 	// Load the plugin if it exists.
 	pluginBinPath := filepath.Join(g.path, "plugins", pluginName+".so")
 	if _, err := os.Stat(pluginBinPath); err == nil {
-		return wrapPlugin(pluginBinPath)
+		return plugin.Open(pluginBinPath)
 	}
 
 	// Create a temporary directory.
@@ -160,7 +140,7 @@ func (g GoPluginCompiler) Compile(code string) (Plugin, error) {
 	}
 
 	// Load the plugin.
-	return wrapPlugin(pluginBinPath)
+	return plugin.Open(pluginBinPath)
 }
 
 func defaultPath() string {

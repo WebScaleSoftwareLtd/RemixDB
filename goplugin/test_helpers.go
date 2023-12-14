@@ -16,13 +16,13 @@ import (
 
 // SetupGoCompilerForTesting sets up a Go compiler for testing.
 func SetupGoCompilerForTesting(t *testing.T) GoPluginCompiler {
+	// Disallow testing on Windows.
+	if runtime.GOOS == "windows" {
+		t.Skip("testing is not supported on Windows")
+	}
+
 	// Setup the temporary directory used for the tests.
 	tempDir := t.TempDir()
-
-	// If this is Windows, just return the compiler.
-	if runtime.GOOS == "windows" {
-		return NewGoPluginCompiler(logger.NewTestingLogger(t), tempDir)
-	}
 
 	// Get the plugin path that the application uses.
 	path := os.Getenv("REMIXDB_GOPLUGIN_PATH")

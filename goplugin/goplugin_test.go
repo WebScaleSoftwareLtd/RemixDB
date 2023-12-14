@@ -6,6 +6,7 @@ package goplugin
 import (
 	"bytes"
 	_ "embed"
+	"plugin"
 	"reflect"
 	"testing"
 
@@ -38,7 +39,7 @@ func TestGoPluginCompiler_Compile(t *testing.T) {
 		name string
 
 		goCode        string
-		resultHandler func(t *testing.T, p Plugin, err error)
+		resultHandler func(t *testing.T, p *plugin.Plugin, err error)
 	}{
 		{
 			name: "no error",
@@ -55,7 +56,7 @@ type FuseBlower interface {
 func BlowFuse(b FuseBlower) {
 	b.BlowFuse()
 }`,
-			resultHandler: func(t *testing.T, p Plugin, err error) {
+			resultHandler: func(t *testing.T, p *plugin.Plugin, err error) {
 				require.NoError(t, err)
 				require.NotNil(t, p)
 
@@ -77,7 +78,7 @@ import "fmt"
 func HelloWorld() string {
 	return fmt.Sprint
 }`,
-			resultHandler: func(t *testing.T, p Plugin, err error) {
+			resultHandler: func(t *testing.T, p *plugin.Plugin, err error) {
 				if assert.Error(t, err) {
 					x, ok := err.(ExecutionError)
 					if !ok {

@@ -6,13 +6,11 @@ package goplugin
 import (
 	"bytes"
 	_ "embed"
-	"plugin"
 	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"remixdb.io/utils"
 )
 
 func TestExecutionError_Error(t *testing.T) {
@@ -39,16 +37,11 @@ func TestGoPluginCompiler_Compile(t *testing.T) {
 	tests := []struct {
 		name string
 
-		projectFiles []byte
-
 		goCode        string
-		resultHandler func(t *testing.T, p *plugin.Plugin, err error)
+		resultHandler func(t *testing.T, p Plugin, err error)
 	}{
 		{
 			name: "no error",
-			projectFiles: utils.CreateZipFromMap(map[string]any{
-				"go.mod": "module remixdb.io",
-			}),
 			goCode: `package main
 
 type privateInterface interface {
@@ -62,7 +55,7 @@ type FuseBlower interface {
 func BlowFuse(b FuseBlower) {
 	b.BlowFuse()
 }`,
-			resultHandler: func(t *testing.T, p *plugin.Plugin, err error) {
+			resultHandler: func(t *testing.T, p Plugin, err error) {
 				require.NoError(t, err)
 				require.NotNil(t, p)
 
@@ -77,24 +70,14 @@ func BlowFuse(b FuseBlower) {
 		},
 		{
 			name: "error",
-			projectFiles: utils.CreateZipFromMap(map[string]any{
-				"go.mod": "module remixdb.io",
-				"helloworld": map[string]any{
-					"helloworld.go": `package helloworld
-
-func HelloWorld() string {
-	return "Hello World!"
-}`,
-				},
-			}),
 			goCode: `package main
 
-import "remixdb.io/helloworld"
+import "fmt"
 
 func HelloWorld() string {
-	return helloworld.HelloWorld
+	return fmt.Sprint
 }`,
-			resultHandler: func(t *testing.T, p *plugin.Plugin, err error) {
+			resultHandler: func(t *testing.T, p Plugin, err error) {
 				if assert.Error(t, err) {
 					x, ok := err.(ExecutionError)
 					if !ok {
@@ -104,7 +87,7 @@ func HelloWorld() string {
 
 					assert.Equal(t, x.exitCode, 1)
 					x.data = bytes.TrimSpace(x.data)
-					if !bytes.HasSuffix(x.data, []byte(".go:6:9: cannot use helloworld.HelloWorld (value of type func() string) as string value in return statement")) {
+					if !bytes.HasSuffix(x.data, []byte("cannot use fmt.Sprint (value of type func(a ...any) string) as string value in return statement")) {
 						t.Errorf("unexpected error data: %s", x.data)
 					}
 				}
@@ -118,11 +101,7 @@ func HelloWorld() string {
 			t.Parallel()
 
 			// Create the Go plugin compiler.
-			projectZip := tt.projectFiles
-			if projectZip == nil {
-				projectZip = utils.CreateZipFromMap(nil)
-			}
-			compiler := SetupGoCompilerForTesting(t, projectZip)
+			compiler := SetupGoCompilerForTesting(t)
 
 			// Attempt to compile the code.
 			p, err := compiler.Compile(tt.goCode)

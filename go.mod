@@ -17,6 +17,7 @@ require (
 	github.com/mattn/go-ieproxy v0.0.11
 	github.com/otiai10/copy v1.14.0
 	github.com/stretchr/testify v1.8.1
+	github.com/traefik/yaegi v0.15.1
 	github.com/valyala/fasthttp v1.51.0
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 	golang.org/x/net v0.19.0

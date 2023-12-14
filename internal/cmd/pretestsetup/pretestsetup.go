@@ -12,9 +12,7 @@ import (
 )
 
 func nonWindowsSetup(logger logger.Logger) {
-	goplugin.NewGoPluginCompiler(logger, "", utils.CreateZipFromMap(map[string]any{
-		"lol": "hi",
-	}))
+	goplugin.NewGoPluginCompiler(logger, "")
 }
 
 func main() {

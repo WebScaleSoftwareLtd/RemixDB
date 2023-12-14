@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cp "github.com/otiai10/copy"
@@ -15,12 +14,7 @@ import (
 )
 
 // SetupGoCompilerForTesting sets up a Go compiler for testing.
-func SetupGoCompilerForTesting(t *testing.T, projectZip []byte) GoPluginCompiler {
-	// Disallow Windows.
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows")
-	}
-
+func SetupGoCompilerForTesting(t *testing.T) GoPluginCompiler {
 	// Setup the temporary directory used for the tests.
 	tempDir := t.TempDir()
 
@@ -52,5 +46,5 @@ func SetupGoCompilerForTesting(t *testing.T, projectZip []byte) GoPluginCompiler
 	}
 
 	// Create the compiler.
-	return NewGoPluginCompiler(logger.NewTestingLogger(t), tempDir, projectZip)
+	return NewGoPluginCompiler(logger.NewTestingLogger(t), tempDir)
 }

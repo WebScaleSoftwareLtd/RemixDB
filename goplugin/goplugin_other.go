@@ -30,9 +30,8 @@ import (
 // GoPluginCompiler is used to define the Go plugin compiler. This turns the specified
 // Go code into a plugin that can be used by RemixDB.
 type GoPluginCompiler struct {
-	logger     logger.Logger
-	path       string
-	projectZip []byte
+	logger logger.Logger
+	path   string
 }
 
 // ExecutionError is used to define an error that occurred during execution.
@@ -46,9 +45,29 @@ func (e ExecutionError) Error() string {
 	return fmt.Sprintf("execution error: status %d: %s", e.exitCode, string(e.data))
 }
 
+type pluginWrapper struct {
+	*plugin.Plugin
+}
+
+func (p pluginWrapper) Lookup(name string) (any, error) {
+	sym, err := p.Plugin.Lookup(name)
+	if err != nil {
+		return nil, err
+	}
+	return sym, nil
+}
+
+func wrapPlugin(path string) (Plugin, error) {
+	p, err := plugin.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	return pluginWrapper{p}, nil
+}
+
 // Compile is used to compile the Go plugin or return a cached version. It is compiled
 // within the project zip specified. This is thread safe.
-func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
+func (g GoPluginCompiler) Compile(code string) (Plugin, error) {
 	// Get the filename of the plugin.
 	var raceDetectorB byte = 'N'
 	if racedetector.Enabled {
@@ -60,7 +79,7 @@ func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 	// Load the plugin if it exists.
 	pluginBinPath := filepath.Join(g.path, "plugins", pluginName+".so")
 	if _, err := os.Stat(pluginBinPath); err == nil {
-		return plugin.Open(pluginBinPath)
+		return wrapPlugin(pluginBinPath)
 	}
 
 	// Create a temporary directory.
@@ -70,12 +89,9 @@ func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	// Extract the project zip into the temporary directory.
-	r, err := zip.NewReader(bytes.NewReader(g.projectZip), int64(len(g.projectZip)))
-	if err != nil {
-		return nil, err
-	}
-	if err := handleZipReader(tempDir, r); err != nil {
+	// Make a go.mod file in the temporary directory.
+	moduleName := pluginName + ".remixdb.io"
+	if err := os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte("module "+moduleName), 0644); err != nil {
 		return nil, err
 	}
 
@@ -144,7 +160,7 @@ func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 	}
 
 	// Load the plugin.
-	return plugin.Open(pluginBinPath)
+	return wrapPlugin(pluginBinPath)
 }
 
 func defaultPath() string {
@@ -328,7 +344,7 @@ func downloadGo(path, goVersionFileExpected string, logger logger.Logger) {
 
 // NewGoPluginCompiler is used to create a new Go plugin compiler. If path is empty, then it will try and use the
 // environment or ~/.remixdb/goplugin. No other argument can be empty.
-func NewGoPluginCompiler(logger logger.Logger, path string, projectZip []byte) GoPluginCompiler {
+func NewGoPluginCompiler(logger logger.Logger, path string) GoPluginCompiler {
 	// Add the label to the logger.
 	logger = logger.Tag("goplugin")
 
@@ -359,9 +375,8 @@ func NewGoPluginCompiler(logger logger.Logger, path string, projectZip []byte) G
 
 		// Return here.
 		return GoPluginCompiler{
-			logger:     logger,
-			path:       path,
-			projectZip: projectZip,
+			logger: logger,
+			path:   path,
 		}
 	}
 
@@ -393,8 +408,7 @@ func NewGoPluginCompiler(logger logger.Logger, path string, projectZip []byte) G
 
 	// Return the compiler.
 	return GoPluginCompiler{
-		logger:     logger,
-		path:       path,
-		projectZip: projectZip,
+		logger: logger,
+		path:   path,
 	}
 }

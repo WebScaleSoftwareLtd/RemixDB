@@ -12,9 +12,47 @@ import (
 // ErrNotExists is used to define the error when the key does not exist.
 var ErrNotExists = errors.New("key does not exist")
 
+// ErrNotTable is used to define the error when the struct is not a table.
+var ErrNotTable = errors.New("struct is not a table")
+
 // StructSessionMethods is used to define the methods for the struct session.
 type StructSessionMethods interface {
-	// TODO
+	// GetStructByKey is used to get the struct for a specified key. If the key does not
+	// exist, the error ErrNotExists is returned. The slice repersents the history of the
+	// struct, with the last item being the most recent. Note the positions on the AST tokens
+	// are not set.
+	GetStructByKey(key string) (structHistory []*ast.StructToken, err error)
+
+	// DeleteStructByKey is used to delete the struct for a specified key. When a struct
+	// is deleted, it is put into a tombstone state. If the key does not exist, the error
+	// ErrNotExists is returned.
+	DeleteStructByKey(key string) error
+
+	// Structs is used to return all of the latest structs in the database partition. Note the
+	// positions on the AST tokens are not set.
+	Structs() (structs []*ast.StructToken, err error)
+
+	// StructTombstones returns all structs in the state they were when they were deleted. Note the
+	// positions on the AST tokens are not set.
+	StructTombstones() (renames map[string]string, structs []*ast.StructToken, err error)
+
+	// AcquireStructObjectWriteLock is used to acquire a write lock on struct object(s). This is used
+	// to prevent concurrent writes to the same struct object. The lock is released when the session
+	// is closed or ReleaseStructObjectWriteLock is called.
+	AcquireStructObjectWriteLock(structName string, keys ...[]byte) error
+
+	// ReleaseStructObjectWriteLock is used to release a write lock on struct object(s). This is used
+	// to allow for efficiencies inside of a contracts compiled logic.
+	ReleaseStructObjectWriteLock(structName string, keys ...[]byte) error
+
+	// AcquireStructObjectReadLock is used to acquire a read lock on struct object(s). This is used
+	// to prevent concurrent writes to the same struct object. The lock is released when the session
+	// is closed or ReleaseStructObjectReadLock is called.
+	AcquireStructObjectReadLock(structName string, keys ...[]byte) error
+
+	// ReleaseStructObjectReadLock is used to release a read lock on struct object(s). This is used
+	// to allow for efficiencies inside of a contracts compiled logic.
+	ReleaseStructObjectReadLock(structName string, keys ...[]byte) error
 }
 
 // ContractSessionMethods is used to define the methods for the contract session.
@@ -45,12 +83,11 @@ type Session interface {
 	// it has not been committed.
 	Close() error
 
-	// Rollback is used to rollback any changes made in the session. This is only valid for write
-	// sessions.
+	// Rollback is used to rollback any changes made in the session.
 	Rollback() error
 
-	// Commit is used to commit any changes made in the session. This is only valid for write
-	// sessions. Rollback will then work for changes made after this commit only.
+	// Commit is used to commit any changes made in the session. Rollback will then work for changes
+	// made after this commit only.
 	Commit() error
 
 	StructSessionMethods

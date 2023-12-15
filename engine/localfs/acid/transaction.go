@@ -82,7 +82,7 @@ func (t *Transaction) Rollback() error {
 
 // Commit is used to commit the transaction. This will commit all the changes made in the transaction.
 // Returns ErrAlreadyCommitted if the transaction has already been committed.
-func (t *Transaction) Commit() error {
+func (t *Transaction) Commit(destroyOnFail bool) error {
 	// Handle the done state.
 	if err := t.handleDone(); err != nil {
 		return err
@@ -103,6 +103,12 @@ func (t *Transaction) Commit() error {
 
 	// Do the commit.
 	if err := t.handleCommit(txFp); err != nil {
+		if destroyOnFail {
+			// Do our best to ensure this NEVER gets committed in this state upon recovery.
+			_ = os.Remove(commitFp)
+			t.done = true
+		}
+
 		return err
 	}
 

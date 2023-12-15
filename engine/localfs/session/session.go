@@ -48,7 +48,7 @@ func (s *Session) Rollback() error {
 }
 
 func (s *Session) Commit() error {
-	return s.Transaction.Commit()
+	return s.Transaction.Commit(true)
 }
 
 func (s *Session) Close() error {

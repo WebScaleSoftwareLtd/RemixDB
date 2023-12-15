@@ -159,7 +159,7 @@ func (e *Engine) SetAuthenticationPermissions(partition, username string, permis
 		filepath.Join(e.getPartitionPath(partition, true), "credentials"),
 		b,
 	)
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(true); err != nil {
 		return err
 	}
 
@@ -210,7 +210,7 @@ func (e *Engine) CreateAPIKeyForUsername(partition, username, apiKey string) err
 		filepath.Join(e.getPartitionPath(partition, true), "credentials"),
 		b,
 	)
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(true); err != nil {
 		return err
 	}
 
@@ -272,7 +272,7 @@ func (e *Engine) DeleteAPIKey(partition, apiKey string) error {
 		filepath.Join(e.getPartitionPath(partition, true), "credentials"),
 		b,
 	)
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(true); err != nil {
 		return err
 	}
 
@@ -333,7 +333,7 @@ func (e *Engine) DeleteUsername(partition, username string) error {
 		filepath.Join(e.getPartitionPath(partition, true), "credentials"),
 		b,
 	)
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit(true); err != nil {
 		return err
 	}
 

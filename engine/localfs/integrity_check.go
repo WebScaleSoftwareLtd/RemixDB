@@ -28,7 +28,7 @@ func integrityCheck(path string) {
 			tx := acid.RecoverFailedTransaction(path, dir.Name())
 			if tx != nil {
 				// Commit this transaction.
-				if err := tx.Commit(); err != nil {
+				if err := tx.Commit(false); err != nil {
 					panic(err)
 				}
 			}

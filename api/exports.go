@@ -3,6 +3,8 @@
 
 package api
 
+import "remixdb.io/errhandler"
+
 // ServerInfoV1 is the server info.
 type ServerInfoV1 struct {
 	// Version is the server version.
@@ -61,4 +63,18 @@ type APIError struct {
 // Error returns the error message.
 func (e APIError) Error() string {
 	return e.Message
+}
+
+// Server is the structure used to implement the API.
+type Server struct {
+	impl       APIImplementation
+	errHandler errhandler.Handler
+}
+
+// NewServer returns a new Server.
+func NewServer(impl APIImplementation, errHandler errhandler.Handler) Server {
+	return Server{
+		impl:       impl,
+		errHandler: errHandler,
+	}
 }

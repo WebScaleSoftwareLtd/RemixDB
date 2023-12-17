@@ -28,7 +28,12 @@ func panicWrap[T any](fn func(RequestCtx) (T, error)) func(RequestCtx) (T, error
 	return func(ctx RequestCtx) (val T, err error) {
 		defer func() {
 			if r := recover(); r != nil {
-				err = panicError{r}
+				var ok bool
+				err, ok = r.(error)
+				if !ok {
+					// This is a non-error type panic, so wrap it.
+					err = panicError{r}
+				}
 			}
 		}()
 		return fn(ctx)

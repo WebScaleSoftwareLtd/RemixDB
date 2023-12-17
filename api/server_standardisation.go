@@ -5,6 +5,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -14,6 +15,25 @@ import (
 	"github.com/valyala/fasthttp"
 	"remixdb.io/errhandler"
 )
+
+type panicError struct {
+	v any
+}
+
+func (p panicError) Error() string {
+	return fmt.Sprint(p.v)
+}
+
+func panicWrap[T any](fn func(RequestCtx) (T, error)) func(RequestCtx) (T, error) {
+	return func(ctx RequestCtx) (val T, err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				err = panicError{r}
+			}
+		}()
+		return fn(ctx)
+	}
+}
 
 type httprouterWrapper struct {
 	w http.ResponseWriter
@@ -80,6 +100,7 @@ func sendNetHttpJson(w http.ResponseWriter, statusCode int, v any, errHandler er
 
 // Builds a httprouter route with a handler wrapper.
 func buildHttpRouterRoute[T any](hn func(RequestCtx) (T, error), errHandler errhandler.Handler) httprouter.Handle {
+	hn = panicWrap(hn)
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		// Build the wrapper.
 		wrapper := httprouterWrapper{
@@ -175,6 +196,7 @@ func sendFasthttpJson(ctx *fasthttp.RequestCtx, statusCode int, v any, errHandle
 
 // Builds a fasthttp route with a handler wrapper.
 func buildFasthttpRoute[T any](hn func(RequestCtx) (T, error), errHandler errhandler.Handler) fasthttp.RequestHandler {
+	hn = panicWrap(hn)
 	return func(ctx *fasthttp.RequestCtx) {
 		// Wrap the request context and call the handler.
 		v, err := hn(fasthttpWrapper{ctx})

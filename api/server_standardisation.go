@@ -158,7 +158,11 @@ type fasthttpWrapper struct {
 }
 
 func (w fasthttpWrapper) GetRequestHeader(name string) []byte {
-	return w.Request.Header.Peek(name)
+	b := w.Request.Header.Peek(name)
+	if len(b) == 0 {
+		return nil
+	}
+	return b
 }
 
 func (w fasthttpWrapper) GetRequestBody() []byte {

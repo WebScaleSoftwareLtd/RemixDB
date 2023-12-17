@@ -4,7 +4,6 @@
 package webserver
 
 import (
-	"bytes"
 	"net"
 	"net/http"
 
@@ -23,25 +22,25 @@ func (w *WebServer) netHttpServeTls(ln net.Listener, certFile, keyFile string) e
 	return http.ServeTLS(ln, w.generateHttpRoutes(true), certFile, keyFile)
 }
 
-var slashRpcB = []byte("/rpc")
-
 func (w *WebServer) fasthttpServe(ln net.Listener) error {
-	r := fasthttpadaptor.NewFastHTTPHandler(w.generateHttpRoutes(false))
+	// Defines the fallback router. Handles mainly the frontend.
+	fallbackRouter := fasthttpadaptor.NewFastHTTPHandler(w.generateHttpRoutes(false))
 
-	rpcRouter := router.New()
-	rpcRouter.POST("/rpc/{method}", w.rpcServer.FastHTTPHandler)
-	rpcRouter.GET("/rpc", w.rpcServer.FastHTTPHandler)
+	// Defines the main router.
+	mainRouter := router.New()
 
-	return fasthttp.Serve(ln, func(ctx *fasthttp.RequestCtx) {
-		// Check if it starts with /rpc.
-		path := ctx.Path()
-		if len(path) >= 4 && bytes.Equal(path[:4], slashRpcB) {
-			// Switch to the RPC router.
-			rpcRouter.Handler(ctx)
-			return
-		}
+	// Add the routes required for RPC if the RPC server is not nil.
+	if w.rpcServer != nil {
+		mainRouter.POST("/rpc/{method}", w.rpcServer.FastHTTPHandler)
+		mainRouter.GET("/rpc", w.rpcServer.FastHTTPHandler)
+	}
 
-		// Switch to the normal router with a compatibility layer.
-		r(ctx)
-	})
+	// Add the API routes.
+	w.apiServer.AddToFasthttpRouter(mainRouter)
+
+	// Make it fallback to the fallback router when the route is not in the main router.
+	mainRouter.NotFound = fallbackRouter
+
+	// Serve the main router.
+	return fasthttp.Serve(ln, mainRouter.Handler)
 }

@@ -6,7 +6,7 @@ package webserver
 import (
 	"net"
 
-	"remixdb.io/engine"
+	"remixdb.io/api"
 	"remixdb.io/rpc"
 )
 
@@ -14,8 +14,8 @@ import (
 type WebServer struct {
 	conf Config
 
-	engine    engine.Engine
 	rpcServer *rpc.Server
+	apiServer api.Server
 }
 
 // Serve is used to serve the web server.
@@ -43,10 +43,10 @@ func (w *WebServer) Serve() error {
 }
 
 // NewWebServer is used to create a new web server.
-func NewWebServer(conf Config, engine engine.Engine, rpcServer *rpc.Server) *WebServer {
+func NewWebServer(conf Config, rpcServer *rpc.Server, apiServer api.Server) *WebServer {
 	return &WebServer{
 		conf:      conf,
-		engine:    engine,
 		rpcServer: rpcServer,
+		apiServer: apiServer,
 	}
 }

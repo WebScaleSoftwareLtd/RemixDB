@@ -84,12 +84,18 @@ func mapFrontendIndexHtml(r *httprouter.Router, route string, indexHtml []byte) 
 	})
 }
 
-func (w *WebServer) generateHttpRoutes(containsRpcRoutes bool) http.Handler {
+func (w *WebServer) generateHttpRoutes(addApiRoutes bool) http.Handler {
 	r := httprouter.New()
 
-	if containsRpcRoutes {
-		r.POST("/rpc/:method", w.rpcServer.NetHTTPHandler)
-		r.GET("/rpc", w.rpcServer.NetHTTPHandler)
+	if addApiRoutes {
+		// Make sure the RPC server is present in case this is the mock server.
+		if w.rpcServer != nil {
+			r.POST("/rpc/:method", w.rpcServer.NetHTTPHandler)
+			r.GET("/rpc", w.rpcServer.NetHTTPHandler)
+		}
+
+		// Add the API into the router.
+		w.apiServer.AddToHttpRouter(r)
 	}
 
 	frontendHost := os.Getenv("REMIXDB_DEV_FRONTEND_HOST")

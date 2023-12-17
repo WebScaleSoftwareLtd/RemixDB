@@ -10,6 +10,9 @@ type ServerInfoV1 struct {
 	// Version is the server version.
 	Version string `json:"version"`
 
+	// Hostname is the hostname of the server.
+	Hostname string `json:"hostname"`
+
 	// HostID is the host ID.
 	HostID string `json:"host_id"`
 
@@ -17,10 +20,19 @@ type ServerInfoV1 struct {
 	Uptime int64 `json:"uptime"`
 }
 
+// User is a user object.
+type User struct {
+	Username    string   `json:"username"`
+	Permissions []string `json:"permissions"`
+}
+
 // APIImplementation is the interface for an API implementation.
 type APIImplementation interface {
 	// GetServerInfoV1 returns the server info.
 	GetServerInfoV1(ctx RequestCtx) (ServerInfoV1, error)
+
+	// GetSelfUserV1 returns the self user.
+	GetSelfUserV1(ctx RequestCtx) (User, error)
 }
 
 // RequestCtx is the context for a request.

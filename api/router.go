@@ -21,6 +21,7 @@ func (s Server) mapRoutes(router any) {
 
 	// Define the routes.
 	doMapping(d, "GET", "/api/v1/info", s.impl.GetServerInfoV1)
+	doMapping(d, "GET", "/api/v1/user", s.impl.GetSelfUserV1)
 }
 
 // Defines the regex to get all the {params} from a route.

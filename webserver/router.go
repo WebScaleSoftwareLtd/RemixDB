@@ -11,11 +11,20 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/julienschmidt/httprouter"
 	"remixdb.io/frontend"
 )
+
+func route2path(route string) string {
+	route = strings.TrimPrefix(route, "/")
+	if route == "" {
+		return "."
+	}
+	return strings.TrimSuffix(route, "/")
+}
 
 func mapFrontendStaticFiles(r *httprouter.Router, dist fs.FS) {
 	// Scope to the dist directory.
@@ -28,7 +37,7 @@ func mapFrontendStaticFiles(r *httprouter.Router, dist fs.FS) {
 	// Map the static files to routes.
 	var processDir func(cursor fs.FS, routePrefix string)
 	processDir = func(cursor fs.FS, routePrefix string) {
-		dir, err := fs.ReadDir(cursor, "."+routePrefix)
+		dir, err := fs.ReadDir(cursor, route2path(routePrefix))
 		if err != nil {
 			panic(err)
 		}
@@ -49,21 +58,15 @@ func mapFrontendStaticFiles(r *httprouter.Router, dist fs.FS) {
 			}
 
 			// Read the file from the filesystem.
-			b, err := fs.ReadFile(cursor, routePrefix+name)
+			b, err := fs.ReadFile(cursor, route2path(routePrefix+name))
 			if err != nil {
 				panic(err)
 			}
 
 			// Get the mime type.
-			mimeObj := mimetype.Detect(b)
-			mimeS := mimeObj.String()
+			mimeS := mime.TypeByExtension(filepath.Ext(name))
 			if mimeS == "application/octet-stream" {
-				// Try and guess the mime type from the file extension.
-				mimeS = mime.TypeByExtension(filepath.Ext(name))
-				if mimeS == "" {
-					// Default to application/octet-stream.
-					mimeS = "application/octet-stream"
-				}
+				mimeS = mimetype.Detect(b).String()
 			}
 
 			// Map the file to the route.

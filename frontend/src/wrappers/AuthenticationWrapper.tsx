@@ -2,12 +2,12 @@
 // Author: Astrid Gealer <astrid@gealer.email>
 
 import React from "react";
-import * as authState from "../authState";
-import Alert from "../atoms/Alert";
-import Button from "../atoms/Button";
-import Box from "../atoms/Box";
-import Title from "../atoms/Title";
-import Textbox from "../atoms/Textbox";
+import * as authState from "@/authState";
+import Alert from "@/atoms/Alert";
+import Button from "@/atoms/Button";
+import Box from "@/atoms/Box";
+import Title from "@/atoms/Title";
+import Textbox from "@/atoms/Textbox";
 
 const Login = () => {
     // Defines the page state. If it is null, it is loading. If it is a string,
@@ -69,7 +69,7 @@ export default ({ children }: React.PropsWithChildren) => {
     // Get the current authentication state from fetch information.
     const authHook = React.useSyncExternalStore(
         authState.subscribeAuthenticated,
-        () => authState.authenticated,
+        () => authState.authenticated
     );
 
     // If the user is authenticated, render the children.

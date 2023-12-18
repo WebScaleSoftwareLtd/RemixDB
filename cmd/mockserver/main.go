@@ -18,6 +18,7 @@ func main() {
 	// Just serve locally on port 8080.
 	conf := webserver.Config{
 		Host: "127.0.0.1:8080",
+		H2C:  true,
 	}
 	ws := webserver.NewWebServer(conf, nil, api.NewServer(
 		mockimplementation.New(), errhandler.Handler{

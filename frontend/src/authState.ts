@@ -16,23 +16,23 @@ let nextId = 0;
 // Allows you to subscribe to the authenticated state. The callback will be run
 // whenever the authenticated state changes. The returned function can be used
 // to unsubscribe.
-export function subscribeAuthenticated(callback: (subbed: boolean) => void) {
+export function subscribeAuthenticated (callback: (subbed: boolean) => void) {
     const id = nextId++;
     authenticatedSubscribers.set(id, callback);
     return () => authenticatedSubscribers.delete(id);
 }
 
 // Defines the users login state.
-let loginState = {
+const loginState = {
     apiKey: "",
     username: "",
-    permissions: [] as string[],
+    permissions: [] as string[]
 };
 
 // Logs out of the current session. Note we do not destroy the API key because
 // are too manual. Note we do not broadcast the login state because the wrapper
 // will do that for us.
-export function logout() {
+export function logout () {
     authenticated = false;
     loginState.apiKey = "";
     authenticatedSubscribers.forEach(sub => sub(false));
@@ -45,21 +45,21 @@ const loginStateSubscribers = new Map<number, (state: typeof loginState) => void
 // Allows you to subscribe to the login state. The callback will be run
 // whenever the login state changes. The returned function can be used
 // to unsubscribe.
-function subscribeLoginState(callback: (state: typeof loginState) => void) {
+function subscribeLoginState (callback: (state: typeof loginState) => void) {
     const id = nextId++;
     loginStateSubscribers.set(id, callback);
     return () => loginStateSubscribers.delete(id);
 }
 
 // Do a login request. This will automatically handle the state if successful.
-export async function login(apiKey: string) {
+export async function login (apiKey: string) {
     // Do the login request.
     const res = await fetch("/api/v1/user", {
         method: "GET",
         headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${apiKey}`,
-        },
+            Authorization: `Bearer ${apiKey}`
+        }
     });
 
     // If it is 200, setup the state. We do not inform auth subscribers because
@@ -88,7 +88,7 @@ export async function login(apiKey: string) {
 }
 
 // Defines the fetch client. This automatically manages a lot of the state for us.
-export function authManagedFetch(input: RequestInfo, init?: RequestInit) {
+export function authManagedFetch (input: RequestInfo, init?: RequestInit) {
     // Setup fetch to use the API key.
     let initCpy: RequestInit = {};
     if (init) {
@@ -120,13 +120,13 @@ export function authManagedFetch(input: RequestInfo, init?: RequestInit) {
 }
 
 // Defines a helper hook that allows a component to use the permissions.
-export function usePermissions() {
+export function usePermissions () {
     useSyncExternalStore(subscribeLoginState, () => loginState.permissions);
     return loginState.permissions;
 }
 
 // Defines a helper hook that allows a component to use the username.
-export function useUsername() {
+export function useUsername () {
     useSyncExternalStore(subscribeLoginState, () => loginState.username);
     return loginState.username;
 }

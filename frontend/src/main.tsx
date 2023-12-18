@@ -5,7 +5,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import {
     createBrowserRouter,
-    RouterProvider,
+    RouterProvider
 } from "react-router-dom";
 import routes from "../routes.json";
 import * as possibleRoutes from "./routes";
@@ -18,7 +18,7 @@ const router = createBrowserRouter(Object.entries(routes).map(([key, val]) => {
     }
     return {
         path: key,
-        element: <RootWrapper element={element} />,
+        element: <RootWrapper element={element} />
     };
 }));
 

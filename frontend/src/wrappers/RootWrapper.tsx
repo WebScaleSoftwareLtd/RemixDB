@@ -3,11 +3,13 @@
 
 import React from "react";
 import AuthenticationWrapper from "./AuthenticationWrapper";
+import Navbar from "@/molecules/Navbar";
 
 type Props = {
     element: React.FunctionComponent;
 };
 
 export default ({ element: Element }: Props) => <AuthenticationWrapper>
+    <Navbar />
     <Element />
 </AuthenticationWrapper>;

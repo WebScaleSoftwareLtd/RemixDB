@@ -3,6 +3,6 @@
 
 import React from "react";
 
-export default ({ children }: React.PropsWithChildren) => <h2 className="text-2xl font-bold mb-4">
-    {children}
-</h2>;
+export default ({ children }: React.PropsWithChildren) => {
+    return <h2 className="text-2xl font-bold mb-4">{children}</h2>;
+};

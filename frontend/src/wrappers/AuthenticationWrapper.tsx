@@ -36,22 +36,24 @@ const Login = () => {
         <Box>
             <Title>RemixDB Login</Title>
 
-            {
-                pageState && <div className="mb-3">
-                    <Alert type="danger">
-                        {pageState}
-                    </Alert>
-                </div>
-            }
+            {pageState && <div className="mb-3">
+                <Alert type="danger">{pageState}</Alert>
+            </div>}
 
-            <form className="space-y-4" onSubmit={e => {
-                e.preventDefault();
-                handleLogin();
-                return false;
-            }}>
+            <form
+                className="space-y-4"
+                onSubmit={e => {
+                    e.preventDefault();
+                    handleLogin();
+                    return false;
+                }}
+            >
                 <Textbox
-                    title="API Key" value={apiKey} onValueChange={setApiKey}
-                    placeholder="Enter your API key" loading={pageState === null}
+                    title="API Key"
+                    value={apiKey}
+                    onValueChange={setApiKey}
+                    placeholder="Enter your API key"
+                    loading={pageState === null}
                 />
 
                 <div>

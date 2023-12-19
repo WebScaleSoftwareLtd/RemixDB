@@ -2,12 +2,23 @@
 // Author: Astrid Gealer <astrid@gealer.email>
 
 import React from "react";
-import { NavigationMenuLink, NavigationMenuList, NavigationMenu } from "@/shadcn/ui/navigation-menu";
+import {
+    NavigationMenuLink,
+    NavigationMenuList,
+    NavigationMenu,
+} from "@/shadcn/ui/navigation-menu";
 import Button from "@/atoms/Button";
-import { useUsername, logout } from "@/authState";
+import { useUsername, logout, usePermissions } from "@/authState";
 import { Link } from "react-router-dom";
 
-const possibleRoutes = [
+type Route = {
+    to: string;
+    name: string;
+    icon: React.ReactNode;
+    hasPermission: (permissions: string[]) => boolean;
+};
+
+const possibleRoutes: Route[] = [
     {
         to: "/users",
         name: "Users",
@@ -44,24 +55,28 @@ export default () => {
     // Defines the username that is currently logged in.
     const username = useUsername();
 
+    // Defines the users current permissions.
+    const permissions = usePermissions();
+
     // Defines the navigation menu items.
     const menuItems: React.ReactNode[] = [];
 
     // Go through each of the menu items.
     for (let i = 0; i < possibleRoutes.length; i++) {
         const route = possibleRoutes[i];
-        if (route.hasPermission()) {
-            menuItems.push(<NavigationMenuLink asChild>
-                <Link
-                    className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-gray-100/50 data-[state=open]:bg-gray-100/50 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus:bg-gray-800 dark:focus:text-gray-50 dark:data-[active]:bg-gray-800/50 dark:data-[state=open]:bg-gray-800/50"
-                    to={route.to}
-                >
-                    {route.icon}
-                    {route.name}
-                </Link>
-            </NavigationMenuLink>);
+        if (route.hasPermission(permissions)) {
+            menuItems.push(
+                <NavigationMenuLink asChild key={i}>
+                    <Link
+                        className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-gray-100/50 data-[state=open]:bg-gray-100/50 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus:bg-gray-800 dark:focus:text-gray-50 dark:data-[active]:bg-gray-800/50 dark:data-[state=open]:bg-gray-800/50"
+                        to={route.to}
+                    >
+                        {route.icon}
+                        {route.name}
+                    </Link>
+                </NavigationMenuLink>
+            );
         }
-        
     }
 
     // Return all of the items.
@@ -70,25 +85,25 @@ export default () => {
             <span className="font-bold text-lg">RemixDB</span>
         </Link>
         <NavigationMenu className="hidden lg:flex">
-            <NavigationMenuList>
-                {menuItems}
-            </NavigationMenuList>
+            <NavigationMenuList>{menuItems}</NavigationMenuList>
         </NavigationMenu>
 
         <div className="ml-auto flex items-center gap-2">
             <span className="text-gray-600 dark:text-gray-400 mr-2">{username}</span>
-            <form onSubmit={e => {
-                e.preventDefault();
-                logout();
-                return false;
-            }}>
+            <form
+                onSubmit={e => {
+                    e.preventDefault();
+                    logout();
+                    return false;
+                }}
+            >
                 <Button type="outline">Logout</Button>
             </form>
         </div>
     </header>;
 };
 
-function BuildingIcon (props: React.SVGProps<SVGSVGElement>) {
+function BuildingIcon(props: React.SVGProps<SVGSVGElement>) {
     return <svg
         {...props}
         xmlns="http://www.w3.org/2000/svg"
@@ -115,7 +130,7 @@ function BuildingIcon (props: React.SVGProps<SVGSVGElement>) {
     </svg>;
 }
 
-function FunctionSquareIcon (props: React.SVGProps<SVGSVGElement>) {
+function FunctionSquareIcon(props: React.SVGProps<SVGSVGElement>) {
     return <svg
         {...props}
         xmlns="http://www.w3.org/2000/svg"
@@ -134,7 +149,7 @@ function FunctionSquareIcon (props: React.SVGProps<SVGSVGElement>) {
     </svg>;
 }
 
-function MoveIcon (props: React.SVGProps<SVGSVGElement>) {
+function MoveIcon(props: React.SVGProps<SVGSVGElement>) {
     return <svg
         {...props}
         xmlns="http://www.w3.org/2000/svg"
@@ -156,7 +171,7 @@ function MoveIcon (props: React.SVGProps<SVGSVGElement>) {
     </svg>;
 }
 
-function ServerIcon (props: React.SVGProps<SVGSVGElement>) {
+function ServerIcon(props: React.SVGProps<SVGSVGElement>) {
     return <svg
         {...props}
         xmlns="http://www.w3.org/2000/svg"
@@ -176,7 +191,7 @@ function ServerIcon (props: React.SVGProps<SVGSVGElement>) {
     </svg>;
 }
 
-function UsersIcon (props: React.SVGProps<SVGSVGElement>) {
+function UsersIcon(props: React.SVGProps<SVGSVGElement>) {
     return <svg
         {...props}
         xmlns="http://www.w3.org/2000/svg"

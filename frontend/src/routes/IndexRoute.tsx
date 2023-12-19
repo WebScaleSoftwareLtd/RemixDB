@@ -3,6 +3,9 @@
 
 import React from "react";
 
+// here for testing - ignore!
+import "@/pollers";
+
 export const IndexRoute = () => {
     return <h1>Hello World!</h1>;
 };

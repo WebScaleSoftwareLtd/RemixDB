@@ -6,10 +6,12 @@
         "dev": "vite",
         "build:prod": "(vite build || (touch dist/MAKE_GO_NOT_ERROR && exit 1)) && touch dist/MAKE_GO_NOT_ERROR",
         "lint": "prettier-no-jsx-parens --check ./src && eslint --ext .js,.jsx,.ts,.tsx ./src",
-        "lint:fix": "prettier-no-jsx-parens --write ./src"
+        "lint:fix": "prettier-no-jsx-parens --write ./src && eslint --ext .js,.jsx,.ts,.tsx ./src --fix"
     },
     "dependencies": {
+        "@headlessui/tailwindcss": "^0.2.0",
         "@radix-ui/react-navigation-menu": "^1.1.4",
+        "@tremor/react": "^3.12.1",
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.0.0",
         "lucide-react": "^0.298.0",

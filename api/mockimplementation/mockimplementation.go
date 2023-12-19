@@ -6,17 +6,23 @@ package mockimplementation
 import (
 	"os"
 	"regexp"
+	"runtime"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"remixdb.io/api"
+	"remixdb.io/utils"
 )
 
 type impl struct {
 	userCount int
 	users     map[string][]string
 	usersLock sync.Mutex
+
+	partitionSetup uintptr
 }
 
 var validIam = regexp.MustCompile(`^[a-zA-Z0-9_\-]+(:[a-zA-Z0-9_\-*]+)+$`)
@@ -36,6 +42,20 @@ func strArrayEquals(a, b []string) bool {
 }
 
 func (i *impl) validateUser(ctx api.RequestCtx, perms ...string) (username string, permissions []string, err error) {
+	// Handle is perms is nil.
+	if perms == nil {
+		perms = []string{}
+	}
+
+	// Handle if the partition is not setup.
+	if os.Getenv("MOCK_PARTITION_STATE") == "setup_required" && atomic.LoadUintptr(&i.partitionSetup) == 0 {
+		return "", nil, api.APIError{
+			StatusCode: 400,
+			Code:       "partition_not_setup",
+			Message:    "The partition is not setup.",
+		}
+	}
+
 	// Defines the unauthorized error.
 	unauthorized := api.APIError{
 		StatusCode: 401,
@@ -115,8 +135,37 @@ func (i *impl) GetSelfUserV1(ctx api.RequestCtx) (api.User, error) {
 	}
 
 	return api.User{
-		Username:    username,
-		Permissions: permissions,
+		SudoPartition: os.Getenv("MOCK_PARTITION_STATE") != "nonsudo",
+		Username:      username,
+		Permissions:   permissions,
+	}, nil
+}
+
+func (i *impl) GetMetricsV1(ctx api.RequestCtx) (api.MetricsV1, error) {
+	_, _, err := i.validateUser(ctx)
+	if err != nil {
+		return api.MetricsV1{}, err
+	}
+
+	if os.Getenv("MOCK_PARTITION_STATE") == "nonsudo" {
+		return api.MetricsV1{}, api.APIError{
+			StatusCode: 400,
+			Code:       "sudo_required",
+			Message:    "The sudo_partition permission is required to access this endpoint.",
+		}
+	}
+
+	var gcStats debug.GCStats
+	debug.ReadGCStats(&gcStats)
+
+	var memStats runtime.MemStats
+	runtime.ReadMemStats(&memStats)
+
+	return api.MetricsV1{
+		CPUPercent:   utils.CPUUsagePercent(),
+		RAMMegabytes: memStats.Alloc / 1024 / 1024,
+		Goroutines:   runtime.NumGoroutine(),
+		GCS:          int(gcStats.NumGC),
 	}, nil
 }
 

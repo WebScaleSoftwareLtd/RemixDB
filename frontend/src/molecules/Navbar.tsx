@@ -2,20 +2,24 @@
 // Author: Astrid Gealer <astrid@gealer.email>
 
 import React from "react";
-import {
-    NavigationMenuLink,
-    NavigationMenuList,
-    NavigationMenu,
-} from "@/shadcn/ui/navigation-menu";
 import Button from "@/atoms/Button";
-import { useUsername, logout, usePermissions } from "@/authState";
-import { Link } from "react-router-dom";
+import { useUsername, logout, usePermissions, useSudoPartition } from "@/authState";
+
+// Defines links from react-router-dom.
+const linkImport = import("react-router-dom").then(m => ({ default: m.Link }));
+const Link = React.lazy(() => linkImport);
+
+// Defines the navigation menu import.
+const navMenu = import("@/shadcn/ui/navigation-menu");
+const NavigationMenuLink = React.lazy(() => navMenu.then(m => ({ default: m.NavigationMenuLink })));
+const NavigationMenuList = React.lazy(() => navMenu.then(m => ({ default: m.NavigationMenuList })));
+const NavigationMenu = React.lazy(() => navMenu.then(m => ({ default: m.NavigationMenu })));
 
 type Route = {
     to: string;
     name: string;
     icon: React.ReactNode;
-    hasPermission: (permissions: string[]) => boolean;
+    hasPermission: (permissions: string[], sudoPartition: boolean) => boolean;
 };
 
 const possibleRoutes: Route[] = [
@@ -23,31 +27,41 @@ const possibleRoutes: Route[] = [
         to: "/users",
         name: "Users",
         icon: <UsersIcon className="h-4 w-4 mr-2" />,
-        hasPermission: () => true,
+        hasPermission: (permissions: string[]) => !!permissions.filter(x => {
+            return x === "*" || x.startsWith("users:");
+        }),
     },
     {
-        to: "/functions",
-        name: "Functions",
+        to: "/contracts",
+        name: "Contracts",
         icon: <FunctionSquareIcon className="h-4 w-4 mr-2" />,
-        hasPermission: () => true,
+        hasPermission: (permissions: string[]) => !!permissions.filter(x => {
+            return x === "*" || x.startsWith("contracts:");
+        }),
     },
     {
         to: "/migrations",
         name: "Migrations",
         icon: <MoveIcon className="h-4 w-4 mr-2" />,
-        hasPermission: () => true,
+        hasPermission: (permissions: string[]) => !!permissions.filter(x => {
+            return x === "*" || x.startsWith("migrations:");
+        }),
     },
     {
         to: "/structures",
         name: "Structures",
         icon: <BuildingIcon className="h-4 w-4 mr-2" />,
-        hasPermission: () => true,
+        hasPermission: (permissions: string[]) => !!permissions.filter(x => {
+            return x === "*" || x.startsWith("structs:");
+        }),
     },
     {
         to: "/servers",
         name: "Servers",
         icon: <ServerIcon className="h-4 w-4 mr-2" />,
-        hasPermission: () => true,
+        hasPermission: (permissions: string[]) => !!permissions.filter(x => {
+            return x === "*" || x.startsWith("servers:");
+        }),
     },
 ];
 
@@ -58,13 +72,16 @@ export default () => {
     // Defines the users current permissions.
     const permissions = usePermissions();
 
+    // Check if this is a sudo partition.
+    const sudoPartition = useSudoPartition();
+
     // Defines the navigation menu items.
     const menuItems: React.ReactNode[] = [];
 
     // Go through each of the menu items.
     for (let i = 0; i < possibleRoutes.length; i++) {
         const route = possibleRoutes[i];
-        if (route.hasPermission(permissions)) {
+        if (route.hasPermission(permissions, sudoPartition)) {
             menuItems.push(
                 <NavigationMenuLink asChild key={i}>
                     <Link
@@ -81,12 +98,14 @@ export default () => {
 
     // Return all of the items.
     return <header className="flex h-20 w-full items-center px-4 md:px-6">
-        <Link className="mr-6 hidden lg:flex items-center" to="/">
-            <span className="font-bold text-lg">RemixDB</span>
-        </Link>
-        <NavigationMenu className="hidden lg:flex">
-            <NavigationMenuList>{menuItems}</NavigationMenuList>
-        </NavigationMenu>
+        <React.Suspense>
+            <Link className="mr-6 hidden lg:flex items-center" to="/">
+                <span className="font-bold text-lg">RemixDB</span>
+            </Link>
+            <NavigationMenu className="hidden lg:flex">
+                <NavigationMenuList>{menuItems}</NavigationMenuList>
+            </NavigationMenu>
+        </React.Suspense>
 
         <div className="ml-auto flex items-center gap-2">
             <span className="text-gray-600 dark:text-gray-400 mr-2">{username}</span>

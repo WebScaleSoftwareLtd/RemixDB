@@ -22,8 +22,17 @@ type ServerInfoV1 struct {
 
 // User is a user object.
 type User struct {
-	Username    string   `json:"username"`
-	Permissions []string `json:"permissions"`
+	SudoPartition bool     `json:"sudo_partition"`
+	Username      string   `json:"username"`
+	Permissions   []string `json:"permissions"`
+}
+
+// MetricsV1 is the metrics.
+type MetricsV1 struct {
+	CPUPercent   float64 `json:"cpu_percent"`
+	RAMMegabytes uint64  `json:"ram_mb"`
+	Goroutines   int     `json:"goroutines"`
+	GCS          int     `json:"gcs"`
 }
 
 // APIImplementation is the interface for an API implementation.
@@ -33,6 +42,9 @@ type APIImplementation interface {
 
 	// GetSelfUserV1 returns the self user.
 	GetSelfUserV1(ctx RequestCtx) (User, error)
+
+	// GetMetricsV1 returns the metrics.
+	GetMetricsV1(ctx RequestCtx) (MetricsV1, error)
 }
 
 // RequestCtx is the context for a request.

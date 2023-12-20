@@ -18,7 +18,8 @@ const AreaChart = React.lazy(() => chartImport);
 const GenericView = () => <Center>
     <h1 className="text-4xl mb-4">Welcome to RemixDB!</h1>
     <p>
-        Use the navigation bar to select a route for the items you have permission to access.
+        Use the navigation bar to select a route for the items you have permission to
+        access.
     </p>
 </Center>;
 
@@ -48,15 +49,13 @@ const MetricsView = () => {
     // Return the metrics view.
     return <>
         <Title>Metrics</Title>
-        <p>
-            Here are the metrics in your cluster:
-        </p>
+        <p>Here are the metrics in your cluster:</p>
 
         <Box large margin>
             <Subtitle>CPU Usage</Subtitle>
             <p>
-                This is the CPU usage of the cluster. It is the sum of the CPU
-                usage of all the nodes in the cluster.
+                This is the CPU usage of the cluster. It is the sum of the CPU usage of
+                all the nodes in the cluster.
             </p>
 
             <React.Suspense fallback={<Spinner />}>
@@ -81,8 +80,8 @@ const MetricsView = () => {
         <Box large margin>
             <Subtitle>Memory Usage</Subtitle>
             <p>
-                This is the memory usage of the cluster. It is the sum of the
-                memory usage of all the nodes in the cluster.
+                This is the memory usage of the cluster. It is the sum of the memory usage
+                of all the nodes in the cluster.
             </p>
 
             <React.Suspense fallback={<Spinner />}>
@@ -107,9 +106,9 @@ const MetricsView = () => {
         <Box large margin>
             <Subtitle>Number of Goroutines</Subtitle>
             <p>
-                This is the number of goroutines in the cluster. Goroutines work
-                a bit like threads, but are not quite as heavy since they can be
-                paused and also do not need to create all thread resources.
+                This is the number of goroutines in the cluster. Goroutines work a bit
+                like threads, but are not quite as heavy since they can be paused and also
+                do not need to create all thread resources.
             </p>
 
             <React.Suspense fallback={<Spinner />}>
@@ -133,9 +132,9 @@ const MetricsView = () => {
         <Box large margin>
             <Subtitle>Number of Garbage Collections</Subtitle>
             <p>
-                Defines the number of garbage collections that have happened in
-                the cluster. Garbage collection is the process of freeing up
-                memory that is no longer needed.
+                Defines the number of garbage collections that have happened in the
+                cluster. Garbage collection is the process of freeing up memory that is no
+                longer needed.
             </p>
 
             <React.Suspense fallback={<Spinner />}>
@@ -160,9 +159,15 @@ const MetricsView = () => {
 
 export const IndexRoute = () => {
     const sudoPartition = useSudoPartition();
-    return <Container>{sudoPartition ? <>
-        <GenericView />
-        <hr className="my-8 border-gray-200" />
-        <MetricsView />
-    </> : <GenericView />}</Container>;
+    return <Container>
+        {sudoPartition ? (
+            <>
+                <GenericView />
+                <hr className="my-8 border-gray-200" />
+                <MetricsView />
+            </>
+        ) : (
+            <GenericView />
+        )}
+    </Container>;
 };

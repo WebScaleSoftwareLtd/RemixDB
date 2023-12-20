@@ -11,9 +11,15 @@ const Link = React.lazy(() => linkImport);
 
 // Defines the navigation menu import.
 const navMenu = import("@/shadcn/ui/navigation-menu");
-const NavigationMenuLink = React.lazy(() => navMenu.then(m => ({ default: m.NavigationMenuLink })));
-const NavigationMenuList = React.lazy(() => navMenu.then(m => ({ default: m.NavigationMenuList })));
-const NavigationMenu = React.lazy(() => navMenu.then(m => ({ default: m.NavigationMenu })));
+const NavigationMenuLink = React.lazy(() =>
+    navMenu.then(m => ({ default: m.NavigationMenuLink }))
+);
+const NavigationMenuList = React.lazy(() =>
+    navMenu.then(m => ({ default: m.NavigationMenuList }))
+);
+const NavigationMenu = React.lazy(() =>
+    navMenu.then(m => ({ default: m.NavigationMenu }))
+);
 
 type Route = {
     to: string;
@@ -27,41 +33,46 @@ const possibleRoutes: Route[] = [
         to: "/users",
         name: "Users",
         icon: <UsersIcon className="h-4 w-4 mr-2" />,
-        hasPermission: (permissions: string[]) => !!permissions.filter(x => {
-            return x === "*" || x.startsWith("users:");
-        }),
+        hasPermission: (permissions: string[]) =>
+            !!permissions.filter(x => {
+                return x === "*" || x.startsWith("users:");
+            }),
     },
     {
         to: "/contracts",
         name: "Contracts",
         icon: <FunctionSquareIcon className="h-4 w-4 mr-2" />,
-        hasPermission: (permissions: string[]) => !!permissions.filter(x => {
-            return x === "*" || x.startsWith("contracts:");
-        }),
+        hasPermission: (permissions: string[]) =>
+            !!permissions.filter(x => {
+                return x === "*" || x.startsWith("contracts:");
+            }),
     },
     {
         to: "/migrations",
         name: "Migrations",
         icon: <MoveIcon className="h-4 w-4 mr-2" />,
-        hasPermission: (permissions: string[]) => !!permissions.filter(x => {
-            return x === "*" || x.startsWith("migrations:");
-        }),
+        hasPermission: (permissions: string[]) =>
+            !!permissions.filter(x => {
+                return x === "*" || x.startsWith("migrations:");
+            }),
     },
     {
         to: "/structures",
         name: "Structures",
         icon: <BuildingIcon className="h-4 w-4 mr-2" />,
-        hasPermission: (permissions: string[]) => !!permissions.filter(x => {
-            return x === "*" || x.startsWith("structs:");
-        }),
+        hasPermission: (permissions: string[]) =>
+            !!permissions.filter(x => {
+                return x === "*" || x.startsWith("structs:");
+            }),
     },
     {
         to: "/servers",
         name: "Servers",
         icon: <ServerIcon className="h-4 w-4 mr-2" />,
-        hasPermission: (permissions: string[]) => !!permissions.filter(x => {
-            return x === "*" || x.startsWith("servers:");
-        }),
+        hasPermission: (permissions: string[]) =>
+            !!permissions.filter(x => {
+                return x === "*" || x.startsWith("servers:");
+            }),
     },
 ];
 

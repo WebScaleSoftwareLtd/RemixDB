@@ -6,7 +6,7 @@ import React from "react";
 type Props = {
     large?: boolean;
     margin?: boolean;
-}
+};
 
 export default ({ children, large, margin }: React.PropsWithChildren<Props>) => {
     let classes = "bg-gray-50 p-8 rounded shadow-lg";

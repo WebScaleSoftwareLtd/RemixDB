@@ -4,12 +4,6 @@
 import { unreflect } from ".";
 import type { RPCReflection } from "./shared";
 
-// Defines unreflectStruct.
-let unreflectStruct: (value: {
-    structName: string;
-    fields: Map<string, RPCReflection>;
-}) => Uint8Array;
-
 // Un-reflects a nested RPC value and appends it to the array.
 const unreflectNested = (value: RPCReflection, arr: Uint8Array) => {
     // Switch on the type.
@@ -54,7 +48,7 @@ const unreflectNested = (value: RPCReflection, arr: Uint8Array) => {
 };
 
 // Un-reflects a struct into bytes.
-unreflectStruct = ({
+const unreflectStruct = ({
     structName,
     fields,
 }: {

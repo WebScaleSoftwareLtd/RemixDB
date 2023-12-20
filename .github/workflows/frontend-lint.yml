@@ -1,15 +1,15 @@
-name: "Lint node.js project"
+name: "Lint Frontend"
 on: [push, pull_request]
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Read .nvmrc
         run: NVMRC=$(cat frontend/.nvmrc)
         id: nvmrc
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
           node-version: "${{ steps.nvmrc.outputs.NVMRC }}"
       - run: cd frontend && npm ci && npm run lint

@@ -35,6 +35,13 @@ type MetricsV1 struct {
 	GCS          int     `json:"gcs"`
 }
 
+// CreatePartitionV1Body is the body for the CreatePartitionV1 endpoint.
+type CreatePartitionV1Body struct {
+	SudoAPIKey    string `json:"sudo_api_key"`
+	Username      string `json:"username"`
+	SudoPartition bool   `json:"sudo_partition"`
+}
+
 // APIImplementation is the interface for an API implementation.
 type APIImplementation interface {
 	// GetServerInfoV1 returns the server info.
@@ -45,6 +52,17 @@ type APIImplementation interface {
 
 	// GetMetricsV1 returns the metrics.
 	GetMetricsV1(ctx RequestCtx) (MetricsV1, error)
+
+	// GetPartitionCreatedStateV1 returns the partition created state. This endpoint
+	// does not require authentication.
+	GetPartitionCreatedStateV1(ctx RequestCtx) (bool, error)
+
+	// CreatePartitionV1 creates up the partition. Returns a API error with the code
+	// 'partition_already_exists' if the partition already exists. The string returned
+	// is the API key for the newly created partition user.
+	//
+	// Expected body type (JSON): CreatePartitionV1Body
+	CreatePartitionV1(ctx RequestCtx) (string, error)
 }
 
 // RequestCtx is the context for a request.

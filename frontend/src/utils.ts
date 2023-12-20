@@ -7,3 +7,11 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
+
+export function alwaysPreventDefault(hn: () => void) {
+    return (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        hn();
+        return false;
+    };
+}

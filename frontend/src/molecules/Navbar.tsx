@@ -4,10 +4,8 @@
 import React from "react";
 import Button from "@/atoms/Button";
 import { useUsername, logout, usePermissions, useSudoPartition } from "@/authState";
-
-// Defines links from react-router-dom.
-const linkImport = import("react-router-dom").then(m => ({ default: m.Link }));
-const Link = React.lazy(() => linkImport);
+import { alwaysPreventDefault } from "@/utils";
+import { Link } from "react-router-dom";
 
 // Defines the navigation menu import.
 const navMenu = import("@/shadcn/ui/navigation-menu");
@@ -69,7 +67,8 @@ const possibleRoutes: Route[] = [
         to: "/servers",
         name: "Servers",
         icon: <ServerIcon className="h-4 w-4 mr-2" />,
-        hasPermission: (permissions: string[]) =>
+        hasPermission: (permissions: string[], sudoPartition: boolean) =>
+            sudoPartition &&
             !!permissions.filter(x => {
                 return x === "*" || x.startsWith("servers:");
             }),
@@ -109,10 +108,10 @@ export default () => {
 
     // Return all of the items.
     return <header className="flex h-20 w-full items-center px-4 md:px-6">
+        <Link className="mr-6 hidden lg:flex items-center" to="/">
+            <span className="font-bold text-lg">RemixDB</span>
+        </Link>
         <React.Suspense>
-            <Link className="mr-6 hidden lg:flex items-center" to="/">
-                <span className="font-bold text-lg">RemixDB</span>
-            </Link>
             <NavigationMenu className="hidden lg:flex">
                 <NavigationMenuList>{menuItems}</NavigationMenuList>
             </NavigationMenu>
@@ -120,13 +119,7 @@ export default () => {
 
         <div className="ml-auto flex items-center gap-2">
             <span className="text-gray-600 dark:text-gray-400 mr-2">{username}</span>
-            <form
-                onSubmit={e => {
-                    e.preventDefault();
-                    logout();
-                    return false;
-                }}
-            >
+            <form onSubmit={alwaysPreventDefault(logout)}>
                 <Button type="outline">Logout</Button>
             </form>
         </div>

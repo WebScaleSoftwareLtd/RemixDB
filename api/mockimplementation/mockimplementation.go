@@ -4,6 +4,7 @@
 package mockimplementation
 
 import (
+	"encoding/json"
 	"os"
 	"regexp"
 	"runtime"
@@ -135,10 +136,19 @@ func (i *impl) GetSelfUserV1(ctx api.RequestCtx) (api.User, error) {
 	}
 
 	return api.User{
-		SudoPartition: os.Getenv("MOCK_PARTITION_STATE") != "nonsudo",
+		SudoPartition: !i.isNonSudo(),
 		Username:      username,
 		Permissions:   permissions,
 	}, nil
+}
+
+func (i *impl) isNonSudo() bool {
+	loaded := atomic.LoadUintptr(&i.partitionSetup)
+	if loaded != 0 {
+		return loaded == 1
+	}
+
+	return os.Getenv("MOCK_PARTITION_STATE") == "nonsudo"
 }
 
 func (i *impl) GetMetricsV1(ctx api.RequestCtx) (api.MetricsV1, error) {
@@ -147,7 +157,7 @@ func (i *impl) GetMetricsV1(ctx api.RequestCtx) (api.MetricsV1, error) {
 		return api.MetricsV1{}, err
 	}
 
-	if os.Getenv("MOCK_PARTITION_STATE") == "nonsudo" {
+	if i.isNonSudo() {
 		return api.MetricsV1{}, api.APIError{
 			StatusCode: 400,
 			Code:       "sudo_required",
@@ -167,6 +177,64 @@ func (i *impl) GetMetricsV1(ctx api.RequestCtx) (api.MetricsV1, error) {
 		Goroutines:   runtime.NumGoroutine(),
 		GCS:          int(gcStats.NumGC),
 	}, nil
+}
+
+func (i *impl) GetPartitionCreatedStateV1(ctx api.RequestCtx) (bool, error) {
+	if os.Getenv("MOCK_PARTITION_STATE") == "setup_required" &&
+		atomic.LoadUintptr(&i.partitionSetup) == 0 {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (i *impl) CreatePartitionV1(ctx api.RequestCtx) (string, error) {
+	// Get the body.
+	var body api.CreatePartitionV1Body
+	if err := json.Unmarshal(ctx.GetRequestBody(), &body); err != nil {
+		return "", api.APIError{
+			StatusCode: 400,
+			Code:       "invalid_body",
+			Message:    "The body is invalid.",
+		}
+	}
+
+	// Handle if we are pretending to be a partition that is already setup.
+	if atomic.LoadUintptr(&i.partitionSetup) != 0 {
+		return "", api.APIError{
+			StatusCode: 400,
+			Code:       "partition_already_exists",
+			Message:    "The partition already exists.",
+		}
+	}
+
+	// Handle if the sudo key is invalid.
+	if body.SudoAPIKey != "sudo" {
+		return "", api.APIError{
+			StatusCode: 400,
+			Code:       "invalid_sudo_key",
+			Message:    "The sudo key is invalid.",
+		}
+	}
+
+	// Handle if the username is invalid.
+	if body.Username != "username" {
+		return "", api.APIError{
+			StatusCode: 400,
+			Code:       "invalid_username",
+			Message:    "The username is invalid.",
+		}
+	}
+
+	// Do the atomic operation.
+	val := uintptr(1)
+	if body.SudoPartition {
+		val = 2
+	}
+	atomic.CompareAndSwapUintptr(&i.partitionSetup, 0, val)
+
+	// Return no errors.
+	return "*", nil
 }
 
 // New returns a new mock implementation.

@@ -23,6 +23,8 @@ func (s Server) mapRoutes(router any) {
 	doMapping(d, "GET", "/api/v1/info", s.impl.GetServerInfoV1)
 	doMapping(d, "GET", "/api/v1/metrics", s.impl.GetMetricsV1)
 	doMapping(d, "GET", "/api/v1/user", s.impl.GetSelfUserV1)
+	doMapping(d, "GET", "/api/v1/partition/created", s.impl.GetPartitionCreatedStateV1)
+	doMapping(d, "POST", "/api/v1/partition/create", s.impl.CreatePartitionV1)
 }
 
 // Defines the regex to get all the {params} from a route.

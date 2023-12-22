@@ -21,3 +21,12 @@ jobs:
           cd frontend
           npm ci
           npm run build:prod
+
+      - name: Build binary for all platforms with Bash
+        run: ./go_build_all.sh
+
+      - name: Store binaries as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: bin/

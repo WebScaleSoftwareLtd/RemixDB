@@ -18,6 +18,7 @@ do
 		output_name+='.exe'
 	fi	
 
+	echo 'Building for '$GOOS'/'$GOARCH'...'
 	env GOOS=$GOOS GOARCH=$GOARCH go build -o ./bin/$output_name ./cmd/mockserver
 	if [ $? -ne 0 ]; then
    		echo 'An error has occurred! Aborting the script execution...'

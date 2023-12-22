@@ -58,7 +58,7 @@ var _ engine.Session = &SessionMock{}
 //			RollbackFunc: func() error {
 //				panic("mock out the Rollback method")
 //			},
-//			StructTombstonesFunc: func() (map[string][]*ast.StructToken, error) {
+//			StructTombstonesFunc: func() (map[string]string, []*ast.StructToken, error) {
 //				panic("mock out the StructTombstones method")
 //			},
 //			StructsFunc: func() ([]*ast.StructToken, error) {
@@ -114,7 +114,7 @@ type SessionMock struct {
 	RollbackFunc func() error
 
 	// StructTombstonesFunc mocks the StructTombstones method.
-	StructTombstonesFunc func() (map[string][]*ast.StructToken, error)
+	StructTombstonesFunc func() (map[string]string, []*ast.StructToken, error)
 
 	// StructsFunc mocks the Structs method.
 	StructsFunc func() ([]*ast.StructToken, error)
@@ -625,7 +625,7 @@ func (mock *SessionMock) RollbackCalls() []struct {
 }
 
 // StructTombstones calls StructTombstonesFunc.
-func (mock *SessionMock) StructTombstones() (map[string][]*ast.StructToken, error) {
+func (mock *SessionMock) StructTombstones() (map[string]string, []*ast.StructToken, error) {
 	if mock.StructTombstonesFunc == nil {
 		panic("SessionMock.StructTombstonesFunc: method is nil but Session.StructTombstones was just called")
 	}

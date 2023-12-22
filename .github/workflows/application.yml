@@ -30,3 +30,10 @@ jobs:
         with:
           name: remixdb-linux-amd64
           path: bin/remixdb-linux-amd64
+
+  docker-dry-run:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build .

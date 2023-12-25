@@ -19,8 +19,19 @@ jobs:
           go-version: 1.21.4
       - run: go vet ./...
 
-  test:
+  linux-test:
     runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version: 1.21.4
+      - run: go mod download
+      - run: go run ./internal/cmd/pretestsetup
+      - run: go test -v -race ./...
+
+  macos-test:
+    runs-on: macos-12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v4

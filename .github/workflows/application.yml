@@ -7,8 +7,10 @@ jobs:
         include:
           - os: ubuntu
             version: 22.04
+            goos: linux
           - os: macOS
             version: 12
+            goos: darwin
     runs-on: ${{ matrix.os }}-${{ matrix.version }}
     steps:
       - uses: actions/checkout@v4
@@ -30,28 +32,28 @@ jobs:
           npm run build:prod
 
       - name: Build binary for amd64
-        run: go build -o bin/remixdb-${{ matrix.os }}-amd64 ./cmd/remixdb
+        run: go build -o bin/remixdb-${{ matrix.goos }}-amd64 ./cmd/remixdb
         env:
-          GOOS: ${{ matrix.os }}
+          GOOS: ${{ matrix.goos }}
           GOARCH: amd64
 
       - name: Build binary for arm64
-        run: go build -o bin/remixdb-${{ matrix.os }}-arm64 ./cmd/remixdb
+        run: go build -o bin/remixdb-${{ matrix.goos }}-arm64 ./cmd/remixdb
         env:
-          GOOS: ${{ matrix.os }}
+          GOOS: ${{ matrix.goos }}
           GOARCH: arm64
 
       - name: Upload amd64 binary
         uses: actions/upload-artifact@v4
         with:
-          name: remixdb-${{ matrix.os }}-amd64
-          path: bin/remixdb-${{ matrix.os }}-amd64
+          name: remixdb-${{ matrix.goos }}-amd64
+          path: bin/remixdb-${{ matrix.goos }}-amd64
 
       - name: Upload arm64 binary
         uses: actions/upload-artifact@v4
         with:
-          name: remixdb-${{ matrix.os }}-arm64
-          path: bin/remixdb-${{ matrix.os }}-arm64
+          name: remixdb-${{ matrix.goos }}-arm64
+          path: bin/remixdb-${{ matrix.goos }}-arm64
 
   # Huge shoutout to https://github.com/orgs/community/discussions/26723#discussioncomment-3253091
   # for the docker buildx caching solution.

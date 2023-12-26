@@ -28,6 +28,10 @@ def main() -> None:
     # Get the folders in the folder this script is in.
     files = os.listdir(script_dir)
     for f in files:
+        if f.startswith("_"):
+            # Skip files starting with an underscore.
+            continue
+
         folder_join = os.path.join(script_dir, f)
         if not os.path.isdir(folder_join):
             # Skip non-folders.

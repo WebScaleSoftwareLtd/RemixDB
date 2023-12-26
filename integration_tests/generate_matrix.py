@@ -13,6 +13,11 @@ def _validate_versions(versions) -> list[str]:
             raise ValueError("versions contains a non-string")
     return versions
 
+def _pipe_to_env_file_path(pipe: str, data: str) -> None:
+    """Pipe data to a file path in the environment."""
+    with open(os.environ[pipe], "w") as f:
+        f.write(data)
+
 def main() -> None:
     # Get the folder this script is in.
     script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -48,7 +53,7 @@ def main() -> None:
             includes.append({"version": v, "name": f})
 
     # Output the matrix so GitHub Actions can use it.
-    print(f"::set-output name=matrix::{json.dumps({'include': includes})}")
+    _pipe_to_env_file_path("GITHUB_OUTPUT", f"matrix={json.dumps({'include': includes})}")
 
 if __name__ == "__main__":
     main()

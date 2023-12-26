@@ -12,7 +12,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
-	"remixdb.io/internal/ast"
+	"remixdb.io/ast"
 	"remixdb.io/internal/utils"
 )
 

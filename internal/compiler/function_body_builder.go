@@ -8,7 +8,7 @@ import (
 	"go/token"
 	"regexp"
 
-	"remixdb.io/internal/ast"
+	"remixdb.io/ast"
 	"remixdb.io/internal/engine"
 )
 

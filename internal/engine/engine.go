@@ -6,7 +6,7 @@ package engine
 import (
 	"errors"
 
-	"remixdb.io/internal/ast"
+	"remixdb.io/ast"
 )
 
 // ErrNotExists is used to define the error when the key does not exist.

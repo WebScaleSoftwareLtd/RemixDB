@@ -4,7 +4,7 @@
 package mocksession
 
 import (
-	"remixdb.io/internal/ast"
+	"remixdb.io/ast"
 	"remixdb.io/internal/engine"
 	"sync"
 )

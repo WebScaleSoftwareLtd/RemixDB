@@ -11,7 +11,7 @@ import (
 
 	"github.com/jimeh/go-golden"
 	"github.com/stretchr/testify/assert"
-	"remixdb.io/internal/ast"
+	"remixdb.io/ast"
 	"remixdb.io/internal/compiler/mocksession"
 )
 

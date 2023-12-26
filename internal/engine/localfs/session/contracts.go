@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/vmihailenco/msgpack/v5"
-	"remixdb.io/internal/ast"
+	"remixdb.io/ast"
 	"remixdb.io/internal/engine"
 )
 

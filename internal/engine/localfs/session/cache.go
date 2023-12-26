@@ -6,7 +6,7 @@ package session
 import (
 	"sync"
 
-	"remixdb.io/internal/ast"
+	"remixdb.io/ast"
 	"remixdb.io/internal/utils"
 )
 

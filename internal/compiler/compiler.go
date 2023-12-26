@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/fatih/semgroup"
-	"remixdb.io/internal/ast"
+	"remixdb.io/ast"
 	"remixdb.io/internal/engine"
 	"remixdb.io/internal/goplugin"
 )

@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/davecgh/go-spew/spew"
-	"remixdb.io/internal/ast"
+	"remixdb.io/ast"
 )
 
 func main() {

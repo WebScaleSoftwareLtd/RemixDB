@@ -6,9 +6,9 @@ package main
 import (
 	"runtime"
 
-	"remixdb.io/goplugin"
-	"remixdb.io/logger"
-	"remixdb.io/utils"
+	"remixdb.io/internal/goplugin"
+	"remixdb.io/internal/logger"
+	"remixdb.io/internal/utils"
 )
 
 func nonWindowsSetup(logger logger.Logger) {

@@ -4,11 +4,11 @@
 package main
 
 import (
-	"remixdb.io/api"
-	"remixdb.io/api/mockimplementation"
-	"remixdb.io/errhandler"
-	"remixdb.io/logger"
-	"remixdb.io/webserver"
+	"remixdb.io/internal/api"
+	"remixdb.io/internal/api/mockimplementation"
+	"remixdb.io/internal/errhandler"
+	"remixdb.io/internal/logger"
+	"remixdb.io/internal/webserver"
 )
 
 func main() {

@@ -110,6 +110,7 @@ jobs:
   integration-tests:
     needs: generate-integration-tests
     strategy:
+      max-parallel: 5
       matrix: ${{ fromJson(needs.generate-integration-tests.outputs.matrix) }}
     runs-on: ubuntu-22.04
     name: Run integration tests (${{ matrix.name }}@${{ matrix.version }})

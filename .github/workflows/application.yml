@@ -1,8 +1,15 @@
 name: Application
 on: [push, pull_request]
 jobs:
-  linux-build:
-    runs-on: ubuntu-22.04
+  binary-build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu
+            version: 22.04
+          - os: macOS
+            version: 12
+    runs-on: ${{ matrix.os }}-${{ matrix.version }}
     steps:
       - uses: actions/checkout@v4
       - name: Read .nvmrc
@@ -22,14 +29,29 @@ jobs:
           npm ci
           npm run build:prod
 
-      - name: Build binary
-        run: go build -o bin/remixdb-linux-amd64 ./cmd/remixdb
+      - name: Build binary for amd64
+        run: go build -o bin/remixdb-${{ matrix.os }}-amd64 ./cmd/remixdb
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: amd64
 
-      - name: Upload binary
+      - name: Build binary for arm64
+        run: go build -o bin/remixdb-${{ matrix.os }}-arm64 ./cmd/remixdb
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: arm64
+
+      - name: Upload amd64 binary
         uses: actions/upload-artifact@v4
         with:
-          name: remixdb-linux-amd64
-          path: bin/remixdb-linux-amd64
+          name: remixdb-${{ matrix.os }}-amd64
+          path: bin/remixdb-${{ matrix.os }}-amd64
+
+      - name: Upload arm64 binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: remixdb-${{ matrix.os }}-arm64
+          path: bin/remixdb-${{ matrix.os }}-arm64
 
   # Huge shoutout to https://github.com/orgs/community/discussions/26723#discussioncomment-3253091
   # for the docker buildx caching solution.
@@ -37,8 +59,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: Setup QEMU
-        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         id: buildx
@@ -71,3 +91,51 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+  generate-integration-tests:
+    runs-on: ubuntu-22.04
+    needs: docker-integration-test-build
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+      - run: python integration_tests/generate_matrix.py
+        id: matrix
+
+  integration-tests:
+    needs: generate-integration-tests
+    strategy:
+      matrix: ${{ fromJson(needs.generate-integration-tests.outputs.matrix) }}
+    runs-on: ubuntu-22.04
+    name: Run integration tests (${{ matrix.name }}@${{ matrix.version }})
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Download Docker image
+        uses: actions/download-artifact@v2
+        with:
+          name: remixdb-image
+          path: /tmp
+      - name: Load Docker image
+        run: docker load -i /tmp/remixdb-image.tar
+      - uses: actions/cache@v3
+        with:
+          path: /tmp/integration-testing
+          key: ${{ matrix.name }}-${{ matrix.version }}-cache-${{ github.sha }}
+          restore-keys: |
+            ${{ matrix.name }}-${{ matrix.version }}-cache-
+      # TODO: Start remixdb
+      - name: Run setup script
+        run: |
+          cd integration_tests/${{ matrix.name }}
+          ./setup.sh
+        env:
+          VERSION: ${{ matrix.version }}
+      - name: Run integration tests
+        run: |
+          cd integration_tests/${{ matrix.name }}
+          ./run.sh

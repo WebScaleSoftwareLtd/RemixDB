@@ -132,13 +132,9 @@ jobs:
           restore-keys: |
             ${{ matrix.name }}-${{ matrix.version }}-cache-
       # TODO: Start remixdb
-      - name: Run setup script
-        run: |
-          cd integration_tests/${{ matrix.name }}
-          ./setup.sh
-        env:
-          VERSION: ${{ matrix.version }}
       - name: Run integration tests
         run: |
           cd integration_tests/${{ matrix.name }}
           ./run.sh
+        env:
+          VERSION: ${{ matrix.version }}

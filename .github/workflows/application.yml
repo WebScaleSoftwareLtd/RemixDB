@@ -87,7 +87,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: remixdb-image
+          name: dockerimage
           path: /tmp/remixdb-image.tar
       - name: Move cache
         run: |
@@ -120,7 +120,7 @@ jobs:
       - name: Download Docker image
         uses: actions/download-artifact@v2
         with:
-          name: remixdb-image
+          name: dockerimage
           path: /tmp
       - name: Load Docker image
         run: docker load -i /tmp/remixdb-image.tar

@@ -64,7 +64,11 @@ export default defineConfig({
 
     /* Run your local dev server before starting the tests */
     webServer: {
-        command: "env PORT=6969 npm run dev",
+        command: "npm run dev",
+        env: {
+            PORT: "6969",
+        },
+        stdout: "pipe",
         url: "http://127.0.0.1:6969",
         reuseExistingServer: !process.env.CI,
     },

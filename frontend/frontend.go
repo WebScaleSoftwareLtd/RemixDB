@@ -6,6 +6,7 @@ package frontend
 import (
 	"embed"
 	"encoding/json"
+	"sort"
 )
 
 // Dist is the frontend distribution.
@@ -31,4 +32,5 @@ func init() {
 		Routes[i] = k
 		i++
 	}
+	sort.Strings(Routes)
 }

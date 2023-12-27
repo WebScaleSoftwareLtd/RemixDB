@@ -3,5 +3,6 @@ coverage.out
 bin
 .idea
 frontend/node_modules
+frontend/playwright-report
 frontend/dist/*
 !frontend/dist/MAKE_GO_NOT_ERROR

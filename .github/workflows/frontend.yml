@@ -13,3 +13,25 @@ jobs:
         with:
           node-version: "${{ steps.nvmrc.outputs.NVMRC }}"
       - run: cd frontend && npm ci && npm run lint
+
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read .nvmrc
+        run: NVMRC=$(cat frontend/.nvmrc)
+        id: nvmrc
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "${{ steps.nvmrc.outputs.NVMRC }}"
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Run tests
+        run: cd frontend && npm ci && npm run test
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 30

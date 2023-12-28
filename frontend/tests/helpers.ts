@@ -1,7 +1,7 @@
 // RemixDB. Copyright (C) 2023 Web Scale Software Ltd.
 // Author: Astrid Gealer <astrid@gealer.email>
 
-import { Page, expect, test } from "@playwright/test";
+import { Page, test } from "@playwright/test";
 
 export const screenshotErrors = () => {
     test.afterEach(async ({ page }, testInfo) => {

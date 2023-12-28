@@ -46,7 +46,11 @@ const Login = () => {
                 <Alert type="danger">{pageState}</Alert>
             </div>}
 
-            <form className="space-y-4" onSubmit={alwaysPreventDefault(handleLogin)}>
+            <form
+                className="space-y-4"
+                onSubmit={alwaysPreventDefault(handleLogin)}
+                data-login-form
+            >
                 <Textbox
                     title="API Key"
                     value={apiKey}

@@ -14,6 +14,6 @@ export default defineConfig({
         },
     },
     server: {
-        port: parseInt(process.env.PORT) || 6969,
+        port: parseInt(process.env.PORT) || undefined,
     },
 });

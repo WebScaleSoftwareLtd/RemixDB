@@ -283,7 +283,7 @@ test.describe("authentication wrapper", () => {
         test("handles successful login", async () => {
             // Setup the page creation route.
             await page.route("/api/v1/user", route => {
-                // Handle making sure both api_key and username are correct.
+                // Handle making sure the API key is correct.
                 const headers = route.request().headers();
                 expect(headers.authorization).toBe("Bearer test-api-key");
 

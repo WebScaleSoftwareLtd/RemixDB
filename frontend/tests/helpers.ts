@@ -41,7 +41,7 @@ export const initTest = async (config: TestInitConfig) => {
     // Go to the page.
     await config.page.goto(config.path);
 
-    // Wait a few milliseconds.
+    // Wait for the API key input selector.
     const input = await config.page.waitForSelector(
         "input[placeholder='Enter your API key']"
     );

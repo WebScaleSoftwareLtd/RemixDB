@@ -108,10 +108,17 @@ test.describe("authentication wrapper", () => {
                     });
                 });
 
+            // As a hack since it will be re-rendered anyway, delete the bg-red-500 div.
+            await page.evaluate(() => {
+                document.querySelector("div.bg-red-500")?.remove();
+            });
+
             // Make sure it is by default false.
             validateSudoState(false);
             await page.click("button");
-            await page.waitForTimeout(20);
+
+            // Wait for the selector.
+            await page.waitForSelector("div.bg-red-500");
 
             // Check the checkbox.
             await page.check("input[type='checkbox']");
@@ -292,7 +299,7 @@ test.describe("authentication wrapper", () => {
                     json: {
                         username: "test-username",
                         sudo_partition: false,
-                        permissions: [],
+                        permissions: ["*"],
                     },
                 });
             });
@@ -300,8 +307,8 @@ test.describe("authentication wrapper", () => {
             // Click the button.
             await page.click("button");
 
-            // Wait a couple hundred milliseconds.
-            await page.waitForTimeout(200);
+            // Wait for the navbar to be imported.
+            await page.waitForSelector("[data-navbar]");
 
             // Check if test-username is in the page.
             expect(await page.textContent("body")).toContain("test-username");
@@ -331,6 +338,9 @@ test.describe("authentication wrapper", () => {
 
         // Wait for the login form.
         await page.waitForSelector("form[data-login-form]");
+
+        // Wait a few millis. This might flake, but hopefully less than chrome does typically.
+        await page.waitForTimeout(300);
 
         // Expect us to be back on the login page.
         expect(await page.$$eval("h2", els => els.length)).toBe(1);

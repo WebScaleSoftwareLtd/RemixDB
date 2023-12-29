@@ -5,6 +5,7 @@
     "scripts": {
         "postinstall": "patch-package",
         "dev": "vite",
+        "preview:test": "npm run build:prod && vite preview --port 6969",
         "build:prod": "(vite build || (touch dist/MAKE_GO_NOT_ERROR && exit 1)) && touch dist/MAKE_GO_NOT_ERROR",
         "lint": "prettier --check ./src && eslint --ext .js,.jsx,.ts,.tsx ./src",
         "lint:fix": "prettier --write ./src && eslint --ext .js,.jsx,.ts,.tsx ./src --fix",

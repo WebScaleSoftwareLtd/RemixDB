@@ -32,36 +32,36 @@ const possibleRoutes: Route[] = [
         name: "Users",
         icon: <UsersIcon className="h-4 w-4 mr-2" />,
         hasPermission: (permissions: string[]) =>
-            !!permissions.filter(x => {
+            permissions.find(x => {
                 return x === "*" || x.startsWith("users:");
-            }),
+            }) !== undefined,
     },
     {
         to: "/contracts",
         name: "Contracts",
         icon: <FunctionSquareIcon className="h-4 w-4 mr-2" />,
         hasPermission: (permissions: string[]) =>
-            !!permissions.filter(x => {
+            permissions.find(x => {
                 return x === "*" || x.startsWith("contracts:");
-            }),
+            }) !== undefined,
     },
     {
         to: "/migrations",
         name: "Migrations",
         icon: <MoveIcon className="h-4 w-4 mr-2" />,
         hasPermission: (permissions: string[]) =>
-            !!permissions.filter(x => {
+            permissions.find(x => {
                 return x === "*" || x.startsWith("migrations:");
-            }),
+            }) !== undefined,
     },
     {
         to: "/structures",
         name: "Structures",
         icon: <BuildingIcon className="h-4 w-4 mr-2" />,
         hasPermission: (permissions: string[]) =>
-            !!permissions.filter(x => {
+            permissions.find(x => {
                 return x === "*" || x.startsWith("structs:");
-            }),
+            }) !== undefined,
     },
     {
         to: "/servers",
@@ -69,9 +69,9 @@ const possibleRoutes: Route[] = [
         icon: <ServerIcon className="h-4 w-4 mr-2" />,
         hasPermission: (permissions: string[], sudoPartition: boolean) =>
             sudoPartition &&
-            !!permissions.filter(x => {
+            permissions.find(x => {
                 return x === "*" || x.startsWith("servers:");
-            }),
+            }) !== undefined,
     },
 ];
 

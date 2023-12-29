@@ -300,8 +300,8 @@ test.describe("authentication wrapper", () => {
             // Click the button.
             await page.click("button");
 
-            // Wait a few milliseconds.
-            await page.waitForTimeout(300);
+            // Wait a couple hundred milliseconds.
+            await page.waitForTimeout(200);
 
             // Check if test-username is in the page.
             expect(await page.textContent("body")).toContain("test-username");
@@ -326,6 +326,7 @@ test.describe("authentication wrapper", () => {
             path: "/",
             permissions: ["*"],
             sudoPartition: true,
+            skipWait: true,
         });
 
         // Wait for the login form.

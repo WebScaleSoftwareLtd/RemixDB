@@ -29,6 +29,7 @@ export type TestInitConfig = {
     permissions: string[];
     sudoPartition: boolean;
     username?: string;
+    skipWait?: boolean;
 };
 
 export const initTest = async (config: TestInitConfig) => {
@@ -62,6 +63,6 @@ export const initTest = async (config: TestInitConfig) => {
     // Click the login button.
     await config.page.click("button");
 
-    // Wait a few milliseconds.
-    await config.page.waitForTimeout(50);
+    // Wait for the header to appear.
+    if (!config.skipWait) await config.page.waitForSelector("header");
 };

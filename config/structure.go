@@ -12,6 +12,12 @@ type PathConfig struct {
 	GoPlugin string `yaml:"go_plugin" env:"REMIXDB_GOPLUGIN_PATH,overwrite"`
 }
 
+// DatabaseConfig is used to define the database configuration structure.
+type DatabaseConfig struct {
+	// PartitionsEnabled defines if partitions are enabled.
+	PartitionsEnabled bool `yaml:"partitions_enabled" env:"PARTITIONS_ENABLED,overwrite"`
+}
+
 // ServerConfig is used to define the server configuration structure.
 type ServerConfig struct {
 	// SSLCertFile defines the SSL certificate file.
@@ -25,6 +31,9 @@ type ServerConfig struct {
 
 	// Host defines the host to listen on.
 	Host string `yaml:"host" env:"HOST,overwrite"`
+
+	// XForwardedHost defines if the X-Forwarded-Host header should be used.
+	XForwardedHost bool `yaml:"x_forwarded_host" env:"X_FORWARDED_HOST,overwrite"`
 }
 
 // Config is used to define the main configuration structure.
@@ -34,6 +43,9 @@ type Config struct {
 
 	// Path defines the path configuration.
 	Path *PathConfig `yaml:"path"`
+
+	// Database defines the database configuration.
+	Database *DatabaseConfig `yaml:"database"`
 
 	// Server defines the server configuration.
 	Server *ServerConfig `yaml:"server"`

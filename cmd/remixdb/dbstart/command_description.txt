@@ -6,10 +6,12 @@ The following environment variables will override YAML values:
 
 - REMIXDB_DATA_PATH: Defines the path where the RemixDB database information is located. The contents of this folder should not be edited. Defaults to ~/.remixdb/data if path.data is not set in the YAML.
 - REMIXDB_GOPLUGIN_PATH: Defines where the created Go plugins for database contracts and the specific Go toolchain that we are using is. Defaults to ~/.remixdb/goplugin if path.go_plugins is not set in the YAML.
+- PARTITIONS_ENABLED: Defines if partitions are enabled. Note that changing this does mean that you will not be able to access partition data if going true -> false or that you will not be able to access non-partition data if going false -> true. Defaults to false if database.partitions_enabled is not set in the YAML.
 - SSL_CERT_FILE: Defines the certificate file for SSL. Note that this also requires the key file to be set. When this is set, the web server changes to net/http since HTTP/2 is more commonly supported over SSL. Overrides server.ssl_cert_file in the YAML.
 - SSL_KEY_FILE: Defines the key file for SSL. Note that this also requires the certificate file to be set. When this is set, the web server changes to net/http since HTTP/2 is more commonly supported over SSL. Overrides server.ssl_key_file in the YAML.
 - H2C_ENABLED: Defines if H2C should be enabled for the server. Ignored if SSL options are set, and if not changes the underlying web server from fasthttp to net/http and turns on H2C. Overrides server.h2c in the YAML.
 - HOST: Defines the host that RemixDB runs on. Defaults to 0.0.0.0:23452 if server.host is not set in the YAML.
+- X_FORWARDED_HOST: Defines if X-Forwarded-Host should be listened to. Defaults to false if server.x_forwarded_host is not set.
 - DEBUG: Defines if debug logging is visible.
 
 TODO in this: sharding

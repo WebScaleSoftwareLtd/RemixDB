@@ -18,6 +18,14 @@ path:
   # following line and change the value.
   # goplugin: ~/.remixdb/goplugin
 
+# Defines the configuration for the database.
+database:
+  # Defines if partitions are enabled. Note that changing this does mean that
+  # you will not be able to access partition data if going true -> false or that
+  # you will not be able to access non-partition data if going false -> true.
+  # This can be overridden by the PARTITIONS_ENABLED environment variable.
+  partitions_enabled: false
+
 # Defines the configuration for the web server.
 server:
   # Defines the SSL configuration for the RemixDB server. If this is set, both the key
@@ -35,3 +43,9 @@ server:
   # Defines the address that the RemixDB server will listen on. This can be overridden
   # by the HOST environment variable.
   host: "0.0.0.0:23452"
+
+  # Defines if the server should listen to X-Forwarded-Host headers. This is a security
+  # risk if the server is not behind a reverse proxy, but if it is might be required
+  # for partitions to work correctly. This can be overridden by the X_FORWARDED_HOST
+  # environment variable.
+  x_forwarded_host: false

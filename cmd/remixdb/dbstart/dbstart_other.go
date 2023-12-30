@@ -71,22 +71,18 @@ func Start(_ *cli.Context) error {
 	pluginCompiler := goplugin.NewGoPluginCompiler(logger, config.Path.GoPlugin)
 
 	// Setup the error handler.
-	errHandler := errhandler.Handler{
-		Logger: logger,
-	}
+	errHandler := errhandler.Handler{Logger: logger}
 
 	// Setup the compiler.
-	compiler := &compiler.Compiler{
-		GoPluginCompiler: pluginCompiler,
-	}
-
-	// Setup the API implementation.
-	// TODO: make this the actual API implementation
-	apiImpl := mockimplementation.New()
+	compiler := &compiler.Compiler{GoPluginCompiler: pluginCompiler}
 
 	// Setup the engine.
 	// TODO: make this switch to the sharded version
 	engine := localfs.New(logger, config.Path.Data)
+
+	// Setup the API implementation.
+	// TODO: make this the actual API implementation
+	apiImpl := mockimplementation.New()
 
 	// Setup the API server.
 	apiServer := api.NewServer(apiImpl, errHandler)
@@ -94,8 +90,8 @@ func Start(_ *cli.Context) error {
 	// Setup the RPC server.
 	rpcServer := &rpc.Server{
 		ErrorHandler:           errHandler,
-		ListenToXForwardedHost: false, // TODO
-		PartitionsEnabled:      false, // TODO
+		ListenToXForwardedHost: config.Server.XForwardedHost,
+		PartitionsEnabled:      config.Database.PartitionsEnabled,
 		GetPartitionHandler: (requesthandler.Handler{
 			Engine:   engine,
 			Compiler: compiler,

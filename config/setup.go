@@ -32,6 +32,9 @@ func Setup(configPath string) (Config, error) {
 	if config.Server == nil {
 		config.Server = &ServerConfig{}
 	}
+	if config.Database == nil {
+		config.Database = &DatabaseConfig{}
+	}
 
 	// Process the environment variables.
 	if err = envconfig.Process(context.Background(), &config); err != nil {

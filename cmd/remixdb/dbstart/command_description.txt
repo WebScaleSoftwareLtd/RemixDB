@@ -1,0 +1,15 @@
+Starts the RemixDB database with values from the YAML configuration or environment variables. Not supported on Windows.
+
+The RemixDB configuration YAML file is created by default at ~/.remixdb/config.yml, but will be created at the file path supplied by REMIXDB_CONFIG_PATH if that is present.
+
+The following environment variables will override YAML values:
+
+- REMIXDB_DATA_PATH: Defines the path where the RemixDB database information is located. The contents of this folder should not be edited. Defaults to ~/.remixdb/data if path.data is not set in the YAML.
+- REMIXDB_GOPLUGIN_PATH: Defines where the created Go plugins for database contracts and the specific Go toolchain that we are using is. Defaults to ~/.remixdb/goplugin if path.go_plugins is not set in the YAML.
+- SSL_CERT_FILE: Defines the certificate file for SSL. Note that this also requires the key file to be set. When this is set, the web server changes to net/http since HTTP/2 is more commonly supported over SSL. Overrides server.ssl_cert_file in the YAML.
+- SSL_KEY_FILE: Defines the key file for SSL. Note that this also requires the certificate file to be set. When this is set, the web server changes to net/http since HTTP/2 is more commonly supported over SSL. Overrides server.ssl_key_file in the YAML.
+- H2C_ENABLED: Defines if H2C should be enabled for the server. Ignored if SSL options are set, and if not changes the underlying web server from fasthttp to net/http and turns on H2C. Overrides server.h2c in the YAML.
+- HOST: Defines the host that RemixDB runs on. Defaults to 0.0.0.0:23452 if server.host is not set in the YAML.
+- DEBUG: Defines if debug logging is visible.
+
+TODO in this: sharding

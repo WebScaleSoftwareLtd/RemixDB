@@ -118,7 +118,7 @@ var _ ClientRequirements = &clientRequirements{}
 func NewClientRequirements(path string, engine engine.Engine) (ClientRequirements, error) {
 	// Handles the default path.
 	if path == "" {
-		path = os.Getenv("REMIXDB_PATH")
+		path = os.Getenv("REMIXDB_DATA_PATH")
 		if path == "" {
 			homedir, err := os.UserHomeDir()
 			if err != nil {

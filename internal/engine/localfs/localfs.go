@@ -64,7 +64,7 @@ func (e *Engine) CreateSchemaWriteSession(partition string) (engine.Session, err
 
 var _ engine.Engine = (*Engine)(nil)
 
-// New is used to create a new engine. If path is empty, the environment variable REMIXDB_PATH is used or
+// New is used to create a new engine. If path is empty, the environment variable REMIXDB_DATA_PATH is used or
 // ~/.remixdb/data if it is not set.
 func New(logger logger.Logger, path string) engine.Engine {
 	// Tag the logger.
@@ -72,7 +72,7 @@ func New(logger logger.Logger, path string) engine.Engine {
 
 	// Handles the default path.
 	if path == "" {
-		path = os.Getenv("REMIXDB_PATH")
+		path = os.Getenv("REMIXDB_DATA_PATH")
 		if path == "" {
 			homedir, err := os.UserHomeDir()
 			if err != nil {

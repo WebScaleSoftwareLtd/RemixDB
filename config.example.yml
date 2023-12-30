@@ -1,0 +1,37 @@
+# RemixDB Configuration
+# ---------------------
+# This file contains the configuration for the RemixDB application.
+
+# Defines if debug console logging is enabled. Overridden by the DEBUG environment variable.
+debug: false
+
+# Defines paths for RemixDB usage when it needs somewhere persistent on the filesystem.
+path:
+  # Overrides the path where RemixDB stores its data. By default, this is
+  # ~/.remixdb/data. This value is overridden by the REMIXDB_DATA_PATH
+  # environment variable. To adjust, uncomment the following line and change:
+  # data: ~/.remixdb/data
+
+  # Overrides the path where Go plugins and the Go toolchain are stored.
+  # By default, this is ~/.remixdb/goplugin. This value is overridden by the
+  # REMIXDB_GOPLUGIN_PATH environment variable. To adjust, uncomment the
+  # following line and change the value.
+  # goplugin: ~/.remixdb/goplugin
+
+# Defines the configuration for the web server.
+server:
+  # Defines the SSL configuration for the RemixDB server. If this is set, both the key
+  # and certificate must be provided. The server will switch to net/http mode. If this
+  # is not set, the server will run in HTTP mode. These can be overridden by the
+  # SSL_CERT_FILE and SSL_KEY_FILE environment variables respectively:
+  # ssl_cert_file: /path/to/cert.pem
+  # ssl_key_file: /path/to/key.pem
+
+  # Defines if H2C is turned on. When this is set, the server will manage plain text
+  # HTTP/2 connections and will be put into net/http mode. This can be overridden by
+  # the H2C_ENABLED environment variable.
+  h2c: false
+
+  # Defines the address that the RemixDB server will listen on. This can be overridden
+  # by the HOST environment variable.
+  host: "0.0.0.0:23452"

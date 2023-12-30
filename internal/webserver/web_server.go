@@ -6,13 +6,16 @@ package webserver
 import (
 	"net"
 
+	"remixdb.io/config"
 	"remixdb.io/internal/api"
+	"remixdb.io/internal/logger"
 	"remixdb.io/internal/rpc"
 )
 
 // WebServer is used to define a web server. Use NewWebServer to create a new instance.
 type WebServer struct {
-	conf Config
+	logger logger.Logger
+	conf   *config.ServerConfig
 
 	rpcServer *rpc.Server
 	apiServer api.Server
@@ -26,15 +29,18 @@ func (w *WebServer) Serve() error {
 		return err
 	}
 
+	// Log that we bound to the port.
+	w.logger.Info("Bound to "+w.conf.Host, nil)
+
 	// Handle if we should use fasthttp.
-	if w.conf.HTTPSOptions == nil && !w.conf.H2C {
+	if w.conf.SSLCertFile == "" && !w.conf.H2C {
 		return w.fasthttpServe(ln)
 	}
 
 	// Handle if we should use HTTPS.
-	if w.conf.HTTPSOptions != nil {
+	if w.conf.SSLCertFile != "" {
 		return w.netHttpServeTls(
-			ln, w.conf.HTTPSOptions.CertFile, w.conf.HTTPSOptions.KeyFile,
+			ln, w.conf.SSLCertFile, w.conf.SSLKeyFile,
 		)
 	}
 
@@ -42,11 +48,27 @@ func (w *WebServer) Serve() error {
 	return w.netHttpServeH2c(ln)
 }
 
+// WebServerConfig is used to define the web server configuration.
+type WebServerConfig struct {
+	// Logger is used to define the logger.
+	Logger logger.Logger
+
+	// Config is used to define the server configuration.
+	Config *config.ServerConfig
+
+	// RPCServer is used to define the RPC server.
+	RPCServer *rpc.Server
+
+	// APIServer is used to define the API server.
+	APIServer api.Server
+}
+
 // NewWebServer is used to create a new web server.
-func NewWebServer(conf Config, rpcServer *rpc.Server, apiServer api.Server) *WebServer {
+func NewWebServer(conf WebServerConfig) *WebServer {
 	return &WebServer{
-		conf:      conf,
-		rpcServer: rpcServer,
-		apiServer: apiServer,
+		logger:    conf.Logger.Tag("webserver"),
+		conf:      conf.Config,
+		rpcServer: conf.RPCServer,
+		apiServer: conf.APIServer,
 	}
 }

@@ -3,4 +3,18 @@
 
 package main
 
-func main() {}
+import (
+	"fmt"
+	"os"
+
+	"github.com/urfave/cli/v2"
+)
+
+var app cli.App
+
+func main() {
+	if err := app.Run(os.Args); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+}

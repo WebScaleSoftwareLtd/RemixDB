@@ -4,6 +4,7 @@
 package main
 
 import (
+	"remixdb.io/config"
 	"remixdb.io/internal/api"
 	"remixdb.io/internal/api/mockimplementation"
 	"remixdb.io/internal/errhandler"
@@ -16,15 +17,20 @@ func main() {
 	l := logger.NewStdLogger()
 
 	// Just serve locally on port 8080.
-	conf := webserver.Config{
+	conf := &config.ServerConfig{
 		Host: "127.0.0.1:8080",
 		H2C:  true,
 	}
-	ws := webserver.NewWebServer(conf, nil, api.NewServer(
-		mockimplementation.New(), errhandler.Handler{
-			Logger: l,
-		},
-	))
+	ws := webserver.NewWebServer(webserver.WebServerConfig{
+		Logger:    l,
+		Config:    conf,
+		RPCServer: nil,
+		APIServer: api.NewServer(
+			mockimplementation.New(), errhandler.Handler{
+				Logger: l,
+			},
+		),
+	})
 
 	// Start the web server.
 	if err := ws.Serve(); err != nil {

@@ -22,6 +22,7 @@ import (
 	"remixdb.io/internal/logger"
 	"remixdb.io/internal/rpc"
 	"remixdb.io/internal/rpc/requesthandler"
+	"remixdb.io/internal/utils"
 	"remixdb.io/internal/webserver"
 )
 
@@ -40,6 +41,9 @@ func getConfigPath() string {
 
 // Start is used to start the RemixDB database.
 func Start(_ *cli.Context) error {
+	// Make sure we are the only instance running.
+	utils.EnsureSingleInstance()
+
 	// Display the splash screen.
 	printSplashScreen()
 

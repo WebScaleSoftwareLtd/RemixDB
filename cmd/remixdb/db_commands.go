@@ -8,21 +8,40 @@ import (
 	"strings"
 
 	"github.com/urfave/cli/v2"
-	"remixdb.io/cmd/remixdb/dbstart"
+	"remixdb.io/cmd/remixdb/db/config"
+	"remixdb.io/cmd/remixdb/db/start"
 )
 
-//go:embed dbstart/command_description.txt
+//go:embed db/start/command_description.txt
 var dbStartDescription string
 
 var dbCommand = &cli.Command{
-	Name:        "db",
-	Description: "Commands relating to the management of a RemixDB database.",
+	Name:  "db",
+	Usage: "Commands relating to the management of a RemixDB database.",
 	Subcommands: []*cli.Command{
 		{
 			Name:        "start",
 			Usage:       "Starts the RemixDB database with values from the YAML configuration or environment variables. Not supported on Windows. See the description for more information.",
 			Description: strings.TrimSpace(dbStartDescription),
-			Action:      dbstart.Start,
+			Action:      start.Start,
+		},
+		{
+			Name:  "config",
+			Usage: "Commands relating to the configuration of the RemixDB database.",
+			Subcommands: []*cli.Command{
+				{
+					Name:   "edit",
+					Usage:  "Opens a UI to edit the configuration file.",
+					Action: config.Edit,
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:    "config-path",
+							Aliases: []string{"c"},
+							Usage:   "The path to the configuration file. Overrides the REMIXDB_CONFIG_PATH environment variable.",
+						},
+					},
+				},
+			},
 		},
 	},
 }

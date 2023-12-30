@@ -10,7 +10,10 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var app cli.App
+var app = cli.App{
+	Name:  "remixdb",
+	Usage: "A functional database for the modern web.",
+}
 
 func main() {
 	if err := app.Run(os.Args); err != nil {

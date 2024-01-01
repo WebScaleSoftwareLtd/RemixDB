@@ -38,6 +38,7 @@ jobs:
           if [ "${{ matrix.goos }}" = "windows" ]; then
             echo "SUFFIX=.exe" >> $GITHUB_ENV
           fi
+        shell: bash
 
       - name: Build binary for amd64
         run: go build -o bin/remixdb-${{ matrix.goos }}-amd64${{ steps.suffix.outputs.SUFFIX }} ./cmd/remixdb

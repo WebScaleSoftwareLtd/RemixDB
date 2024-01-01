@@ -52,32 +52,6 @@ const MetricsView = () => {
         <p>Here are the metrics in your cluster:</p>
 
         <Box large margin>
-            <Subtitle>CPU Usage</Subtitle>
-            <p>
-                This is the CPU usage of the cluster. It is the sum of the CPU usage of
-                all the nodes in the cluster.
-            </p>
-
-            <React.Suspense fallback={<Spinner />}>
-                <AreaChart
-                    className="h-72 mt-4"
-                    data={metrics.value.map(x => ({
-                        at: Intl.DateTimeFormat("en-GB", {
-                            hour: "numeric",
-                            minute: "numeric",
-                            second: "numeric",
-                        }).format(x.at),
-                        "CPU Usage": x.event.cpu_percent,
-                    }))}
-                    categories={["CPU Usage"]}
-                    valueFormatter={x => `${x.toFixed(2)}%`}
-                    colors={["red"]}
-                    index="at"
-                />
-            </React.Suspense>
-        </Box>
-
-        <Box large margin>
             <Subtitle>Memory Usage</Subtitle>
             <p>
                 This is the memory usage of the cluster. It is the sum of the memory usage

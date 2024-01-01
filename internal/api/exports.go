@@ -29,10 +29,9 @@ type User struct {
 
 // MetricsV1 is the metrics.
 type MetricsV1 struct {
-	CPUPercent   float64 `json:"cpu_percent"`
-	RAMMegabytes uint64  `json:"ram_mb"`
-	Goroutines   int     `json:"goroutines"`
-	GCS          int     `json:"gcs"`
+	RAMMegabytes uint64 `json:"ram_mb"`
+	Goroutines   int    `json:"goroutines"`
+	GCS          int    `json:"gcs"`
 }
 
 // CreatePartitionV1Body is the body for the CreatePartitionV1 endpoint.

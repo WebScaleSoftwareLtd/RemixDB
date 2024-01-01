@@ -9,7 +9,6 @@ export interface APIError {
 
 // Defines the response with metric information.
 export interface MetricsResponse {
-    cpu_percent: number;
     ram_mb: number;
     goroutines: number;
     gcs: number;

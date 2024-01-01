@@ -34,7 +34,13 @@ jobs:
 
       - name: Get the executable suffix
         id: suffix
-        run: 'node -e "console.log(process.platform === \"win32\" ? \".exe\" : \"\")"'
+        run: |
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            echo ".exe"
+          else
+            echo ""
+          fi
+        shell: bash
 
       - name: Build binary for amd64
         run: go build -o bin/remixdb-${{ matrix.goos }}-amd64${{ steps.suffix.outputs.stdout }} ./cmd/remixdb

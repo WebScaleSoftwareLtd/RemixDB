@@ -18,12 +18,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Read .nvmrc
-        run: 'powershell -Command "$Env:NVMRC = Get-Content .nvmrc"'
+        run: powershell -Command "Get-Content .nvmrc"
         id: nvmrc
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "${{ steps.nvmrc.outputs.NVMRC }}"
+          node-version: "${{ steps.nvmrc.outputs.stdout }}"
       - uses: actions/setup-go@v4
         with:
           go-version: 1.21.4

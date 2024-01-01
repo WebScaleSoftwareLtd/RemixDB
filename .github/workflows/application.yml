@@ -33,7 +33,6 @@ jobs:
           npm run build:prod
 
       - name: Get the executable suffix
-        id: suffix
         run: |
           if [ "${{ matrix.goos }}" = "windows" ]; then
             echo "SUFFIX=.exe" >> $GITHUB_ENV
@@ -41,13 +40,13 @@ jobs:
         shell: bash
 
       - name: Build binary for amd64
-        run: go build -o bin/remixdb-${{ matrix.goos }}-amd64${{ steps.suffix.outputs.SUFFIX }} ./cmd/remixdb
+        run: go build -o bin/remixdb-${{ matrix.goos }}-amd64${{ env.SUFFIX }} ./cmd/remixdb
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: amd64
 
       - name: Build binary for arm64
-        run: go build -o bin/remixdb-${{ matrix.goos }}-arm64${{ steps.suffix.outputs.SUFFIX }} ./cmd/remixdb
+        run: go build -o bin/remixdb-${{ matrix.goos }}-arm64${{ env.SUFFIX }} ./cmd/remixdb
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: arm64
@@ -56,13 +55,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: remixdb-${{ matrix.goos }}-amd64
-          path: bin/remixdb-${{ matrix.goos }}-amd64${{ steps.suffix.outputs.SUFFIX }}
+          path: bin/remixdb-${{ matrix.goos }}-amd64${{ env.SUFFIX }}
 
       - name: Upload arm64 binary
         uses: actions/upload-artifact@v4
         with:
           name: remixdb-${{ matrix.goos }}-arm64
-          path: bin/remixdb-${{ matrix.goos }}-arm64${{ steps.suffix.outputs.SUFFIX }}
+          path: bin/remixdb-${{ matrix.goos }}-arm64${{ env.SUFFIX }}
 
   # Huge shoutout to https://github.com/orgs/community/discussions/26723#discussioncomment-3253091
   # for the docker buildx caching solution.

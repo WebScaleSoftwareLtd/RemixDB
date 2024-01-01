@@ -15,7 +15,6 @@ import (
 	"sync/atomic"
 
 	"remixdb.io/internal/api"
-	"remixdb.io/internal/utils"
 )
 
 type impl struct {
@@ -172,7 +171,6 @@ func (i *impl) GetMetricsV1(ctx api.RequestCtx) (api.MetricsV1, error) {
 	runtime.ReadMemStats(&memStats)
 
 	return api.MetricsV1{
-		CPUPercent:   utils.CPUUsagePercent(),
 		RAMMegabytes: memStats.Alloc / 1024 / 1024,
 		Goroutines:   runtime.NumGoroutine(),
 		GCS:          int(gcStats.NumGC),

@@ -10,6 +10,8 @@ import (
 	"github.com/urfave/cli/v2"
 	"remixdb.io/cmd/remixdb/db/config"
 	"remixdb.io/cmd/remixdb/db/start"
+	"remixdb.io/internal/goplugin"
+	"remixdb.io/internal/logger"
 )
 
 //go:embed db/start/command_description.txt
@@ -19,6 +21,15 @@ var dbCommand = &cli.Command{
 	Name:  "db",
 	Usage: "Commands relating to the management of a RemixDB database.",
 	Subcommands: []*cli.Command{
+		{
+			Name:  "precache-go-download",
+			Usage: "Precaches the Go download for the current platform.",
+			Action: func(c *cli.Context) error {
+				logger := logger.NewStdLogger()
+				goplugin.NewGoPluginCompiler(logger, "")
+				return nil
+			},
+		},
 		{
 			Name:        "start",
 			Usage:       "Starts the RemixDB database with values from the YAML configuration or environment variables. Not supported on Windows. See the description for more information.",

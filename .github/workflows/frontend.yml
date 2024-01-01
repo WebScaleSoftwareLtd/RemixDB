@@ -1,5 +1,12 @@
 name: Frontend
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - frontend/**
+  pull_request:
+    paths:
+      - frontend/**
+
 jobs:
   lint:
     runs-on: ubuntu-22.04

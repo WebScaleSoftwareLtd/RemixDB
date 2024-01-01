@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Read .nvmrc
-        run: powershell -Command "[Environment]::SetEnvironmentVariable('NVMRC', Get-Content frontend/.nvmrc)" || NVMRC=$(cat frontend/.nvmrc)
+        run: powershell -Command "[Environment]::SetEnvironmentVariable('NVMRC', Get-Content frontend/.nvmrc)" || bash -c "export NVMRC=$(cat frontend/.nvmrc)"
         id: nvmrc
       - name: Use Node.js
         uses: actions/setup-node@v4

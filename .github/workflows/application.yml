@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Read .nvmrc
-        run: powershell -Command "Get-Content .nvmrc"
+        run: powershell -Command "Get-Content .nvmrc" || cat .nvmrc
         id: nvmrc
       - name: Use Node.js
         uses: actions/setup-node@v4

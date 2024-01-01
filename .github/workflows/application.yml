@@ -17,13 +17,10 @@ jobs:
     runs-on: ${{ matrix.os }}-${{ matrix.version }}
     steps:
       - uses: actions/checkout@v4
-      - name: Read .nvmrc
-        run: bash -c 'echo NVMRC=$(cat frontend/.nvmrc) >> $GITHUB_ENV'
-        id: nvmrc
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "${{ steps.nvmrc.outputs.NVMRC }}"
+          node-version-file: frontend/.nvmrc
       - uses: actions/setup-go@v4
         with:
           go-version: 1.21.4

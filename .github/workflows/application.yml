@@ -11,6 +11,9 @@ jobs:
           - os: macOS
             version: 12
             goos: darwin
+          - os: windows
+            version: 2022
+            goos: windows
     runs-on: ${{ matrix.os }}-${{ matrix.version }}
     steps:
       - uses: actions/checkout@v4

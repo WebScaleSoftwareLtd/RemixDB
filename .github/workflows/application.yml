@@ -18,12 +18,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Read .nvmrc
-        run: powershell -Command "[Environment]::SetEnvironmentVariable('NVMRC', Get-Content frontend/.nvmrc)" || bash -c "export NVMRC=$(cat frontend/.nvmrc)"
+        run: powershell -Command "[Environment]::SetEnvironmentVariable('NVMRC', (Get-Content frontend/.nvmrc))" || bash -c "export NVMRC=$(cat frontend/.nvmrc)"
         id: nvmrc
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "${{ steps.nvmrc.outputs.stdout }}"
+          node-version: "${{ steps.nvmrc.outputs.NVMRC }}"
       - uses: actions/setup-go@v4
         with:
           go-version: 1.21.4

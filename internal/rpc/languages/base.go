@@ -337,3 +337,22 @@ func processGoTemplate(root *structure.Base, name, tmpl string, data any, variab
 	}
 	return s.String(), nil
 }
+
+var optBoolMappings = map[string]bool{
+	"true":  true,
+	"false": false,
+	"yes":   true,
+	"no":    false,
+	"1":     true,
+	"0":     false,
+	"yarr":  true,
+	"narr":  false,
+}
+
+// Turns a option into a boolean.
+func opt2bool(opt string) (bool, error) {
+	if b, ok := optBoolMappings[strings.ToLower(opt)]; ok {
+		return b, nil
+	}
+	return false, errors.New("invalid option: must be a boolean")
+}

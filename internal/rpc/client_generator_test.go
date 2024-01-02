@@ -103,7 +103,7 @@ var filledStructure = &structure.Base{
 
 func doCompilation(t *testing.T, name string, opts map[string]string) {
 	t.Helper()
-	m, err := rpc.Compile("golang", filledStructure, opts)
+	m, err := rpc.Compile(name, filledStructure, opts)
 	assert.NoError(t, err)
 	for k, v := range m {
 		if golden.Update() {
@@ -135,6 +135,48 @@ func TestCompile_golang(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			doCompilation(t, "golang", tt.opts)
+		})
+	}
+}
+
+func TestCompile_js(t *testing.T) {
+	tests := []struct {
+		name string
+
+		opts map[string]string
+	}{
+		{
+			name: "no esm/node",
+			opts: map[string]string{
+				"esm":  "false",
+				"node": "false",
+			},
+		},
+		{
+			name: "esm",
+			opts: map[string]string{
+				"esm":  "true",
+				"node": "false",
+			},
+		},
+		{
+			name: "node",
+			opts: map[string]string{
+				"esm":  "false",
+				"node": "true",
+			},
+		},
+		{
+			name: "esm+node",
+			opts: map[string]string{
+				"esm":  "true",
+				"node": "true",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			doCompilation(t, "js", tt.opts)
 		})
 	}
 }

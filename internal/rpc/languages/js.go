@@ -6,6 +6,7 @@ package languages
 import (
 	_ "embed"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/iancoleman/strcase"
@@ -15,14 +16,66 @@ import (
 //go:embed templates/javascript.js
 var jsTemplate string
 
+//go:embed templates/js_class.tmpl
+var jsClassTemplate string
+
 //go:embed templates/javascript.d.ts
 var jsDtsTemplate string
 
+func orderedMapStringKeys[V any](m map[string]V) []string {
+	keys := make([]string, len(m))
+	i := 0
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	sort.Strings(keys)
+	return keys
+}
+
 var methodsAnchorRegex = regexp.MustCompile(`([ \t]+)\/\/ AUTO-GENERATION MARKER: methods`)
 
+func handleJsStruct(structName string, structure structure.Struct, spacing string) string {
+	// Defines the struct.
+	struct_ := ""
+
+	// Handle comments.
+	comment := strings.TrimSpace(structure.Comment)
+	if comment != "" {
+		struct_ += "// " + strings.ReplaceAll(comment, "\n", "\n"+spacing+"// ") + "\n"
+	}
+
+	// Get the class template.
+	classTemplate := strings.TrimSpace(jsClassTemplate)
+
+	// Replace variables.
+	classTemplate = strings.ReplaceAll(classTemplate, "<name>", structName)
+	jsBlob := "{"
+	for _, fieldName := range orderedMapStringKeys(structure.Fields) {
+		field := structure.Fields[fieldName]
+		x := jsRpcType(field.Type, field.Optional)
+		if field.Array {
+			x = "[" + x + "]"
+		}
+		jsBlob += "\n" + spacing + spacing + spacing + fieldName + ": " + x + ","
+	}
+	if jsBlob != "{" {
+		jsBlob += "\n" + spacing + spacing
+	}
+	jsBlob += "}"
+	classTemplate = strings.ReplaceAll(classTemplate, "<types>", jsBlob)
+	return struct_ + classTemplate
+}
+
 func handleJsStructures(base *structure.Base, spacing string) string {
-	// TODO
-	return ""
+	structs := make([]string, len(base.Structs))
+	i := 0
+	for _, structName := range orderedMapStringKeys(base.Structs) {
+		structure := base.Structs[structName]
+		structs[i] = handleJsStruct(structName, structure, spacing)
+		i++
+	}
+	return strings.Join(structs, "\n\n")
 }
 
 func prefixJsComments(comments, prefix string) string {
@@ -61,7 +114,10 @@ func jsRpcType(i string, nullable bool) string {
 
 func generateJsMethods(base *structure.Base, spacing string) string {
 	jsFuncs := ""
-	for methodName, method := range base.Methods {
+	for _, methodName := range orderedMapStringKeys(base.Methods) {
+		// Get the method.
+		method := base.Methods[methodName]
+
 		// Handle comments.
 		if method.Comment != "" {
 			jsFuncs += prefixJsComments(method.Comment, spacing)
@@ -136,11 +192,11 @@ func jsGen(base *structure.Base, isNode, isEsm bool) string {
 
 	// Deal with the structures marker.
 	structures := handleJsStructures(base, spacing)
-	jsTemplate = strings.Replace(jsTemplate, "\n// AUTO-GENERATION MARKER: structures", structures, 1)
+	jsTemplate = strings.Replace(jsTemplate, "// AUTO-GENERATION MARKER: structures", structures, 1)
 
 	// Deal with the exports object.
 	exports := ""
-	for structName := range base.Structs {
+	for _, structName := range orderedMapStringKeys(base.Structs) {
 		exports += "\n" + spacing + structName + ","
 	}
 	jsTemplate = strings.Replace(jsTemplate, " // AUTO-GENERATION MARKER: exports", exports, 1)
@@ -148,11 +204,11 @@ func jsGen(base *structure.Base, isNode, isEsm bool) string {
 	// Deal with the package exports marker.
 	var packageExports string
 	if isEsm {
-		packageExports = "export _exports;"
+		packageExports = "export"
 	} else {
-		packageExports = "module.exports = _exports;"
+		packageExports = "module.exports ="
 	}
-	jsTemplate = strings.Replace(jsTemplate, "// AUTO-GENERATION MARKER: packageExports", packageExports, 1)
+	jsTemplate = strings.Replace(jsTemplate, "/* CJS MODIFICATION NEEDED */ export", packageExports, 1)
 
 	// Return the JS.
 	return jsTemplate

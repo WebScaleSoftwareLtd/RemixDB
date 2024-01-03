@@ -146,7 +146,7 @@ func TestCompile_js(t *testing.T) {
 		opts map[string]string
 	}{
 		{
-			name: "no esm/node",
+			name: "cjs",
 			opts: map[string]string{
 				"esm":  "false",
 				"node": "false",

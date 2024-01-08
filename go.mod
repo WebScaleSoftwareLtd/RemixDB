@@ -23,12 +23,11 @@ require (
 	github.com/urfave/cli/v2 v2.27.0
 	github.com/valyala/fasthttp v1.51.0
 	github.com/vmihailenco/msgpack/v5 v5.4.1
+	go.uber.org/zap v1.26.0
 	golang.org/x/net v0.19.0
 	gopkg.in/yaml.v3 v3.0.1
 	nhooyr.io/websocket v1.8.10
 )
-
-require go.uber.org/multierr v1.10.0 // indirect
 
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
@@ -41,7 +40,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	go.uber.org/zap v1.26.0
+	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/crypto v0.16.0 // indirect
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect

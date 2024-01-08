@@ -22,15 +22,15 @@ import (
 	"runtime"
 	"strings"
 
+	"go.uber.org/zap"
 	"remixdb.io/internal/goplugin/racedetector"
 	_ "remixdb.io/internal/httpproxypatch"
-	"remixdb.io/internal/logger"
 )
 
 // GoPluginCompiler is used to define the Go plugin compiler. This turns the specified
 // Go code into a plugin that can be used by RemixDB.
 type GoPluginCompiler struct {
-	logger logger.Logger
+	logger *zap.SugaredLogger
 	path   string
 }
 
@@ -269,9 +269,8 @@ func extractTarGzInto(f *os.File, path string) error {
 	return nil
 }
 
-func downloadGo(path, goVersionFileExpected string, logger logger.Logger) {
-	ch := make(chan string, 1)
-	logger.Info("Downloading "+goVersionFileExpected, ch)
+func downloadGo(path, goVersionFileExpected string, logger *zap.SugaredLogger) {
+	logger.Info("Downloading " + goVersionFileExpected)
 
 	// Make sure <path>/go doesn't exist.
 	if err := os.RemoveAll(filepath.Join(path, "go")); err != nil {
@@ -319,14 +318,14 @@ func downloadGo(path, goVersionFileExpected string, logger logger.Logger) {
 	}
 
 	// Log that we are done!
-	ch <- "done!"
+	logger.Info("Go download successful!")
 }
 
 // NewGoPluginCompiler is used to create a new Go plugin compiler. If path is empty, then it will try and use the
 // environment or ~/.remixdb/goplugin. No other argument can be empty.
-func NewGoPluginCompiler(logger logger.Logger, path string) GoPluginCompiler {
+func NewGoPluginCompiler(logger *zap.SugaredLogger, path string) GoPluginCompiler {
 	// Add the label to the logger.
-	logger = logger.Tag("goplugin")
+	logger = logger.Named("goplugin")
 
 	// Get the path for everything.
 	if path == "" {
@@ -351,7 +350,7 @@ func NewGoPluginCompiler(logger logger.Logger, path string) GoPluginCompiler {
 	goVersionFileExpected := runtime.Version() + " / " + runtime.GOOS + " / " + runtime.GOARCH
 	if string(b) == goVersionFileExpected {
 		// Log that we have done this already.
-		logger.Info("Downloading "+goVersionFileExpected+"... cached!", nil)
+		logger.Info("Already cached " + goVersionFileExpected)
 
 		// Return here.
 		return GoPluginCompiler{

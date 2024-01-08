@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	cp "github.com/otiai10/copy"
-	"remixdb.io/internal/logger"
+	"go.uber.org/zap/zaptest"
 )
 
 // SetupGoCompilerForTesting sets up a Go compiler for testing.
@@ -52,5 +52,5 @@ func SetupGoCompilerForTesting(t *testing.T) GoPluginCompiler {
 	}
 
 	// Create the compiler.
-	return NewGoPluginCompiler(logger.NewTestingLogger(t), tempDir)
+	return NewGoPluginCompiler(zaptest.NewLogger(t).Sugar(), tempDir)
 }

@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 
 	"github.com/juju/fslock"
+	"go.uber.org/zap"
 	"remixdb.io/internal/engine"
 	"remixdb.io/internal/engine/localfs/acid"
 	"remixdb.io/internal/engine/localfs/session"
-	"remixdb.io/internal/logger"
 )
 
 type Engine struct {
@@ -20,7 +20,7 @@ type Engine struct {
 	s session.Cache
 
 	path   string
-	logger logger.Logger
+	logger *zap.SugaredLogger
 }
 
 func (e *Engine) CreateSession(partition string) (engine.Session, error) {
@@ -66,9 +66,9 @@ var _ engine.Engine = (*Engine)(nil)
 
 // New is used to create a new engine. If path is empty, the environment variable REMIXDB_DATA_PATH is used or
 // ~/.remixdb/data if it is not set.
-func New(logger logger.Logger, path string) engine.Engine {
+func New(logger *zap.SugaredLogger, path string) engine.Engine {
 	// Tag the logger.
-	logger = logger.Tag("engine.localfs")
+	logger = logger.Named("engine.localfs")
 
 	// Handles the default path.
 	if path == "" {
@@ -91,8 +91,7 @@ func New(logger logger.Logger, path string) engine.Engine {
 	// Attempt to grab the filesystem lock or exit.
 	err = fslock.New(filepath.Join(path, "lock")).TryLock()
 	if err != nil {
-		logger.Error("The database engine storage is already locked", nil)
-		os.Exit(1)
+		logger.Fatal("The database engine storage is already locked")
 	}
 
 	// Perform a integrity check on the database.

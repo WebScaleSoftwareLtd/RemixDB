@@ -4,15 +4,15 @@
 package session
 
 import (
+	"go.uber.org/zap"
 	"remixdb.io/internal/engine"
 	"remixdb.io/internal/engine/localfs/acid"
-	"remixdb.io/internal/logger"
 )
 
 // Session is used to implement the engine.Session interface. You must call Close on the session when you are done with it.
 type Session struct {
 	// Logger is used to log messages.
-	Logger logger.Logger
+	Logger *zap.SugaredLogger
 
 	// Transaction is the transaction object that can be used to perform transactions.
 	Transaction *acid.Transaction

@@ -8,7 +8,7 @@ package goplugin
 import (
 	"plugin"
 
-	"remixdb.io/internal/logger"
+	"go.uber.org/zap"
 )
 
 // GoPluginCompiler is used to define the Go plugin compiler. This turns the specified
@@ -22,6 +22,6 @@ func (g GoPluginCompiler) Compile(code string) (*plugin.Plugin, error) {
 }
 
 // NewGoPluginCompiler is used to create a new Go plugin compiler.
-func NewGoPluginCompiler(logger logger.Logger, path string) GoPluginCompiler {
+func NewGoPluginCompiler(logger *zap.SugaredLogger, path string) GoPluginCompiler {
 	panic("not implemented on windows")
 }

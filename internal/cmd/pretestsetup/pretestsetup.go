@@ -6,12 +6,12 @@ package main
 import (
 	"runtime"
 
+	"go.uber.org/zap"
 	"remixdb.io/internal/goplugin"
-	"remixdb.io/internal/logger"
 	"remixdb.io/internal/utils"
 )
 
-func nonWindowsSetup(logger logger.Logger) {
+func nonWindowsSetup(logger *zap.SugaredLogger) {
 	goplugin.NewGoPluginCompiler(logger, "")
 }
 
@@ -20,7 +20,9 @@ func main() {
 	utils.EnsureSingleInstance()
 
 	// Handle Go plugin setup.
-	logger := logger.NewStdLogger()
+	loggerInstance, _ := zap.NewProduction()
+	logger := loggerInstance.Sugar()
+	defer logger.Sync()
 	if runtime.GOOS != "windows" {
 		nonWindowsSetup(logger)
 	}

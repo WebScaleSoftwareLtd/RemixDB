@@ -4,17 +4,19 @@
 package main
 
 import (
+	"go.uber.org/zap"
 	"remixdb.io/config"
 	"remixdb.io/internal/api"
 	"remixdb.io/internal/api/mockimplementation"
 	"remixdb.io/internal/errhandler"
-	"remixdb.io/internal/logger"
 	"remixdb.io/internal/webserver"
 )
 
 func main() {
 	// Defines the logger.
-	l := logger.NewStdLogger()
+	loggerInstance, _ := zap.NewProduction()
+	l := loggerInstance.Sugar()
+	defer l.Sync()
 
 	// Just serve locally on port 8080.
 	conf := &config.ServerConfig{

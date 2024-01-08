@@ -7,13 +7,15 @@ package precache
 
 import (
 	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 	"remixdb.io/internal/goplugin"
-	"remixdb.io/internal/logger"
 )
 
 // Precache is used to precache the Go download.
 func Precache(_ *cli.Context) error {
-	logger := logger.NewStdLogger()
+	loggerInstance, _ := zap.NewProduction()
+	logger := loggerInstance.Sugar()
+	defer logger.Sync()
 	goplugin.NewGoPluginCompiler(logger, "")
 	return nil
 }

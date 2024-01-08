@@ -6,15 +6,15 @@ package webserver
 import (
 	"net"
 
+	"go.uber.org/zap"
 	"remixdb.io/config"
 	"remixdb.io/internal/api"
-	"remixdb.io/internal/logger"
 	"remixdb.io/internal/rpc"
 )
 
 // WebServer is used to define a web server. Use NewWebServer to create a new instance.
 type WebServer struct {
-	logger logger.Logger
+	logger *zap.SugaredLogger
 	conf   *config.ServerConfig
 
 	rpcServer *rpc.Server
@@ -30,7 +30,7 @@ func (w *WebServer) Serve() error {
 	}
 
 	// Log that we bound to the port.
-	w.logger.Info("Bound to "+w.conf.Host, nil)
+	w.logger.Info("Bound to " + w.conf.Host)
 
 	// Handle if we should use fasthttp.
 	if w.conf.SSLCertFile == "" && !w.conf.H2C {
@@ -51,7 +51,7 @@ func (w *WebServer) Serve() error {
 // WebServerConfig is used to define the web server configuration.
 type WebServerConfig struct {
 	// Logger is used to define the logger.
-	Logger logger.Logger
+	Logger *zap.SugaredLogger
 
 	// Config is used to define the server configuration.
 	Config *config.ServerConfig
@@ -66,7 +66,7 @@ type WebServerConfig struct {
 // NewWebServer is used to create a new web server.
 func NewWebServer(conf WebServerConfig) *WebServer {
 	return &WebServer{
-		logger:    conf.Logger.Tag("webserver"),
+		logger:    conf.Logger.Named("webserver"),
 		conf:      conf.Config,
 		rpcServer: conf.RPCServer,
 		apiServer: conf.APIServer,

@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/zap/zaptest"
 	"remixdb.io/internal/errhandler"
-	"remixdb.io/internal/logger"
 )
 
 func Test_panicError_Error(t *testing.T) {
@@ -260,7 +260,7 @@ func Test_sendNetHttpJson(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			w := &fakeBodyAndHeadersCombined{}
 			errHandler := errhandler.Handler{
-				Logger: logger.NewTestingLogger(t),
+				Logger: zaptest.NewLogger(t).Sugar(),
 			}
 			sendNetHttpJson(w, tt.statusCode, tt.body, errHandler)
 			assert.Equal(t, tt.statusCode, w.statusCode)
@@ -304,7 +304,7 @@ func Test_buildHttpRouterRoute(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Get the error handler.
-			errHandler := errhandler.Handler{Logger: logger.NewTestingLogger(t)}
+			errHandler := errhandler.Handler{Logger: zaptest.NewLogger(t).Sugar()}
 
 			// Defines the http body.
 			body := []byte("testing testing")
@@ -543,7 +543,7 @@ func Test_sendFasthttpJson(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := &fasthttp.RequestCtx{}
 			errHandler := errhandler.Handler{
-				Logger: logger.NewTestingLogger(t),
+				Logger: zaptest.NewLogger(t).Sugar(),
 			}
 			sendFasthttpJson(ctx, tt.statusCode, tt.body, errHandler)
 			assert.Equal(t, tt.statusCode, ctx.Response.StatusCode())
@@ -587,7 +587,7 @@ func Test_buildFasthttpRoute(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Get the error handler.
-			errHandler := errhandler.Handler{Logger: logger.NewTestingLogger(t)}
+			errHandler := errhandler.Handler{Logger: zaptest.NewLogger(t).Sugar()}
 
 			// Defines the http body.
 			body := []byte("testing testing")

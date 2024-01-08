@@ -3,14 +3,14 @@
 
 package networking
 
-import "remixdb.io/internal/logger"
+import "go.uber.org/zap"
 
 // NewNetworkingEngine creates a new networking engine.
 func NewNetworkingEngine(
-	logger logger.Logger, reqs ClientRequirements,
+	logger *zap.SugaredLogger, reqs ClientRequirements,
 	introductoryHost, joinKey string,
 ) {
 	// Mark the logger as being for engine.networking.
-	logger = logger.Tag("engine.networking")
+	logger = logger.Named("engine.networking")
 
 }

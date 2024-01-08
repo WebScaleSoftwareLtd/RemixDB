@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 
 	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 	"remixdb.io"
 	"remixdb.io/config"
 	"remixdb.io/internal/api"
@@ -19,7 +20,6 @@ import (
 	"remixdb.io/internal/engine/localfs"
 	"remixdb.io/internal/errhandler"
 	"remixdb.io/internal/goplugin"
-	"remixdb.io/internal/logger"
 	"remixdb.io/internal/rpc"
 	"remixdb.io/internal/rpc/requesthandler"
 	"remixdb.io/internal/utils"
@@ -69,7 +69,9 @@ func Start(_ *cli.Context) error {
 	}
 
 	// Setup the logger.
-	logger := logger.NewStdLogger()
+	loggerInstance, _ := zap.NewProduction()
+	defer loggerInstance.Sync()
+	logger := loggerInstance.Sugar()
 
 	// Setup the Go plugin compiler.
 	pluginCompiler := goplugin.NewGoPluginCompiler(logger, config.Path.GoPlugin)

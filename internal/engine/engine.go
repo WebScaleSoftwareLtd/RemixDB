@@ -36,6 +36,25 @@ type StructSessionMethods interface {
 	// positions on the AST tokens are not set.
 	StructTombstones() (renames map[string]string, structs []*ast.StructToken, err error)
 
+	// AcquireStructReadLock is used to acquire a read lock on a struct. This is used to prevent
+	// concurrent writes to the same struct. The lock is released when the session is closed or
+	// ReleaseStructReadLock is called. This or a write lock must be acquired before editing a
+	// struct.
+	AcquireStructReadLock(structNames ...string) error
+
+	// ReleaseStructReadLock is used to release a read lock on a struct. This is used to allow for
+	// efficiencies inside of a contracts compiled logic.
+	ReleaseStructReadLock(structNames ...string) error
+
+	// AcquireStructWriteLock is used to acquire a write lock on a struct. This is used to prevent
+	// concurrent writes to the same struct. The lock is released when the session is closed or
+	// ReleaseStructWriteLock is called.
+	AcquireStructWriteLock(structNames ...string) error
+
+	// ReleaseStructWriteLock is used to release a write lock on a struct. This is used to allow for
+	// efficiencies inside of a contracts compiled logic.
+	ReleaseStructWriteLock(structNames ...string) error
+
 	// AcquireStructObjectWriteLock is used to acquire a write lock on struct object(s). This is used
 	// to prevent concurrent writes to the same struct object. The lock is released when the session
 	// is closed or ReleaseStructObjectWriteLock is called.

@@ -20,17 +20,17 @@ type Cache struct {
 	contracts utils.TLRUCache[string, map[string]*ast.ContractToken]
 	structs   utils.TLRUCache[string, map[string]possibleRename]
 
-	objectLocks   map[string]*utils.NamedLock
-	objectLocksMu sync.RWMutex
+	partitionLocks   map[string]*utils.NamedLock
+	partitionLocksMu sync.RWMutex
 }
 
-// CleanPartition is used to clean the cache for a partition.
+// CleanPartition is used to clean the cache for a partition. Use with care! Make sure there's no sessions running for the partition.
 func (c *Cache) CleanPartition(partition string) {
 	c.contracts.Delete(partition)
 
-	c.objectLocksMu.Lock()
-	if c.objectLocks != nil {
-		delete(c.objectLocks, partition)
+	c.partitionLocksMu.Lock()
+	if c.partitionLocks != nil {
+		delete(c.partitionLocks, partition)
 	}
-	c.objectLocksMu.Unlock()
+	c.partitionLocksMu.Unlock()
 }

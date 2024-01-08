@@ -25,6 +25,12 @@ var _ engine.Session = &SessionMock{}
 //			AcquireStructObjectWriteLockFunc: func(structName string, keys ...[]byte) error {
 //				panic("mock out the AcquireStructObjectWriteLock method")
 //			},
+//			AcquireStructReadLockFunc: func(structNames ...string) error {
+//				panic("mock out the AcquireStructReadLock method")
+//			},
+//			AcquireStructWriteLockFunc: func(structNames ...string) error {
+//				panic("mock out the AcquireStructWriteLock method")
+//			},
 //			CloseFunc: func() error {
 //				panic("mock out the Close method")
 //			},
@@ -55,6 +61,12 @@ var _ engine.Session = &SessionMock{}
 //			ReleaseStructObjectWriteLockFunc: func(structName string, keys ...[]byte) error {
 //				panic("mock out the ReleaseStructObjectWriteLock method")
 //			},
+//			ReleaseStructReadLockFunc: func(structNames ...string) error {
+//				panic("mock out the ReleaseStructReadLock method")
+//			},
+//			ReleaseStructWriteLockFunc: func(structNames ...string) error {
+//				panic("mock out the ReleaseStructWriteLock method")
+//			},
 //			RollbackFunc: func() error {
 //				panic("mock out the Rollback method")
 //			},
@@ -79,6 +91,12 @@ type SessionMock struct {
 
 	// AcquireStructObjectWriteLockFunc mocks the AcquireStructObjectWriteLock method.
 	AcquireStructObjectWriteLockFunc func(structName string, keys ...[]byte) error
+
+	// AcquireStructReadLockFunc mocks the AcquireStructReadLock method.
+	AcquireStructReadLockFunc func(structNames ...string) error
+
+	// AcquireStructWriteLockFunc mocks the AcquireStructWriteLock method.
+	AcquireStructWriteLockFunc func(structNames ...string) error
 
 	// CloseFunc mocks the Close method.
 	CloseFunc func() error
@@ -110,6 +128,12 @@ type SessionMock struct {
 	// ReleaseStructObjectWriteLockFunc mocks the ReleaseStructObjectWriteLock method.
 	ReleaseStructObjectWriteLockFunc func(structName string, keys ...[]byte) error
 
+	// ReleaseStructReadLockFunc mocks the ReleaseStructReadLock method.
+	ReleaseStructReadLockFunc func(structNames ...string) error
+
+	// ReleaseStructWriteLockFunc mocks the ReleaseStructWriteLock method.
+	ReleaseStructWriteLockFunc func(structNames ...string) error
+
 	// RollbackFunc mocks the Rollback method.
 	RollbackFunc func() error
 
@@ -137,6 +161,16 @@ type SessionMock struct {
 			StructName string
 			// Keys is the keys argument value.
 			Keys [][]byte
+		}
+		// AcquireStructReadLock holds details about calls to the AcquireStructReadLock method.
+		AcquireStructReadLock []struct {
+			// StructNames is the structNames argument value.
+			StructNames []string
+		}
+		// AcquireStructWriteLock holds details about calls to the AcquireStructWriteLock method.
+		AcquireStructWriteLock []struct {
+			// StructNames is the structNames argument value.
+			StructNames []string
 		}
 		// Close holds details about calls to the Close method.
 		Close []struct {
@@ -184,6 +218,16 @@ type SessionMock struct {
 			// Keys is the keys argument value.
 			Keys [][]byte
 		}
+		// ReleaseStructReadLock holds details about calls to the ReleaseStructReadLock method.
+		ReleaseStructReadLock []struct {
+			// StructNames is the structNames argument value.
+			StructNames []string
+		}
+		// ReleaseStructWriteLock holds details about calls to the ReleaseStructWriteLock method.
+		ReleaseStructWriteLock []struct {
+			// StructNames is the structNames argument value.
+			StructNames []string
+		}
 		// Rollback holds details about calls to the Rollback method.
 		Rollback []struct {
 		}
@@ -201,6 +245,8 @@ type SessionMock struct {
 	}
 	lockAcquireStructObjectReadLock  sync.RWMutex
 	lockAcquireStructObjectWriteLock sync.RWMutex
+	lockAcquireStructReadLock        sync.RWMutex
+	lockAcquireStructWriteLock       sync.RWMutex
 	lockClose                        sync.RWMutex
 	lockCommit                       sync.RWMutex
 	lockContractTombstones           sync.RWMutex
@@ -211,6 +257,8 @@ type SessionMock struct {
 	lockGetStructByKey               sync.RWMutex
 	lockReleaseStructObjectReadLock  sync.RWMutex
 	lockReleaseStructObjectWriteLock sync.RWMutex
+	lockReleaseStructReadLock        sync.RWMutex
+	lockReleaseStructWriteLock       sync.RWMutex
 	lockRollback                     sync.RWMutex
 	lockStructTombstones             sync.RWMutex
 	lockStructs                      sync.RWMutex
@@ -286,6 +334,70 @@ func (mock *SessionMock) AcquireStructObjectWriteLockCalls() []struct {
 	mock.lockAcquireStructObjectWriteLock.RLock()
 	calls = mock.calls.AcquireStructObjectWriteLock
 	mock.lockAcquireStructObjectWriteLock.RUnlock()
+	return calls
+}
+
+// AcquireStructReadLock calls AcquireStructReadLockFunc.
+func (mock *SessionMock) AcquireStructReadLock(structNames ...string) error {
+	if mock.AcquireStructReadLockFunc == nil {
+		panic("SessionMock.AcquireStructReadLockFunc: method is nil but Session.AcquireStructReadLock was just called")
+	}
+	callInfo := struct {
+		StructNames []string
+	}{
+		StructNames: structNames,
+	}
+	mock.lockAcquireStructReadLock.Lock()
+	mock.calls.AcquireStructReadLock = append(mock.calls.AcquireStructReadLock, callInfo)
+	mock.lockAcquireStructReadLock.Unlock()
+	return mock.AcquireStructReadLockFunc(structNames...)
+}
+
+// AcquireStructReadLockCalls gets all the calls that were made to AcquireStructReadLock.
+// Check the length with:
+//
+//	len(mockedSession.AcquireStructReadLockCalls())
+func (mock *SessionMock) AcquireStructReadLockCalls() []struct {
+	StructNames []string
+} {
+	var calls []struct {
+		StructNames []string
+	}
+	mock.lockAcquireStructReadLock.RLock()
+	calls = mock.calls.AcquireStructReadLock
+	mock.lockAcquireStructReadLock.RUnlock()
+	return calls
+}
+
+// AcquireStructWriteLock calls AcquireStructWriteLockFunc.
+func (mock *SessionMock) AcquireStructWriteLock(structNames ...string) error {
+	if mock.AcquireStructWriteLockFunc == nil {
+		panic("SessionMock.AcquireStructWriteLockFunc: method is nil but Session.AcquireStructWriteLock was just called")
+	}
+	callInfo := struct {
+		StructNames []string
+	}{
+		StructNames: structNames,
+	}
+	mock.lockAcquireStructWriteLock.Lock()
+	mock.calls.AcquireStructWriteLock = append(mock.calls.AcquireStructWriteLock, callInfo)
+	mock.lockAcquireStructWriteLock.Unlock()
+	return mock.AcquireStructWriteLockFunc(structNames...)
+}
+
+// AcquireStructWriteLockCalls gets all the calls that were made to AcquireStructWriteLock.
+// Check the length with:
+//
+//	len(mockedSession.AcquireStructWriteLockCalls())
+func (mock *SessionMock) AcquireStructWriteLockCalls() []struct {
+	StructNames []string
+} {
+	var calls []struct {
+		StructNames []string
+	}
+	mock.lockAcquireStructWriteLock.RLock()
+	calls = mock.calls.AcquireStructWriteLock
+	mock.lockAcquireStructWriteLock.RUnlock()
 	return calls
 }
 
@@ -594,6 +706,70 @@ func (mock *SessionMock) ReleaseStructObjectWriteLockCalls() []struct {
 	mock.lockReleaseStructObjectWriteLock.RLock()
 	calls = mock.calls.ReleaseStructObjectWriteLock
 	mock.lockReleaseStructObjectWriteLock.RUnlock()
+	return calls
+}
+
+// ReleaseStructReadLock calls ReleaseStructReadLockFunc.
+func (mock *SessionMock) ReleaseStructReadLock(structNames ...string) error {
+	if mock.ReleaseStructReadLockFunc == nil {
+		panic("SessionMock.ReleaseStructReadLockFunc: method is nil but Session.ReleaseStructReadLock was just called")
+	}
+	callInfo := struct {
+		StructNames []string
+	}{
+		StructNames: structNames,
+	}
+	mock.lockReleaseStructReadLock.Lock()
+	mock.calls.ReleaseStructReadLock = append(mock.calls.ReleaseStructReadLock, callInfo)
+	mock.lockReleaseStructReadLock.Unlock()
+	return mock.ReleaseStructReadLockFunc(structNames...)
+}
+
+// ReleaseStructReadLockCalls gets all the calls that were made to ReleaseStructReadLock.
+// Check the length with:
+//
+//	len(mockedSession.ReleaseStructReadLockCalls())
+func (mock *SessionMock) ReleaseStructReadLockCalls() []struct {
+	StructNames []string
+} {
+	var calls []struct {
+		StructNames []string
+	}
+	mock.lockReleaseStructReadLock.RLock()
+	calls = mock.calls.ReleaseStructReadLock
+	mock.lockReleaseStructReadLock.RUnlock()
+	return calls
+}
+
+// ReleaseStructWriteLock calls ReleaseStructWriteLockFunc.
+func (mock *SessionMock) ReleaseStructWriteLock(structNames ...string) error {
+	if mock.ReleaseStructWriteLockFunc == nil {
+		panic("SessionMock.ReleaseStructWriteLockFunc: method is nil but Session.ReleaseStructWriteLock was just called")
+	}
+	callInfo := struct {
+		StructNames []string
+	}{
+		StructNames: structNames,
+	}
+	mock.lockReleaseStructWriteLock.Lock()
+	mock.calls.ReleaseStructWriteLock = append(mock.calls.ReleaseStructWriteLock, callInfo)
+	mock.lockReleaseStructWriteLock.Unlock()
+	return mock.ReleaseStructWriteLockFunc(structNames...)
+}
+
+// ReleaseStructWriteLockCalls gets all the calls that were made to ReleaseStructWriteLock.
+// Check the length with:
+//
+//	len(mockedSession.ReleaseStructWriteLockCalls())
+func (mock *SessionMock) ReleaseStructWriteLockCalls() []struct {
+	StructNames []string
+} {
+	var calls []struct {
+		StructNames []string
+	}
+	mock.lockReleaseStructWriteLock.RLock()
+	calls = mock.calls.ReleaseStructWriteLock
+	mock.lockReleaseStructWriteLock.RUnlock()
 	return calls
 }
 

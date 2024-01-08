@@ -303,39 +303,39 @@ func (s *Session) StructTombstones() (renames map[string]string, structs []*ast.
 	return renames, structs, nil
 }
 
-func (s *Session) getPartitionObjectLockMutex(name string) *utils.NamedLock {
+func (s *Session) getPartitionNamedLocks() *utils.NamedLock {
 	// Start with a read lock since we are hopeful we can find fast.
-	s.Cache.objectLocksMu.RLock()
+	s.Cache.partitionLocksMu.RLock()
 
 	// Try getting from the cache as-is.
 	var l *utils.NamedLock
 	var ok bool
-	if s.Cache.objectLocks != nil {
-		l, ok = s.Cache.objectLocks[s.PartitionName]
+	if s.Cache.partitionLocks != nil {
+		l, ok = s.Cache.partitionLocks[s.PartitionName]
 	}
 
 	// Now read unlock.
-	s.Cache.objectLocksMu.RUnlock()
+	s.Cache.partitionLocksMu.RUnlock()
 
 	if !ok {
 		// Since the partition doesn't even exist, we need a write lock on global.
-		s.Cache.objectLocksMu.Lock()
+		s.Cache.partitionLocksMu.Lock()
 
 		// Make sure objectLocks even exists.
-		if s.Cache.objectLocks == nil {
-			s.Cache.objectLocks = map[string]*utils.NamedLock{}
+		if s.Cache.partitionLocks == nil {
+			s.Cache.partitionLocks = map[string]*utils.NamedLock{}
 		}
 
 		// Try again in case we got raced.
-		l, ok = s.Cache.objectLocks[s.PartitionName]
+		l, ok = s.Cache.partitionLocks[s.PartitionName]
 		if !ok {
 			// Ok, we didn't. Make the lock.
 			l = &utils.NamedLock{}
-			s.Cache.objectLocks[s.PartitionName] = l
+			s.Cache.partitionLocks[s.PartitionName] = l
 		}
 
 		// Unlock the global map.
-		s.Cache.objectLocksMu.Unlock()
+		s.Cache.partitionLocksMu.Unlock()
 	}
 
 	// Return the lock.
@@ -344,7 +344,7 @@ func (s *Session) getPartitionObjectLockMutex(name string) *utils.NamedLock {
 
 func (s *Session) AcquireStructObjectWriteLock(structName string, keys ...[]byte) error {
 	// Get the object locker for this partition.
-	l := s.getPartitionObjectLockMutex(structName)
+	l := s.getPartitionNamedLocks()
 
 	// Acquire the locks.
 	for _, key := range keys {
@@ -357,7 +357,7 @@ func (s *Session) AcquireStructObjectWriteLock(structName string, keys ...[]byte
 
 func (s *Session) ReleaseStructObjectWriteLock(structName string, keys ...[]byte) error {
 	// Get the object locker for this partition.
-	l := s.getPartitionObjectLockMutex(structName)
+	l := s.getPartitionNamedLocks()
 
 	// Release the locks.
 	for _, key := range keys {
@@ -370,7 +370,7 @@ func (s *Session) ReleaseStructObjectWriteLock(structName string, keys ...[]byte
 
 func (s *Session) AcquireStructObjectReadLock(structName string, keys ...[]byte) error {
 	// Get the object locker for this partition.
-	l := s.getPartitionObjectLockMutex(structName)
+	l := s.getPartitionNamedLocks()
 
 	// Acquire the locks.
 	for _, key := range keys {
@@ -383,11 +383,63 @@ func (s *Session) AcquireStructObjectReadLock(structName string, keys ...[]byte)
 
 func (s *Session) ReleaseStructObjectReadLock(structName string, keys ...[]byte) error {
 	// Get the object locker for this partition.
-	l := s.getPartitionObjectLockMutex(structName)
+	l := s.getPartitionNamedLocks()
 
 	// Release the locks.
 	for _, key := range keys {
 		l.RUnlock(structName + " " + string(key))
+	}
+
+	// Return no errors since this can't error locally.
+	return nil
+}
+
+func (s *Session) AcquireStructReadLock(structNames ...string) error {
+	// Get the struct locker for this partition.
+	l := s.getPartitionNamedLocks()
+
+	// Acquire the lock.
+	for _, structName := range structNames {
+		l.RLock(structName)
+	}
+
+	// Return no errors since this can't error locally.
+	return nil
+}
+
+func (s *Session) ReleaseStructReadLock(structNames ...string) error {
+	// Get the struct locker for this partition.
+	l := s.getPartitionNamedLocks()
+
+	// Release the lock.
+	for _, structName := range structNames {
+		l.RUnlock(structName)
+	}
+
+	// Return no errors since this can't error locally.
+	return nil
+}
+
+func (s *Session) AcquireStructWriteLock(structNames ...string) error {
+	// Get the struct locker for this partition.
+	l := s.getPartitionNamedLocks()
+
+	// Acquire the lock.
+	for _, structName := range structNames {
+		l.Lock(structName)
+	}
+
+	// Return no errors since this can't error locally.
+	return nil
+}
+
+func (s *Session) ReleaseStructWriteLock(structNames ...string) error {
+	// Get the struct locker for this partition.
+	l := s.getPartitionNamedLocks()
+
+	// Release the lock.
+	for _, structName := range structNames {
+		l.Unlock(structName)
 	}
 
 	// Return no errors since this can't error locally.

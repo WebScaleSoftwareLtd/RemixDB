@@ -27,19 +27,19 @@ func contract2go(contract *ast.ContractToken, s engine.Session) (string, error) 
 	}
 
 	// Invoke the function to build the body.
-	imports, body, err := buildFunctionBody(contract, s, iface)
+	buildRes, err := buildFunctionBody(contract, s, iface)
 	if err != nil {
 		return "", err
 	}
 
 	// Add the imports.
-	for _, imp := range imports {
+	for _, imp := range buildRes.imports {
 		builder.addImport(imp)
 	}
 
 	// Build the method we will call.
 	builder.addFunc("Execute_hash_here", &goAst.BlockStmt{
-		List: body,
+		List: buildRes.body,
 	}, &goAst.FieldList{
 		List: []*goAst.Field{
 			{

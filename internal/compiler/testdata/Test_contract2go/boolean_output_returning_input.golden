@@ -1,0 +1,35 @@
+package main
+
+func Execute_hash_here(r interface {
+	Close() error
+	Permissions() []string
+	RespondWithRemixDBException(httpCode int, code string, message string)
+	Body() []byte
+	Commit() error
+}) error {
+	defer r.Close()
+	var userPerms uint64
+	for _, perm := range r.Permissions() {
+		switch perm {
+		case "*":
+			goto postIam
+		case "contract:*", "contract:execute":
+			userPerms |= 1
+			if userPerms == 1 {
+				goto postIam
+			}
+		}
+	}
+	r.RespondWithRemixDBException(403, "no_permission", "You do not have permission to use this contract.")
+	return nil
+postIam:
+	;
+	rawBody := r.Body()
+	var body bool
+	if len(rawBody) != 1 || rawBody[0] != 0x01 && rawBody[0] != 0x02 {
+		r.RespondWithRemixDBException(400, "invalid_body", "Expected the type of a bool for the input.")
+		return nil
+	}
+	body = rawBody[0] == 0x02
+	return r.Commit()
+}

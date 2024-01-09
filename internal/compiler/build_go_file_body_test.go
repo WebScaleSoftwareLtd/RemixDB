@@ -25,14 +25,32 @@ func Test_contract2go(t *testing.T) {
 		contract         *ast.ContractToken
 	}{
 		{
-			name: "string output returning input",
+			name: "boolean output returning input",
 			contract: &ast.ContractToken{
 				Name: "Test",
 				Argument: &ast.ContractArgumentToken{
 					Name: "input",
-					Type: "string",
+					Type: "bool",
 				},
-				ReturnType: "string",
+				ReturnType: "bool",
+				Statements: []any{
+					ast.ReturnToken{
+						Token: ast.ReferenceToken{
+							Name: "input",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "optional boolean output returning input",
+			contract: &ast.ContractToken{
+				Name: "Test",
+				Argument: &ast.ContractArgumentToken{
+					Name: "input",
+					Type: "bool?",
+				},
+				ReturnType: "bool?",
 				Statements: []any{
 					ast.ReturnToken{
 						Token: ast.ReferenceToken{

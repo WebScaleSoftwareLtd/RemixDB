@@ -75,13 +75,18 @@ func remixDbExceptionSig() *goAst.FuncType {
 	}
 }
 
+type functionBody struct {
+	imports []string
+	body    []goAst.Stmt
+}
+
 // Checks if the output is Cursor<T>. This is a special case where we return a cursor.
 var cursorBuiltin = regexp.MustCompile(`^Cursor<(.+)>$`)
 
 // Handles building the function body.
 func buildFunctionBody(
 	contract *ast.ContractToken, s engine.Session, iface *goAst.InterfaceType,
-) (imports []string, body []goAst.Stmt, err error) {
+) (funcBody functionBody, err error) {
 	// Check if this is a cursor.
 	matches := cursorBuiltin.FindStringSubmatch(contract.ReturnType)
 	isCursor := false
@@ -99,7 +104,7 @@ func buildFunctionBody(
 
 	// If the contract is not of a cursor type, add a defer to close the cursor.
 	if !isCursor {
-		body = append(body, &goAst.DeferStmt{
+		funcBody.body = append(funcBody.body, &goAst.DeferStmt{
 			Call: &goAst.CallExpr{
 				Fun: &goAst.SelectorExpr{
 					X:   goAst.NewIdent("r"),
@@ -111,7 +116,7 @@ func buildFunctionBody(
 
 	// Setup the IAM hook.
 	iam := &iamValidator{}
-	iam.injectEntrypoint(&body, func(name string, fn *goAst.FuncType) {
+	iam.injectEntrypoint(&funcBody.body, func(name string, fn *goAst.FuncType) {
 		addToInterface(used, iface, name, fn)
 	}, isCursor)
 	iam.addValidator("contract:execute")
@@ -129,9 +134,9 @@ func buildFunctionBody(
 				},
 			},
 		})
-		body = append(body, &goAst.AssignStmt{
+		funcBody.body = append(funcBody.body, &goAst.AssignStmt{
 			Lhs: []goAst.Expr{
-				goAst.NewIdent("body"),
+				goAst.NewIdent("rawBody"),
 			},
 			Tok: token.DEFINE,
 			Rhs: []goAst.Expr{
@@ -141,20 +146,13 @@ func buildFunctionBody(
 			},
 		})
 
-		// For now, just print it to stop the compiler from complaining.
-		body = append(body, &goAst.ExprStmt{
-			X: &goAst.CallExpr{
-				Fun: goAst.NewIdent("println"),
-				Args: []goAst.Expr{
-					goAst.NewIdent("body"),
-				},
-			},
-		})
+		// Create the body parser.
+		funcBody.createBodyParser(contract)
 	}
 
 	// At the end, we want to do a commit since getting to the end means we have succeeded.
 	addToInterface(used, iface, "Commit", noParamsJustError())
-	body = append(body, &goAst.ReturnStmt{
+	funcBody.body = append(funcBody.body, &goAst.ReturnStmt{
 		Results: []goAst.Expr{
 			&goAst.CallExpr{
 				Fun: &goAst.SelectorExpr{

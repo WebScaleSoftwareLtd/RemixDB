@@ -24,7 +24,17 @@ func Execute_hash_here(r interface {
 	return nil
 postIam:
 	;
-	body := r.Body()
-	println(body)
+	rawBody := r.Body()
+	var body *bool
+	if len(rawBody) != 1 || rawBody[0] != 0x00 {
+		if len(rawBody) != 1 || rawBody[0] != 0x01 && rawBody[0] != 0x02 {
+			r.RespondWithRemixDBException(400, "invalid_body", "Expected the type of a optional bool for the input.")
+			return nil
+		}
+		{
+			b := rawBody[0] == 0x02
+			body = &b
+		}
+	}
 	return r.Commit()
 }

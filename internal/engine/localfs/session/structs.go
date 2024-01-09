@@ -347,8 +347,12 @@ func (s *Session) AcquireStructObjectWriteLock(structName string, keys ...[]byte
 	l := s.getPartitionNamedLocks()
 
 	// Acquire the locks.
+	objectLockers := s.getObjectUnlockersMap(structName)
 	for _, key := range keys {
 		l.Lock(structName + " " + string(key))
+		objectLockers[string(key)] = func() {
+			l.Unlock(structName + " " + string(key))
+		}
 	}
 
 	// Return no errors since this can't error locally.
@@ -360,8 +364,10 @@ func (s *Session) ReleaseStructObjectWriteLock(structName string, keys ...[]byte
 	l := s.getPartitionNamedLocks()
 
 	// Release the locks.
+	objectLockers := s.getObjectUnlockersMap(structName)
 	for _, key := range keys {
 		l.Unlock(structName + " " + string(key))
+		delete(objectLockers, string(key))
 	}
 
 	// Return no errors since this can't error locally.
@@ -373,8 +379,12 @@ func (s *Session) AcquireStructObjectReadLock(structName string, keys ...[]byte)
 	l := s.getPartitionNamedLocks()
 
 	// Acquire the locks.
+	objectLockers := s.getObjectUnlockersMap(structName)
 	for _, key := range keys {
 		l.RLock(structName + " " + string(key))
+		objectLockers[string(key)] = func() {
+			l.RUnlock(structName + " " + string(key))
+		}
 	}
 
 	// Return no errors since this can't error locally.
@@ -386,8 +396,10 @@ func (s *Session) ReleaseStructObjectReadLock(structName string, keys ...[]byte)
 	l := s.getPartitionNamedLocks()
 
 	// Release the locks.
+	objectLockers := s.getObjectUnlockersMap(structName)
 	for _, key := range keys {
 		l.RUnlock(structName + " " + string(key))
+		delete(objectLockers, string(key))
 	}
 
 	// Return no errors since this can't error locally.
@@ -399,8 +411,12 @@ func (s *Session) AcquireStructReadLock(structNames ...string) error {
 	l := s.getPartitionNamedLocks()
 
 	// Acquire the lock.
+	structLockers := s.getStructUnlockersMap()
 	for _, structName := range structNames {
 		l.RLock(structName)
+		structLockers[structName] = func() {
+			l.RUnlock(structName)
+		}
 	}
 
 	// Return no errors since this can't error locally.
@@ -412,8 +428,10 @@ func (s *Session) ReleaseStructReadLock(structNames ...string) error {
 	l := s.getPartitionNamedLocks()
 
 	// Release the lock.
+	structLockers := s.getStructUnlockersMap()
 	for _, structName := range structNames {
 		l.RUnlock(structName)
+		delete(structLockers, structName)
 	}
 
 	// Return no errors since this can't error locally.
@@ -425,8 +443,12 @@ func (s *Session) AcquireStructWriteLock(structNames ...string) error {
 	l := s.getPartitionNamedLocks()
 
 	// Acquire the lock.
+	structLockers := s.getStructUnlockersMap()
 	for _, structName := range structNames {
 		l.Lock(structName)
+		structLockers[structName] = func() {
+			l.Unlock(structName)
+		}
 	}
 
 	// Return no errors since this can't error locally.
@@ -438,8 +460,10 @@ func (s *Session) ReleaseStructWriteLock(structNames ...string) error {
 	l := s.getPartitionNamedLocks()
 
 	// Release the lock.
+	structLockers := s.getStructUnlockersMap()
 	for _, structName := range structNames {
 		l.Unlock(structName)
+		delete(structLockers, structName)
 	}
 
 	// Return no errors since this can't error locally.

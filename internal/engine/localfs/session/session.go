@@ -34,6 +34,31 @@ type Session struct {
 
 	// Unlocker is used to unlock the partition.
 	Unlocker func()
+
+	openObjectUnlockers map[string]map[string]func()
+	openStructUnlockers map[string]func()
+}
+
+func (s *Session) getObjectUnlockersMap(structName string) map[string]func() {
+	if s.openObjectUnlockers == nil {
+		s.openObjectUnlockers = map[string]map[string]func(){}
+	}
+
+	unlockers, ok := s.openObjectUnlockers[structName]
+	if !ok {
+		unlockers = map[string]func(){}
+		s.openObjectUnlockers[structName] = unlockers
+	}
+
+	return unlockers
+}
+
+func (s *Session) getStructUnlockersMap() map[string]func() {
+	if s.openStructUnlockers == nil {
+		s.openStructUnlockers = map[string]func(){}
+	}
+
+	return s.openStructUnlockers
 }
 
 func (s *Session) ensureWriteLock() error {
@@ -56,6 +81,22 @@ func (s *Session) Close() error {
 	if err := s.Transaction.Rollback(); err != nil {
 		if err != acid.ErrAlreadyCommitted {
 			return err
+		}
+	}
+
+	// Handle any open object unlockers within the session.
+	if s.openObjectUnlockers != nil {
+		for _, structs := range s.openObjectUnlockers {
+			for _, unlocker := range structs {
+				unlocker()
+			}
+		}
+	}
+
+	// Handle any open struct unlockers within the session.
+	if s.openStructUnlockers != nil {
+		for _, unlocker := range s.openStructUnlockers {
+			unlocker()
 		}
 	}
 

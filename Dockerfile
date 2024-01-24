@@ -14,7 +14,7 @@ COPY --from=node-builder /frontend/dist ./frontend/dist
 RUN go generate ./...
 RUN GOOS=linux go build -o /app/remixdb ./cmd/remixdb
 
-FROM alpine:3.18
+FROM alpine:3
 RUN apk add --no-cache ca-certificates tzdata
 WORKDIR /app
 COPY --from=builder /app/remixdb /app/remixdb

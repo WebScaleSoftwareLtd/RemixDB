@@ -11,7 +11,6 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 COPY --from=node-builder /frontend/dist ./frontend/dist
-RUN go generate ./...
 RUN GOOS=linux go build -o /app/remixdb ./cmd/remixdb
 
 FROM alpine:3.18

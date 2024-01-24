@@ -180,14 +180,14 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/WebScaleSoftwareLtd/remixdb:${{ env.BUILD_TAG }}
+          tags: ghcr.io/webscalesoftwareltd/remixdb:${{ env.BUILD_TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Push to latest too if version
         if: github.ref == 'refs/tags/v*'
         run: |
-          docker tag ghcr.io/WebScaleSoftwareLtd/remixdb:${{ env.BUILD_TAG }} ghcr.io/WebScaleSoftwareLtd/remixdb:latest
-          docker push ghcr.io/WebScaleSoftwareLtd/remixdb:latest
+          docker tag ghcr.io/webscalesoftwareltd/remixdb:${{ env.BUILD_TAG }} ghcr.io/webscalesoftwareltd/remixdb:latest
+          docker push ghcr.io/webscalesoftwareltd/remixdb:latest
 
   release-tag:
     runs-on: ubuntu-22.04

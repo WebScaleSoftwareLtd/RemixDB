@@ -168,7 +168,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Get build hash
         if: github.ref == 'refs/heads/main'
-        run: echo "BUILD_TAG=${git rev-parse --short HEAD}' >> $GITHUB_ENV
+        run: echo 'BUILD_TAG=${git rev-parse --short HEAD}' >> $GITHUB_ENV
       - name: Get build tag
         if: github.ref == 'refs/tags/v*'
         run: echo 'BUILD_TAG=${GITHUB_REF/refs\/tags\//}' >> $GITHUB_ENV

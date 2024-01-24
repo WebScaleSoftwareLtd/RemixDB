@@ -146,3 +146,66 @@ jobs:
           ./run.sh
         env:
           VERSION: ${{ matrix.version }}
+
+  docker-publish:
+    runs-on: ubuntu-22.04
+    needs: [binary-build, integration-tests]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/tags/v*'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get build hash
+        if: github.ref == 'refs/heads/main'
+        run: echo 'BUILD_TAG=$(git rev-parse --short HEAD)' >> $GITHUB_ENV
+      - name: Get build tag
+        if: github.ref == 'refs/tags/v*'
+        run: echo 'BUILD_TAG=${GITHUB_REF/refs\/tags\//}' >> $GITHUB_ENV
+        env:
+          GITHUB_REF: ${{ github.ref }}
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/WebScaleSoftwareLtd/remixdb:${{ env.BUILD_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Push to latest too if version
+        if: github.ref == 'refs/tags/v*'
+        run: |
+          docker tag ghcr.io/WebScaleSoftwareLtd/remixdb:${{ env.BUILD_TAG }} ghcr.io/WebScaleSoftwareLtd/remixdb:latest
+          docker push ghcr.io/WebScaleSoftwareLtd/remixdb:latest
+
+  release-tag:
+    runs-on: ubuntu-22.04
+    needs: docker-publish
+    if: github.ref == 'refs/tags/v*'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get the tag
+        run: echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+        env:
+          GITHUB_REF: ${{ github.ref }}
+      - name: Set BODY_PATH to changelogs/${{ env.TAG }}.md if it exists
+        run: |
+          if [ -f changelogs/${{ env.TAG }}.md ]; then
+            echo "BODY_PATH=changelogs/${{ env.TAG }}.md" >> $GITHUB_ENV
+          fi
+      - uses: ncipollo/release-action@v1
+        with:
+          bodyFile: ${{ env.BODY_PATH }}

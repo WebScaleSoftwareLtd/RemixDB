@@ -156,6 +156,19 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+      - run: python create_publish_dockerfile.py mutate_dockerignore
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
+      - name: Build the frontend
+        run: cd frontend && npm ci && npm run build:prod
+
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -166,6 +179,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Get build hash
         if: github.ref == 'refs/heads/main'
         run: echo "BUILD_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
@@ -174,6 +188,7 @@ jobs:
         run: echo "BUILD_TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
         env:
           GITHUB_REF: ${{ github.ref }}
+
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
@@ -183,6 +198,8 @@ jobs:
           tags: ghcr.io/webscalesoftwareltd/remixdb:${{ env.BUILD_TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          file: Dockerfile.ghcr-deploy
+
       - name: Push to latest too if version
         if: github.ref == 'refs/tags/v*'
         run: |

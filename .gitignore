@@ -4,3 +4,4 @@ bin
 .idea
 frontend/dist/*
 !frontend/dist/MAKE_GO_NOT_ERROR
+Dockerfile.ghcr-deploy

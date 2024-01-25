@@ -5,12 +5,18 @@ RUN npm ci
 COPY frontend/ ./
 RUN npm run build:prod
 
+# Dockerfile.ghcr-deploy (used for the main image) is generated with everything under here.
+# This is done to make cross-arch builds faster, since the frontend build is quite slow.
+# See create_publish_dockerfile.py for the script that generates the Dockerfile.ghcr-deploy file.
+# -- PUBLISH DOCKERFILE START --
+
 FROM golang:1.21.6-alpine3.19 AS builder
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 COPY --from=node-builder /frontend/dist ./frontend/dist
+# -- ^ REMOVE IN PUBLISH DOCKERFILE ^ --
 RUN GOOS=linux go build -o /app/remixdb ./cmd/remixdb
 
 FROM alpine:3.19

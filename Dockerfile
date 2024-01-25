@@ -15,6 +15,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
+RUN rm frontend/dist/MAKE_GO_NOT_ERROR
 COPY --from=node-builder /frontend/dist ./frontend/dist
 # -- ^ REMOVE IN PUBLISH DOCKERFILE ^ --
 RUN GOOS=linux go build -o /app/remixdb ./cmd/remixdb

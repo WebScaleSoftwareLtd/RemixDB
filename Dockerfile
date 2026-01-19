@@ -20,7 +20,7 @@ COPY --from=node-builder /frontend/dist ./frontend/dist
 # -- ^ REMOVE IN PUBLISH DOCKERFILE ^ --
 RUN GOOS=linux go build -o /app/remixdb ./cmd/remixdb
 
-FROM alpine:3.19
+FROM alpine:3.23.2
 RUN apk add --no-cache ca-certificates tzdata
 WORKDIR /app
 COPY --from=builder /app/remixdb /app/remixdb
